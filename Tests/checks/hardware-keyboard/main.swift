@@ -256,7 +256,7 @@ do {
     t.apply(.toggle)
     check("again with the drawer still open: let go (the keyboard's hold waits for it to close)", t.actions == [.letGo])
 }
-// setKeyboard(shown: true) over the keyboard's hold (DEBUG -SillKeyboard 1, a restore): the person's.
+// setKeyboard(shown: true) over the keyboard's hold (DEBUG -SkopryKeyboard 1, a restore): the person's.
 do {
     var s = run([.join])
     s.actions = []

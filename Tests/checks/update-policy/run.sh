@@ -1,5 +1,5 @@
 #!/bin/bash
-# UpdatePolicy (Sources/SillMenuBar), Sill.app's update check: what each answer from GitHub's
+# UpdatePolicy (Sources/SkopryMenuBar), Skopry.app's update check: what each answer from GitHub's
 # releases feed means (every row of the plan's section 6.4), the offer, the schedule, the feeds and
 # pages it accepts, and every text (docs/update-notice-plan.md, section 6).
 # Compiled with StreamProtocol's sources as one module (build.sh strips `import StreamProtocol`).

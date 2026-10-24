@@ -1,6 +1,6 @@
 import Foundation
 
-// Encoder-free check of EncoderSlowState (the real Sources/SillHost/EncoderSlowState.swift, compiled
+// Encoder-free check of EncoderSlowState (the real Sources/SkopryHost/EncoderSlowState.swift, compiled
 // beside this file): when a hardware stream's session is replaced for the slow state, and how the
 // new session is judged. Part one feeds it events by hand at its edges; part two runs streams in
 // virtual time through a stand-in for HEVCEncoder's glue (one frame inside, a one-slot mailbox, a
@@ -9,7 +9,7 @@ import Foundation
 //
 //   Tests/checks/encoder-slowstate/run.sh [--mutants]
 // or by hand, from the repository's root:
-//   swiftc -O Sources/SillHost/EncoderSlowState.swift Tests/checks/encoder-slowstate/main.swift -o .build/slowstate-check && .build/slowstate-check
+//   swiftc -O Sources/SkopryHost/EncoderSlowState.swift Tests/checks/encoder-slowstate/main.swift -o .build/slowstate-check && .build/slowstate-check
 
 var checks = 0, failures = 0
 var scenarioName = ""

@@ -18,7 +18,7 @@
 # Everything builds under .build/menu-check/. The fixture runs with the prohibited policy and cannot
 # take the front; `lsappinfo front` is sampled every 0.1 s through each run, and a change fails it.
 # Needs Accessibility for the process that runs it (the terminal, or the app that started it). Safe
-# while Sill.app streams: no binary here links VideoToolbox (checked with otool), nothing listens,
+# while Skopry.app streams: no binary here links VideoToolbox (checked with otool), nothing listens,
 # and the host's gates through a synthetic host (H2, H4–H11, H14, H15) are not here: they encode.
 set -u
 ROOT=${0:A:h:h:h}

@@ -17,11 +17,11 @@ M = [
 caught = 0
 for name, old, new in M:
     with tempfile.TemporaryDirectory() as t:
-        src = open(os.path.join(WT, "Sources/SillHost/OriginPolicy.swift")).read()
+        src = open(os.path.join(WT, "Sources/SkopryHost/OriginPolicy.swift")).read()
         if old not in src: print(f"{name}: NOT APPLIED"); continue
         open(os.path.join(t, "OriginPolicy.swift"), "w").write(src.replace(old, new, 1))
         exe = os.path.join(t, "c")
-        r = subprocess.run(["swiftc", "-O", os.path.join(t, "OriginPolicy.swift"), os.path.join(WT, "Sources/SillHost/InterfaceSnapshot.swift"),
+        r = subprocess.run(["swiftc", "-O", os.path.join(t, "OriginPolicy.swift"), os.path.join(WT, "Sources/SkopryHost/InterfaceSnapshot.swift"),
                             os.path.join(HERE, "main.swift"), "-o", exe], capture_output=True, text=True)
         if r.returncode: print(f"{name}: did not compile {r.stderr[:300]}"); continue
         out = subprocess.run([exe], capture_output=True, text=True).stdout

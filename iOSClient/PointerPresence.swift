@@ -2,8 +2,8 @@ import CoreGraphics
 import Foundation
 
 // The pointer on the device (docs/pointer-visibility-plan.md §7). Noah, 2026-09-25: "When the Mac is
-// controlling the mouse pointer, it should show the real mouse pointer on the desktop on Sill. When
-// Sill is controlling the Mac, continue to hide the real pointer and only render the client side one
+// controlling the mouse pointer, it should show the real mouse pointer on the desktop on Skopry. When
+// Skopry is controlling the Mac, continue to hide the real pointer and only render the client side one
 // in portrait mode when the trackpad is used." So the one sprite shows the Mac's pointer while the Mac
 // (its own mouse or trackpad, or an app warping it) or another device moved it last, and this device's
 // own only on the portrait trackpad. The Mac tells where its pointer is with kind 26 (MacPointer),
@@ -51,7 +51,7 @@ struct PointerPresence: Equatable {
     /// Something streams (`client.active != .none`).
     var streaming = false
     /// Q2: the Pencil draws no pointer, hovering or touching (the request, by its letter). True draws
-    /// it again, in any layout (the harness's `-SillPencilPointer 1`).
+    /// it again, in any layout (the harness's `-SkopryPencilPointer 1`).
     var pencilShowsPointer = PointerPresence.pencilShowsPointerByDefault
     /// Q1: the trackpad's pointer stays until another input takes over: in the laptop layout it is the
     /// only way to aim a tap. A number of seconds hides it that long after the last finger lifts.

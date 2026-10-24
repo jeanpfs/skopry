@@ -1,9 +1,9 @@
 #!/bin/bash
-# Makes the build of Sill for iPhone and iPad that goes to App Store Connect (TestFlight, then the
-# App Store): a Release archive of iOSClient/Sill.xcodeproj, signed for App Store Connect and
+# Makes the build of Skopry for iPhone and iPad that goes to App Store Connect (TestFlight, then the
+# App Store): a Release archive of iOSClient/Skopry.xcodeproj, signed for App Store Connect and
 # exported as an .ipa on this Mac, or uploaded.
 #
-#   Scripts/release-ios.sh                    archive, export and check .build/ios/export/Sill.ipa;
+#   Scripts/release-ios.sh                    archive, export and check .build/ios/export/Skopry.ipa;
 #                                             nothing goes to App Store Connect
 #   Scripts/release-ios.sh --upload           the same, then the archive goes to App Store Connect,
 #                                             where it becomes a TestFlight build
@@ -31,7 +31,7 @@
 # in Xcode › Settings › Accounts, or through the API key. The first export (2026-09-26, this
 # script's rehearsal) made a cloud-managed Apple Distribution certificate, whose private key stays
 # with Apple (nothing went into the keychain), and the profile "iOS Team Store Provisioning
-# Profile: me.saffer.sill"; later exports reuse both, and Xcode renews them. An archive made
+# Profile: app.skopry"; later exports reuse both, and Xcode renews them. An archive made
 # without signing exports the same way, with the same entitlements: --sign-at-export.
 #
 # Uploading needs the app's record in App Store Connect (docs/release-checklist.md, TestFlight) and
@@ -46,7 +46,7 @@
 #
 # Why each step:
 # - Xcode 27.1 or a later Xcode 27, or nothing: App Store Connect takes builds made with a current
-#   SDK only, the project, CI and Sill for Mac are all built with Xcode 27, and the app needs the iOS
+#   SDK only, the project, CI and Skopry for Mac are all built with Xcode 27, and the app needs the iOS
 #   27.1 SDK (`xcode_minimum`): its iPhone Duo layouts read the hinge and the fold through it, and an
 #   app built with the 27.0 SDK runs on the Duo in a compatibility window (871×669, sideways only;
 #   docs/iphone-duo-plan.md). The .ipa's app must say it was built with that SDK (DTPlatformVersion).
@@ -82,15 +82,15 @@ usage: Scripts/release-ios.sh [--bump] [--upload] [--sign-at-export] [--api-key 
        Scripts/release-ios.sh --privacy-report [ARCHIVE]
 
   (no option)
-      archives Sill for iPhone and iPad (Release, generic/platform=iOS) into .build/ios/Sill.xcarchive,
-      exports it for App Store Connect into .build/ios/export/Sill.ipa and checks the .ipa.
+      archives Skopry for iPhone and iPad (Release, generic/platform=iOS) into .build/ios/Skopry.xcarchive,
+      exports it for App Store Connect into .build/ios/export/Skopry.ipa and checks the .ipa.
       Nothing goes to App Store Connect.
   --upload
       then uploads the archive to App Store Connect, where it becomes a TestFlight build. It needs
-      the app's record there (bundle ID me.saffer.sill) and a build number not uploaded before.
+      the app's record there (bundle ID app.skopry) and a build number not uploaded before.
       Refuses when the working tree has changes.
   --bump
-      first adds 1 to CURRENT_PROJECT_VERSION in iOSClient/Sill.xcodeproj and commits that alone
+      first adds 1 to CURRENT_PROJECT_VERSION in iOSClient/Skopry.xcodeproj and commits that alone
       ("iOS: build N of version V"). Refuses when the working tree has changes.
   --api-key PATH --api-issuer ID [--api-key-id ID]
       an App Store Connect API key (App Store Connect › Users and Access › Integrations › App Store
@@ -103,13 +103,13 @@ usage: Scripts/release-ios.sh [--bump] [--upload] [--sign-at-export] [--api-key 
       always does. For a Mac or runner without a development certificate, such as the TestFlight
       workflow's.
   --unsigned
-      archives without signing and zips the app as .build/ios/export/Sill-unsigned.ipa, then
+      archives without signing and zips the app as .build/ios/export/Skopry-unsigned.ipa, then
       checks it: no Apple Account or certificate needed, and the result can be neither installed
       nor uploaded. For CI without the API key.
   --print-version
       prints the version and build the next archive gets, such as 0.5 (1), and exits.
   --privacy-report [ARCHIVE]
-      prints what the privacy manifests in ARCHIVE (default .build/ios/Sill.xcarchive) declare and
+      prints what the privacy manifests in ARCHIVE (default .build/ios/Skopry.xcarchive) declare and
       which required-reason APIs its binary uses, and how to make Xcode's privacy report (a PDF,
       made only by the Organizer).
   -v, --verbose
@@ -120,17 +120,17 @@ docs/release-checklist.md, "TestFlight", has the App Store Connect side.
 USAGE
 }
 
-project=iOSClient/Sill.xcodeproj
+project=iOSClient/Skopry.xcodeproj
 pbxproj="$project/project.pbxproj"
-scheme=Sill
-bundle_id=me.saffer.sill
+scheme=Skopry
+bundle_id=app.skopry
 team=9B2KKVM937
 xcode_major=27
 xcode_minimum=27.1   # the iOS 27.1 SDK: the iPhone Duo's hinge and fold (docs/iphone-duo-plan.md)
 export_options=Packaging/ExportOptions-appstore.plist
-links=iOSClient/SillLinks.swift
+links=iOSClient/SkopryLinks.swift
 out=.build/ios
-archive="$out/Sill.xcarchive"
+archive="$out/Skopry.xcarchive"
 export_dir="$out/export"
 
 verbose=0
@@ -183,11 +183,11 @@ xcode_problem() {
     if [ -z "$info" ]; then
         echo "xcodebuild doesn't answer (the developer directory is $dir). Select Xcode $xcode_minimum or later: sudo xcode-select -s /Applications/Xcode.app"
     elif [ "${version%%.*}" != "$xcode_major" ] || ! version_at_least "$version" "$xcode_minimum"; then
-        echo "The selected Xcode is $version ($dir), and Sill for iPhone and iPad is built for App Store Connect with Xcode $xcode_minimum or a later Xcode $xcode_major (the iOS $xcode_minimum SDK, which the iPhone Duo's layouts need). Select it with sudo xcode-select -s /Applications/Xcode.app, or for one run: DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer Scripts/release-ios.sh"
+        echo "The selected Xcode is $version ($dir), and Skopry for iPhone and iPad is built for App Store Connect with Xcode $xcode_minimum or a later Xcode $xcode_major (the iOS $xcode_minimum SDK, which the iPhone Duo's layouts need). Select it with sudo xcode-select -s /Applications/Xcode.app, or for one run: DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer Scripts/release-ios.sh"
     fi
 }
 
-# Every value the project gives the build setting $1, one per line, without quotes: the Sill
+# Every value the project gives the build setting $1, one per line, without quotes: the Skopry
 # target's Debug and Release configurations set MARKETING_VERSION and CURRENT_PROJECT_VERSION.
 setting_values() {
     sed -n -E "s/^[[:space:]]*$1 = \"?([^\";]*)\"?;[[:space:]]*\$/\1/p" "$pbxproj" | sort -u
@@ -203,7 +203,7 @@ project_setting() {
         return 1
     fi
     if [ "$(printf '%s\n' "$values" | wc -l | tr -d ' ')" != 1 ]; then
-        echo "$pbxproj sets $key to $(printf '%s\n' "$values" | paste -s -d ',' - | sed 's/,/ and /g') in different configurations; give Debug and Release of the target Sill the same value (General › Identity)." >&2
+        echo "$pbxproj sets $key to $(printf '%s\n' "$values" | paste -s -d ',' - | sed 's/,/ and /g') in different configurations; give Debug and Release of the target Skopry the same value (General › Identity)." >&2
         return 1
     fi
     printf '%s\n' "$values"
@@ -245,7 +245,7 @@ check_committed() {
 bump_build() {
     local version="$1" build="$2" next others
     if ! [[ "$build" =~ ^[0-9]+$ ]]; then
-        fail "--bump adds 1 to a whole number, and CURRENT_PROJECT_VERSION is '$build'. Set the next number in Xcode (target Sill › General › Build) and commit it. Nothing was changed."
+        fail "--bump adds 1 to a whole number, and CURRENT_PROJECT_VERSION is '$build'. Set the next number in Xcode (target Skopry › General › Build) and commit it. Nothing was changed."
     fi
     next=$((10#$build + 1))
     sed -i '' -E "s/^([[:space:]]*CURRENT_PROJECT_VERSION = )\"?$build\"?;[[:space:]]*\$/\1$next;/" "$pbxproj"
@@ -344,7 +344,7 @@ check_app() {
     [ "$value" = false ] || fail "$app's ITSAppUsesNonExemptEncryption is $value, not NO: every build would wait on Missing Compliance (iOSClient/Info.plist; docs/app-store-metadata.md §6)."
     plist_value NSLocalNetworkUsageDescription "$plist" >/dev/null || fail "$app has no NSLocalNetworkUsageDescription: iOS would never ask for Local Network access."
     value="$(plist_value NSBonjourServices "$plist")" || value=""
-    grep -F '_sill._tcp' >/dev/null <<<"$value" || fail "$app's NSBonjourServices lacks _sill._tcp: the device would find no Mac."
+    grep -F '_skopry._tcp' >/dev/null <<<"$value" || fail "$app's NSBonjourServices lacks _skopry._tcp: the device would find no Mac."
     plist_value NSCameraUsageDescription "$plist" >/dev/null || fail "$app has no NSCameraUsageDescription: Add a Mac…'s scanner would crash it."
     [ -f "$app/PrivacyInfo.xcprivacy" ] || fail "$app has no PrivacyInfo.xcprivacy: App Store Connect refuses an upload whose required-reason APIs aren't declared (ITMS-91053)."
     plutil -lint -s "$app/PrivacyInfo.xcprivacy" || fail "$app/PrivacyInfo.xcprivacy is not a valid property list."
@@ -352,7 +352,7 @@ check_app() {
     [ -n "$value" ] && version_at_least "$value" "$xcode_minimum" \
         || fail "$app was built with the iOS ${value:-(unknown)} SDK, and the iPhone Duo's layouts need the iOS $xcode_minimum SDK (Xcode $xcode_minimum; docs/iphone-duo-plan.md)."
     if [ "$quiet" = 0 ]; then
-        say "Checked its Sill.app: $version ($build), $bundle_id, the iOS $value SDK, ITSAppUsesNonExemptEncryption NO, the Local Network, Bonjour (_sill._tcp) and camera entries, PrivacyInfo.xcprivacy"
+        say "Checked its Skopry.app: $version ($build), $bundle_id, the iOS $value SDK, ITSAppUsesNonExemptEncryption NO, the Local Network, Bonjour (_skopry._tcp) and camera entries, PrivacyInfo.xcprivacy"
     fi
 }
 
@@ -412,7 +412,7 @@ declared_categories() {
 # and a warning naming each API that no manifest declares.
 check_required_reasons() {
     local app="$1" bin symbols selectors declared categories kind name shown used="" missing="" alternative covered
-    bin="$app/$(plist_value CFBundleExecutable "$app/Info.plist" || echo Sill)"
+    bin="$app/$(plist_value CFBundleExecutable "$app/Info.plist" || echo Skopry)"
     symbols="$(nm -u "$bin" 2>/dev/null | sed 's/^_//' || true)"
     selectors="$(otool -v -s __TEXT __objc_methname "$bin" 2>/dev/null | tr -s ' \t' '\n\n' || true)"
     declared="$(declared_categories "$app")"
@@ -503,10 +503,10 @@ REPORT
 # check_app and the required-reason check. Prints one line with the size, signer and profile.
 check_ipa() {
     local ipa="$1" version="$2" build="$3" app details authority entitlements profile name kind expires size value problems=""
-    unpacked="$(mktemp -d "${TMPDIR:-/tmp}/sill-ipa.XXXXXX")"
+    unpacked="$(mktemp -d "${TMPDIR:-/tmp}/skopry-ipa.XXXXXX")"
     ditto -x -k "$ipa" "$unpacked"
-    app="$unpacked/Payload/Sill.app"
-    [ -d "$app" ] || fail "$ipa holds no Payload/Sill.app."
+    app="$unpacked/Payload/Skopry.app"
+    [ -d "$app" ] || fail "$ipa holds no Payload/Skopry.app."
     codesign --verify --strict --deep "$app" || fail "codesign can't verify the app in $ipa."
     details="$(codesign -dvv "$app" 2>&1)"
     authority="$(awk '/^Authority=/ { print substr($0, 11); exit }' <<<"$details")"
@@ -577,7 +577,7 @@ make_archive() {
     if [ "$archived_version ($archived_build)" != "$version ($build)" ]; then
         fail "the archive is $archived_version ($archived_build), but the project says $version ($build)."
     fi
-    check_app "$archive/Products/Applications/Sill.app" "$version" "$build" 1
+    check_app "$archive/Products/Applications/Skopry.app" "$version" "$build" 1
     identity="$(plist_value ApplicationProperties:SigningIdentity "$archive/Info.plist")" || identity=""
     if [ "$signed" = 1 ] && [ -n "$identity" ]; then
         say "Archived $archived_version ($archived_build), signed by $identity for now; the export signs it for App Store Connect"
@@ -586,7 +586,7 @@ make_archive() {
     fi
 }
 
-# SillLinks.appStoreText, the link under a Mac's update notice: the placeholder only warns (no link
+# SkopryLinks.appStoreText, the link under a Mac's update notice: the placeholder only warns (no link
 # shows), and anything else must be an App Store address, such as
 # https://apps.apple.com/app/id6712345678: the app would show a mistyped one as a link to nowhere.
 check_app_store_address() {
@@ -675,20 +675,20 @@ main() {
 
     local info
     info="$(xcode_version)"
-    say "Sill for iPhone and iPad $version ($build), $bundle_id, team $team, Xcode ${info%% *} (${info#* })"
+    say "Skopry for iPhone and iPad $version ($build), $bundle_id, team $team, Xcode ${info%% *} (${info#* })"
     mkdir -p "$out"
     rm -rf "$archive"
 
     if [ "$unsigned" = 1 ]; then
         make_archive 0 "$version" "$build" "not signed"
-        local app="$archive/Products/Applications/Sill.app" ipa="$export_dir/Sill-unsigned.ipa" stage
+        local app="$archive/Products/Applications/Skopry.app" ipa="$export_dir/Skopry-unsigned.ipa" stage
         check_app "$app" "$version" "$build"
         check_required_reasons "$app"
         rm -rf "$export_dir"
         mkdir -p "$export_dir"
-        stage="$(mktemp -d "${TMPDIR:-/tmp}/sill-payload.XXXXXX")"
+        stage="$(mktemp -d "${TMPDIR:-/tmp}/skopry-payload.XXXXXX")"
         mkdir "$stage/Payload"
-        ditto "$app" "$stage/Payload/Sill.app"
+        ditto "$app" "$stage/Payload/Skopry.app"
         (cd "$stage" && ditto -c -k --keepParent Payload payload.zip)
         mv "$stage/payload.zip" "$ipa"
         rm -rf "$stage"
@@ -707,13 +707,13 @@ main() {
     run_logged "$out/export.log" xcodebuild -exportArchive -archivePath "$archive" -exportPath "$export_dir" \
         -exportOptionsPlist "$export_options" -allowProvisioningUpdates ${auth[@]+"${auth[@]}"} \
         || { explain_failure "$out/export.log" "The export"; exit 1; }
-    [ -f "$export_dir/Sill.ipa" ] || fail "the export succeeded but left no $export_dir/Sill.ipa (see $out/export.log)."
-    check_ipa "$export_dir/Sill.ipa" "$version" "$build"
+    [ -f "$export_dir/Skopry.ipa" ] || fail "the export succeeded but left no $export_dir/Skopry.ipa (see $out/export.log)."
+    check_ipa "$export_dir/Skopry.ipa" "$version" "$build"
 
     if [ "$upload" = 0 ]; then
         cat <<NEXT
 
-Sill $version ($build) is exported, signed for App Store Connect: $export_dir/Sill.ipa. Nothing was uploaded.
+Skopry $version ($build) is exported, signed for App Store Connect: $export_dir/Skopry.ipa. Nothing was uploaded.
 To send it to TestFlight: Scripts/release-ios.sh --upload (it archives again). Once App Store Connect
 has a build $build of $version, the next upload needs --bump.
 NEXT
@@ -723,12 +723,12 @@ NEXT
     local options="$out/ExportOptions-upload.plist"
     cp "$export_options" "$options"
     /usr/libexec/PlistBuddy -c 'Set :destination upload' "$options"
-    say "Uploading Sill $version ($build) to App Store Connect with $signer (log: $out/upload.log)"
+    say "Uploading Skopry $version ($build) to App Store Connect with $signer (log: $out/upload.log)"
     rm -rf "$out/upload"
     run_logged "$out/upload.log" xcodebuild -exportArchive -archivePath "$archive" -exportPath "$out/upload" \
         -exportOptionsPlist "$options" -allowProvisioningUpdates ${auth[@]+"${auth[@]}"} \
         || { explain_failure "$out/upload.log" "The upload"; exit 1; }
-    say "Uploaded Sill $version ($build). App Store Connect processes it (usually 5 to 30 minutes, then an email), and it shows under TestFlight"
+    say "Uploaded Skopry $version ($build). App Store Connect processes it (usually 5 to 30 minutes, then an email), and it shows under TestFlight"
     cat <<NEXT
 
 Next (docs/release-checklist.md, TestFlight): internal testers get it once processed; an external

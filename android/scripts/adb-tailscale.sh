@@ -7,12 +7,12 @@
 #   scripts/adb-tailscale.sh scan               the TCP ports open on the phone in 30000-50000 (the adb ones are among them)
 #   scripts/adb-tailscale.sh off                disconnect
 #
-# The phone is the tailnet's Android peer; SILL_PHONE=100.x.y.z (or a MagicDNS name) picks another.
+# The phone is the tailnet's Android peer; SKOPRY_PHONE=100.x.y.z (or a MagicDNS name) picks another.
 # Wireless debugging's port changes each time it is switched on, so `connect` finds it by trying what is open.
 set -euo pipefail
 
 phone() {
-    if [ -n "${SILL_PHONE:-}" ]; then echo "$SILL_PHONE"; return; fi
+    if [ -n "${SKOPRY_PHONE:-}" ]; then echo "$SKOPRY_PHONE"; return; fi
     tailscale status --json | python3 -c '
 import json, sys
 peers = json.load(sys.stdin).get("Peer", {}).values()

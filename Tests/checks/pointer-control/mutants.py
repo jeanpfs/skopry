@@ -1,21 +1,21 @@
-"""H3 (docs/pointer-visibility-plan.md) mutants of PointerControl.swift (Sources/SillHost) and of kind 26
+"""H3 (docs/pointer-visibility-plan.md) mutants of PointerControl.swift (Sources/SkopryHost) and of kind 26
 in StreamProtocol (Pointer.swift, StreamMessage.swift): each changes one file in one place, is compiled
 with the check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, shutil, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-CONTROL = "Sources/SillHost/PointerControl.swift"
+CONTROL = "Sources/SkopryHost/PointerControl.swift"
 POINTER = "Sources/StreamProtocol/Pointer.swift"
 MESSAGE = "Sources/StreamProtocol/StreamMessage.swift"
 MUTANTS = [
     # The settle
-    ("no settle after a pointer input", CONTROL, "        if movesPointer { sillUntil = max(sillUntil, now + Self.settle) }\n", ""),
-    ("keys and text open the settle", CONTROL, "if movesPointer { sillUntil", "if true || movesPointer { sillUntil"),
-    ("sillMoved opens no settle", CONTROL, "    mutating func sillMoved(now: Double) {\n        sillUntil = max(sillUntil, now + Self.settle)\n",
-     "    mutating func sillMoved(now: Double) {\n"),
-    ("a later note cuts the settle short (no max)", CONTROL, "    mutating func sillMoved(now: Double) {\n        sillUntil = max(sillUntil, now + Self.settle)\n",
-     "    mutating func sillMoved(now: Double) {\n        sillUntil = now + Self.settle\n"),
-    ("the settle's end is inside it", CONTROL, "        if now < sillUntil {", "        if now <= sillUntil {"),
-    ("the settle does not follow Sill's motion", CONTROL, "        if now < sillUntil {\n            last = p\n", "        if now < sillUntil {\n"),
+    ("no settle after a pointer input", CONTROL, "        if movesPointer { skopryUntil = max(skopryUntil, now + Self.settle) }\n", ""),
+    ("keys and text open the settle", CONTROL, "if movesPointer { skopryUntil", "if true || movesPointer { skopryUntil"),
+    ("skopryMoved opens no settle", CONTROL, "    mutating func skopryMoved(now: Double) {\n        skopryUntil = max(skopryUntil, now + Self.settle)\n",
+     "    mutating func skopryMoved(now: Double) {\n"),
+    ("a later note cuts the settle short (no max)", CONTROL, "    mutating func skopryMoved(now: Double) {\n        skopryUntil = max(skopryUntil, now + Self.settle)\n",
+     "    mutating func skopryMoved(now: Double) {\n        skopryUntil = now + Self.settle\n"),
+    ("the settle's end is inside it", CONTROL, "        if now < skopryUntil {", "        if now <= skopryUntil {"),
+    ("the settle does not follow Skopry's motion", CONTROL, "        if now < skopryUntil {\n            last = p\n", "        if now < skopryUntil {\n"),
     # A real move
     ("`last` moved at every read (a slow drift never hands over)", CONTROL,
      "guard hypot(p.x - from.x, p.y - from.y) >= Self.minMove else { return false }",

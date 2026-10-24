@@ -36,7 +36,7 @@ final class MessageReader {
         /// The connection ended (EOF: the Mac closed it) or failed (the error), between messages or
         /// in the middle of one.
         case closed(NWError?)
-        /// A header announced more than a Sill host ever sends: nothing after it was read.
+        /// A header announced more than a Skopry host ever sends: nothing after it was read.
         case tooBig(StreamHeader)
     }
 
@@ -80,7 +80,7 @@ final class MessageReader {
                 return
             }
             onBytes(data.count)
-            // Nothing a Sill host sends is bigger than these (docs/remote-access-plan.md §3.7). A
+            // Nothing a Skopry host sends is bigger than these (docs/remote-access-plan.md §3.7). A
             // reader that waited for whatever a header announces could be held for ever, or read
             // an SSH banner as a 1.7 GB payload.
             let cap = header.kind == .frame ? StreamMessage.maxFramePayload : StreamMessage.maxOtherHostPayload

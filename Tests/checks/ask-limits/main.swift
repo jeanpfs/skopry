@@ -69,18 +69,18 @@ if case .closed(let r) = win.tryProof(method: "qr", proof: Data(), fpDevice: key
 
 // The test override.
 let t = AskLimits(seconds: 5)
-check("SILL_TEST_ASK_QUIET's seconds replace both 600 s", t.quietSeconds == 5 && t.spanSeconds == 5)
+check("SKOPRY_TEST_ASK_QUIET's seconds replace both 600 s", t.quietSeconds == 5 && t.spanSeconds == 5)
 var t2 = AskLimits(seconds: 5)
 t2.closedUnused(fingerprint: keyA, source: x, now: 0); t2.opened(now: 0)
 check("with 5 s: quiet at 4.9, not at 5; the window counts at 4.9, not at 5",
       t2.quiet(fingerprint: keyA, source: x, now: 4.9) && !t2.quiet(fingerprint: keyA, source: x, now: 5)
       && t2.recentWindows(now: 4.9) == 1 && t2.recentWindows(now: 5) == 0)
-let env = ["SILL_TEST_ASK_QUIET": "5"]
-check("SILL_TEST_ASK_QUIET on a test host", AskLimits.testSeconds(testHost: true, environment: env) == 5
-      && AskLimits.testSeconds(testHost: true, environment: ["SILL_TEST_ASK_QUIET": "2.5"]) == 2.5)
-check("SILL_TEST_ASK_QUIET ignored by a host that is not a test host", AskLimits.testSeconds(testHost: false, environment: env) == nil)
-check("SILL_TEST_ASK_QUIET: a positive finite number only",
-      ["0", "-1", "abc", "", "inf", "nan", "1e400"].allSatisfy { AskLimits.testSeconds(testHost: true, environment: ["SILL_TEST_ASK_QUIET": $0]) == nil }
+let env = ["SKOPRY_TEST_ASK_QUIET": "5"]
+check("SKOPRY_TEST_ASK_QUIET on a test host", AskLimits.testSeconds(testHost: true, environment: env) == 5
+      && AskLimits.testSeconds(testHost: true, environment: ["SKOPRY_TEST_ASK_QUIET": "2.5"]) == 2.5)
+check("SKOPRY_TEST_ASK_QUIET ignored by a host that is not a test host", AskLimits.testSeconds(testHost: false, environment: env) == nil)
+check("SKOPRY_TEST_ASK_QUIET: a positive finite number only",
+      ["0", "-1", "abc", "", "inf", "nan", "1e400"].allSatisfy { AskLimits.testSeconds(testHost: true, environment: ["SKOPRY_TEST_ASK_QUIET": $0]) == nil }
       && AskLimits.testSeconds(testHost: true, environment: [:]) == nil)
 check("AskLimits(seconds: nil) is the default", AskLimits(seconds: nil).quietSeconds == 600 && AskLimits(seconds: nil).spanSeconds == 600)
 

@@ -1,19 +1,19 @@
-# Sill for Android
+# Skopry for Android
 
-The client half of Sill for Android phones, tablets and foldables: a Mac window, or the whole
+The client half of Skopry for Android phones, tablets and foldables: a Mac window, or the whole
 Desktop, on the device, used with touch, a trackpad, a keyboard, a mouse or the S Pen. It speaks
-the same wire protocol as the iPhone and iPad app (`Sources/StreamProtocol`), so **Sill for Mac
-needs no change to serve it**: any Sill for Mac from 0.4.0 on (TLS doors with pairing).
+the same wire protocol as the iPhone and iPad app (`Sources/StreamProtocol`), so **Skopry for Mac
+needs no change to serve it**: any Skopry for Mac from 0.4.0 on (TLS doors with pairing).
 
 ## Using it over Tailscale
 
-1. On the Mac: Sill for Mac with **Remote Access** on (Sill › Settings › Remote Access), and
+1. On the Mac: Skopry for Mac with **Remote Access** on (Skopry › Settings › Remote Access), and
    Tailscale running.
 2. On the Android device: the Tailscale app, signed in to the same tailnet.
-3. On the Mac, choose **Pair iPhone or iPad…** in Sill's menu. Its window shows a QR code, a
+3. On the Mac, choose **Pair iPhone or iPad…** in Skopry's menu. Its window shows a QR code, a
    12-digit code and the address to type (the Mac's MagicDNS name, `mac.tailXXXX.ts.net`, with
    its `100.x` address under it).
-4. In Sill on Android, **Add a Mac**: tap **Scan Code**, or type the address and the code, then
+4. In Skopry on Android, **Add a Mac**: tap **Scan Code**, or type the address and the code, then
    **Pair**. The device pairs once and connects; from then on a tap on the Mac connects, from
    anywhere on the tailnet.
 
@@ -103,12 +103,12 @@ which holds about 38 characters a second (`BackspaceRepeat`). Taps, at any speed
 
 ## Switching to another Android app
 
-While a session is open, Sill runs a foreground service (the ongoing "Sill is connected to your Mac"
+While a session is open, Skopry runs a foreground service (the ongoing "Skopry is connected to your Mac"
 notification) so the connection survives another app being in front: Samsung's freezer otherwise aborted the
 socket about 5 s after the app left the screen and the stream reconnected from the start. The decoder keeps
 decoding without showing, so the picture is there at once on return and the Mac's resolution is untouched. A
 session left in the background for 90 s is closed (the Mac stops streaming to nobody) and reconnects on return.
-On Android 13+ allow notifications for Sill if you want the notification shown; the service runs either way.
+On Android 13+ allow notifications for Skopry if you want the notification shown; the service runs either way.
 
 ## Install and debug without a cable (Tailscale)
 
@@ -139,7 +139,7 @@ used), which is where the first opening of a rail or the deck drops frames:
 ```
 ./gradlew assembleRelease
 adb install -r app/build/outputs/apk/release/app-release.apk
-adb shell cmd package compile -m speed -f me.saffer.sill.android
+adb shell cmd package compile -m speed -f app.skopry.android
 ```
 
 Measured on a Z Fold8 opening and closing the side rails 8 times over a stream, three runs each:
@@ -159,10 +159,10 @@ with any of this.
 | Android | iOS / shared |
 |---|---|
 | `protocol/Wire.kt`, `Payloads.kt`, `Blobs.kt` | `StreamMessage.swift` and the JSON of `Switcher`, `Input`, `Viewport`, `HostSettings`, `Remote`, `Compatibility`, `Pointer`, `MacMenu`, `Gesture` |
-| `crypto/Pairing.kt` | `Pairing.swift`, `RemoteIdentity.swift` (Mac ID, SPKI pins, Damm code, PBKDF2 and HMAC proofs, the recognition tag, `sill://pair`) |
-| `crypto/Identity.kt` | `DeviceIdentity`, `RemoteTLS.swift`: a P-256 key in the Android Keystore, TLS 1.3, one ALPN, SNI `sill`, the Mac's key pinned inside the handshake |
+| `crypto/Pairing.kt` | `Pairing.swift`, `RemoteIdentity.swift` (Mac ID, SPKI pins, Damm code, PBKDF2 and HMAC proofs, the recognition tag, `skopry://pair`) |
+| `crypto/Identity.kt` | `DeviceIdentity`, `RemoteTLS.swift`: a P-256 key in the Android Keystore, TLS 1.3, one ALPN, SNI `skopry`, the Mac's key pinned inside the handshake |
 | `net/Pairer.kt`, `Session.kt`, `SavedMacs.kt`, `HomeDiscovery.kt` | `StreamClient`, `StreamClient+Remote`, `StreamClient+Home`, `RemoteConnector`, `RemoteDialPolicy`, `SavedMacs`, `MessageReader` |
-| `client/SillClient.kt` | `StreamClient`: the session's life, the catalog, kinds 0–28, `GoodbyePolicy`, the reconnect |
+| `client/SkopryClient.kt` | `StreamClient`: the session's life, the catalog, kinds 0–28, `GoodbyePolicy`, the reconnect |
 | `client/SettingsLedger.kt`, `MenuState.kt`, `Keys.kt` | `HostSettingsLedger`, `MacMenuState`, `KeyChords` |
 | `video/VideoDecoder.kt` | `HEVCDisplayView`: MediaCodec HEVC, Annex B, rendered as decoded |
 | `ui/input/*` | `InputOverlay`, `TrackpadView`, `TrackpadGestures`, `ScrollMomentum` (the same thresholds) |
@@ -171,7 +171,7 @@ with any of this.
 ## Not like iOS (yet)
 
 - **Decoder size.** Android phones' HEVC decoders often stop below a Retina capture (the Galaxy A15:
-  2560×1440). When the Mac's stream is larger than this device decodes, Sill asks the Mac for
+  2560×1440). When the Mac's stream is larger than this device decodes, Skopry asks the Mac for
   Standard resolution by itself and says so.
 - No USB-cable pairing, Direct Wireless (AWDL is Apple's) or moving a live session between paths:
   a session that loses its path reconnects (home door first, then Tailscale).
@@ -184,15 +184,15 @@ with any of this.
 A synthetic host on loopback, reached through `adb reverse` (no firewall prompt, nothing posted):
 
 ```
-mkdir -m 700 /tmp/sillhost
-SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 SILL_TEST_ORIGIN=vpn \
-SILL_TEST_REMOTE_DIR=/tmp/sillhost SILL_TEST_INPUT_LOG=1 .build/release/SillHost --synthetic --remote=47455
+mkdir -m 700 /tmp/skopryhost
+SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 SKOPRY_TEST_ORIGIN=vpn \
+SKOPRY_TEST_REMOTE_DIR=/tmp/skopryhost SKOPRY_TEST_INPUT_LOG=1 .build/release/SkopryHost --synthetic --remote=47455
 adb reverse tcp:47455 tcp:47455
-adb shell am start -n me.saffer.sill.android/.MainActivity --es pairAddress 127.0.0.1:47455 --es pairCode <the code it printed>
+adb shell am start -n app.skopry.android/.MainActivity --es pairAddress 127.0.0.1:47455 --es pairCode <the code it printed>
 ```
 
-DEBUG-only extras: `pairUrl` (a `sill://pair` link, no confirmation), `pairAddress` with `pairCode`,
+DEBUG-only extras: `pairUrl` (a `skopry://pair` link, no confirmation), `pairAddress` with `pairCode`,
 `connect` (the first saved Mac), `forget`, `hud`, and for the home door `serviceType`
-(`_silltest._tcp`), `homeOverride` (`127.0.0.1:PORT`, what the browser lists is reached there),
-`tapHome` and `homeCode`. `SILL_TEST_MENU_PID` (with `Scripts/menufixture.swift`) and
-`SILL_TEST_POINTER_PATH` exercise the menus and the Mac's pointer as on iOS.
+(`_skoprytest._tcp`), `homeOverride` (`127.0.0.1:PORT`, what the browser lists is reached there),
+`tapHome` and `homeCode`. `SKOPRY_TEST_MENU_PID` (with `Scripts/menufixture.swift`) and
+`SKOPRY_TEST_POINTER_PATH` exercise the menus and the Mac's pointer as on iOS.

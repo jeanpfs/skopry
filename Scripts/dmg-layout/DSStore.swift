@@ -2,7 +2,7 @@ import Foundation
 
 // The .DS_Store file Finder reads to lay out a folder's window: which view, the window's size and
 // place, the background picture and where each icon sits. Scripts/make-dmg.sh writes one into
-// Sill.dmg with this code instead of asking Finder to (AppleScript would need Automation
+// Skopry.dmg with this code instead of asking Finder to (AppleScript would need Automation
 // permission, and Finder, to lay out a window, needs a logged-in session that shows it).
 //
 // The format is Apple's and undocumented; this follows the file Finder itself writes (a disk

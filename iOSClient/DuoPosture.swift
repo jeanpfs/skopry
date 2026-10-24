@@ -44,7 +44,7 @@ enum FoldInfo: Equatable {
     }
 }
 
-/// The posture as one screen of Sill sees it: the hinge, and the fold in that screen's own space.
+/// The posture as one screen of Skopry sees it: the hinge, and the fold in that screen's own space.
 struct DuoPosture: Equatable {
     /// The hinge as iOS 27.1 reports it (`DeviceHinge.Status`); `unknown` before iOS 27.1 and on a
     /// device without one.
@@ -93,7 +93,7 @@ struct DuoPosture: Equatable {
         }
     }
 
-    /// The hinge open: Sill is on the inner display (the book, laptop and open flat poses).
+    /// The hinge open: Skopry is on the inner display (the book, laptop and open flat poses).
     var onInnerDisplay: Bool { hinge == .partiallyOpen || hinge == .fullyOpen }
 
     /// The hinge to go by: what `onHingeChange` reported, or, before its first call (a frame or two
@@ -109,7 +109,7 @@ struct DuoPosture: Equatable {
     /// 2026-10-09: option 1 of the three the mock canvas drew side by side). Upright (the laptop
     /// pose, open flat upright) it would take 82 pt at the top out of the picture above the fold;
     /// sideways (the book pose, open flat sideways) an 84 pt strip at the side out of the picture's
-    /// width, so Sill has all 951 pt and the book pose's bar keeps its regular size (`bookBar`). It
+    /// width, so Skopry has all 951 pt and the book pose's bar keeps its regular size (`bookBar`). It
     /// stays on the cover, as on an iPhone, and on every other screen in every pose (the connect
     /// screen keeps the clock and the Wi-Fi it asks about). The alternatives: `pose == .laptop ||
     /// pose == .flatPortrait` here keeps it sideways; dropping StreamScreen's `.duoStatusBar` line
@@ -136,7 +136,7 @@ extension DuoPosture {
     /// The fold across a screen held upright, its top and bottom edges. Known: the band of the
     /// laptop pose, else none (open flat nothing pins the split). Inferred, as before iOS 27.1: the
     /// middle of a screen taller than wide, 600 to 740 pt wide and under 1100 tall (the half-folded
-    /// Duo as Sill's first numbers, 710×1000, guessed it), as a band of no height.
+    /// Duo as Skopry's first numbers, 710×1000, guessed it), as a band of no height.
     static func crease(_ size: CGSize, _ fold: FoldInfo) -> (top: CGFloat, bottom: CGFloat)? {
         switch fold {
         case .inferred:
@@ -316,13 +316,13 @@ extension DuoPosture {
     }
 }
 
-// MARK: - The harness's stand-in (ContentView's -SillLayout and -SillHinge)
+// MARK: - The harness's stand-in (ContentView's -SkopryLayout and -SkopryHinge)
 
 extension DuoPosture {
     /// The named space a harness's fake display defines, in which its stand-in fold is given.
-    static let displaySpace = "sill.display"
+    static let displaySpace = "skopry.display"
 
-    /// The hinge `-SillHinge closed|half|flat` stands in for.
+    /// The hinge `-SkopryHinge closed|half|flat` stands in for.
     static func hinge(argument: String?) -> Hinge? {
         switch argument?.lowercased() {
         case "closed"?: return .closed
@@ -339,7 +339,7 @@ extension DuoPosture {
                                  : CGRect(x: 0, y: size.height / 2 - 20, width: size.width, height: 40)
     }
 
-    /// The safe area (top, leading, bottom, trailing) each of the Duo's displays gives Sill, as the
+    /// The safe area (top, leading, bottom, trailing) each of the Duo's displays gives Skopry, as the
     /// probe measured it on the iOS 27.1 simulator: the inner display with its status bar, a strip
     /// of 84 pt at the side sideways and 82 at the top upright, and the home indicator's 34; with the
     /// status bar hidden (the stream screen on the inner display, `hidesStatusBar`), the 34 alone; the cover its

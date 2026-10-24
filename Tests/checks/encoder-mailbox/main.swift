@@ -1,7 +1,7 @@
 import Foundation
 import CoreMedia
 
-// Encoder-free check of HEVCEncoder's frame bookkeeping. Sources/SillHost/EncoderMailbox.swift (the
+// Encoder-free check of HEVCEncoder's frame bookkeeping. Sources/SkopryHost/EncoderMailbox.swift (the
 // real file) is compiled beside this one; `StandIn` below mirrors HEVCEncoder's glue call for call
 // (encode and the re-encode's admission, submit on a serial queue, the encode call, frameReturned
 // from the output handler or a refusal, the watchdog every 0.5 s, requestKeyframe and its second
@@ -12,7 +12,7 @@ import CoreMedia
 //
 //   Tests/checks/encoder-mailbox/run.sh [--mutants]
 // or by hand, from the repository's root:
-//   swiftc -O Sources/SillHost/EncoderMailbox.swift Tests/checks/encoder-mailbox/main.swift -o .build/mailbox-check && .build/mailbox-check
+//   swiftc -O Sources/SkopryHost/EncoderMailbox.swift Tests/checks/encoder-mailbox/main.swift -o .build/mailbox-check && .build/mailbox-check
 
 // MARK: - Harness
 
@@ -574,7 +574,7 @@ do {
     expect(teardown == .stalled(since: t), "teardown \(teardown), not stalled since \(t)")
 }
 
-// S7: SILL_TEST_ENCODER_HANG: frame 90 waits 3 s on encodeQueue after its hand-over, before its
+// S7: SKOPRY_TEST_ENCODER_HANG: frame 90 waits 3 s on encodeQueue after its hand-over, before its
 // encode call, then goes in and comes back. The watchdog must fire 1.5 s after it was handed over
 // and the late output must not be forwarded.
 do {

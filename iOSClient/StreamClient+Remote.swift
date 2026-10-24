@@ -6,7 +6,7 @@ import StreamProtocol
 
 // Remote access on the device (docs/remote-access-plan.md §7): pairing, saved Macs, remote dials,
 // the session gate (a remote session is connected at its first window list), kinds 18, 20 and 22,
-// the reconnect order after a loss, and sill://pair links. Main thread unless a function says
+// the reconnect order after a loss, and skopry://pair links. Main thread unless a function says
 // otherwise; the stored state lives in StreamClient.swift.
 
 /// Pairing as the Add a Mac card and the overlay show it.
@@ -34,7 +34,7 @@ enum PairingProblem: Equatable {
     case expired
     case proofFailed(String)
     case nothingAnswered(String)
-    case notSill(String)
+    case notSkopry(String)
     case localNetwork(String)
     case notALink
     case noKey(String)
@@ -57,7 +57,7 @@ enum PairingProblem: Equatable {
 
     var field: Field {
         switch self {
-        case .address, .zone, .nothingAnswered, .notSill, .localNetwork: return .address
+        case .address, .zone, .nothingAnswered, .notSkopry, .localNetwork: return .address
         case .codeLength, .codeTypo, .wrongCode, .expired, .stopped, .homeStopped, .homeExpired, .homeClosed: return .code
         case .notPairing, .proofFailed, .notALink, .noKey, .homeProofFailed, .homeNoAnswer, .proofFailedOverStream, .noAnswerOverStream,
              .macSaid:
@@ -80,10 +80,10 @@ enum PairingProblem: Equatable {
         case .expired: return "This code expired. Choose Pair iPhone or iPad… on your Mac for a new one."
         case .proofFailed(let host):
             return "Pairing didn’t finish: the Mac at \(host) couldn’t show it knows the code. Pair from the same network as your Mac, or scan the code instead."
-        case .nothingAnswered(let host): return "Nothing answered at \(host). Check the address, and that Sill is open on your Mac."
-        case .notSill(let host): return "Something answered at \(host), but it isn’t Sill, or its Sill is too old to pair."
-        case .localNetwork(let host): return "To reach \(host), allow Local Network for Sill in Settings."
-        case .notALink: return "That’s not a Sill code."
+        case .nothingAnswered(let host): return "Nothing answered at \(host). Check the address, and that Skopry is open on your Mac."
+        case .notSkopry(let host): return "Something answered at \(host), but it isn’t Skopry, or its Skopry is too old to pair."
+        case .localNetwork(let host): return "To reach \(host), allow Local Network for Skopry in Settings."
+        case .notALink: return "That’s not a Skopry code."
         case .noKey(let reason): return "This \(StreamClient.deviceWord) couldn’t make its key (\(reason))."
         case .homeStopped(let mac): return DiscoveryPolicy.HomeCopy.stopped(mac: mac)
         case .homeExpired(let mac): return DiscoveryPolicy.HomeCopy.expired(mac: mac)
@@ -104,15 +104,15 @@ enum RemoteCopy {
         let at = candidate?.display ?? "its address"
         switch failure {
         case .wrongMac:
-            return "This isn’t the \(mac) this \(device) paired with. If Sill was set up again on it, forget it here and pair again."
+            return "This isn’t the \(mac) this \(device) paired with. If Skopry was set up again on it, forget it here and pair again."
         case .revoked:
-            return "\(mac) no longer accepts this \(device). Pair it again from Sill’s Settings on the Mac."
+            return "\(mac) no longer accepts this \(device). Pair it again from Skopry’s Settings on the Mac."
         case .remoteOff:
             return "\(mac) turned off Remote Access."
         case .busy:
             return "\(mac) is already serving 8 devices."
         case .refused:
-            return "\(mac) answered, but Sill isn’t accepting remote connections there. Check that Sill is open and Remote Access is on. If you changed its port, connect at home once."
+            return "\(mac) answered, but Skopry isn’t accepting remote connections there. Check that Skopry is open and Remote Access is on. If you changed its port, connect at home once."
         case .vpnOff:
             let name = candidate.flatMap { vpnLabel($0) }
             return name.map { "\($0) looks off on this \(device). Turn it on, then tap \(mac)." }
@@ -122,9 +122,9 @@ enum RemoteCopy {
             return RemoteDialPolicy.isTailscaleName(host) ? "This \(device) can’t look up \(host). Is Tailscale on?"
                                                         : "This \(device) can’t look up \(host)."
         case .localNetwork:
-            return "To reach \(at), allow Local Network for Sill in Settings."
-        case .notSill:
-            return "Something answered at \(at), but it isn’t Sill. Your home’s internet address may have changed."
+            return "To reach \(at), allow Local Network for Skopry in Settings."
+        case .notSkopry:
+            return "Something answered at \(at), but it isn’t Skopry. Your home’s internet address may have changed."
         case .noAnswer:
             if let c = candidate, c.kind == MacAddress.internet, !c.isName {
                 return "\(mac) didn’t answer at \(at). If your home’s internet address changed, connect at home once to update it, or add an address name on the Mac."
@@ -163,7 +163,7 @@ extension StreamClient {
         SavedMacs.displayNames(savedMacs)[macID] ?? savedMac(macID)?.name ?? "Mac"
     }
 
-    /// Writes the list, except in a DEBUG run seeded with `-Sill.savedMacs` (for that run alone), and
+    /// Writes the list, except in a DEBUG run seeded with `-Skopry.savedMacs` (for that run alone), and
     /// shows it.
     func persistSavedMacs() {
         storeSavedMacs()
@@ -185,7 +185,7 @@ extension StreamClient {
         savedSightings.since[macID] = nil
         savedSightings.leftAt[macID] = nil
         persistSavedMacs()
-        status = "Forgot \(name). It still lists this \(Self.deviceWord) until you remove it in Sill’s Settings on the Mac."
+        status = "Forgot \(name). It still lists this \(Self.deviceWord) until you remove it in Skopry’s Settings on the Mac."
     }
 
     /// The card's Cancel while a pairing dial runs: it stops, nothing is saved. The home card's too:
@@ -202,23 +202,23 @@ extension StreamClient {
 
     /// At launch: saved Macs without this device's key (a restore from a backup: the key is
     /// ThisDeviceOnly) are useless, and cleared, but only when the Keychain says the key is not
-    /// there (DeviceIdentity.knownMissing). DEBUG: `-SillForgetMacs 1` clears them and the key;
-    /// `-SillForgetHomeTLS 1` clears what this device learned of their home doors (`homeTLS`), so it
-    /// dials an older Sill.app plainly again (docs/home-pairing-plan.md §3.4); `-SillPairURL`,
-    /// `-SillPairCode` with `-SillPairAddress`, and `-SillDialSaved 1` start a pairing or a remote
-    /// dial as Add a Mac… and a Remote row would, without the link's confirmation: `-SillPairURL`
+    /// there (DeviceIdentity.knownMissing). DEBUG: `-SkopryForgetMacs 1` clears them and the key;
+    /// `-SkopryForgetHomeTLS 1` clears what this device learned of their home doors (`homeTLS`), so it
+    /// dials an older Skopry.app plainly again (docs/home-pairing-plan.md §3.4); `-SkopryPairURL`,
+    /// `-SkopryPairCode` with `-SkopryPairAddress`, and `-SkopryDialSaved 1` start a pairing or a remote
+    /// dial as Add a Mac… and a Remote row would, without the link's confirmation: `-SkopryPairURL`
     /// pairs at the link's own addresses only, where a confirmed link tries the home rows first
-    /// (`confirmPendingLink`); `-SillDialSaved remotely` dials the first saved Mac as Connect
+    /// (`confirmPendingLink`); `-SkopryDialSaved remotely` dials the first saved Mac as Connect
     /// Remotely does (a session that never moves home).
     func startRemote() {
         #if DEBUG
-        if UserDefaults.standard.bool(forKey: "SillForgetMacs") {
+        if UserDefaults.standard.bool(forKey: "SkopryForgetMacs") {
             savedMacs = []
             DeviceIdentity.forget()
             persistSavedMacs()
             print("remote: saved Macs and the device key forgotten")
         }
-        if UserDefaults.standard.bool(forKey: "SillForgetHomeTLS") {
+        if UserDefaults.standard.bool(forKey: "SkopryForgetHomeTLS") {
             savedMacs = SavedMacs.forgettingHomeTLS(savedMacs)
             persistSavedMacs()
             print("home: homeTLS forgotten on every saved Mac")
@@ -230,14 +230,14 @@ extension StreamClient {
         }
         #if DEBUG
         let d = UserDefaults.standard
-        if let url = d.string(forKey: "SillPairURL") {
+        if let url = d.string(forKey: "SkopryPairURL") {
             if case .success(let link) = PairLink.parse(url) { pair(link: link, overlay: false) } else { pairing = .failed(.notALink) }
-        } else if let code = d.string(forKey: "SillPairCode"), let address = d.string(forKey: "SillPairAddress") {
+        } else if let code = d.string(forKey: "SkopryPairCode"), let address = d.string(forKey: "SkopryPairAddress") {
             pairTyped(code: code, address: address, overlay: false)
-        } else if d.string(forKey: "SillDialSaved") == "remotely", let first = savedMacs.first {
+        } else if d.string(forKey: "SkopryDialSaved") == "remotely", let first = savedMacs.first {
             // As Connect Remotely dials it: a session that never moves home (S5).
             dialSaved(first.macID, why: .connectRemotely)
-        } else if d.bool(forKey: "SillDialSaved"), let first = savedMacs.first {
+        } else if d.bool(forKey: "SkopryDialSaved"), let first = savedMacs.first {
             dialSaved(first.macID, why: .launchArgument)
         }
         #endif
@@ -289,7 +289,7 @@ extension StreamClient {
     // MARK: Remote dials
 
     /// Dials a saved Mac at its saved addresses (§7.5). A tap on its Remote row, Connect Remotely
-    /// on its network row, the session after a pairing, the automatic reconnect, `-SillDialSaved`.
+    /// on its network row, the session after a pairing, the automatic reconnect, `-SkopryDialSaved`.
     func dialSaved(_ macID: String, why: DialReason) {
         guard let mac = savedMac(macID), let pin = mac.fingerprintData else { return }
         let name = displayName(macID)
@@ -358,11 +358,11 @@ extension StreamClient {
     }
 
     #if DEBUG
-    /// `-SillRemoteRoute vpn|internet`: a remote session to a test host on loopback counts as one
+    /// `-SkopryRemoteRoute vpn|internet`: a remote session to a test host on loopback counts as one
     /// through Tailscale or over the internet, so the simulator can check the 60 fps request and
     /// the slow-link callout (S8).
     static var testRoute: RemoteRoute? {
-        switch UserDefaults.standard.string(forKey: "SillRemoteRoute") {
+        switch UserDefaults.standard.string(forKey: "SkopryRemoteRoute") {
         case "vpn": return .vpn("Tailscale")
         case "internet": return .internet
         default: return nil
@@ -581,8 +581,8 @@ extension StreamClient {
     /// carried on by one (StreamClient.rescue) and stays connected until it takes over, or until it
     /// fails and the session's end brings the reconnect here. After goodbye `quit`, a row listed
     /// since before the loss is the registration that is going (it outlives the goodbye by about a
-    /// second): it is left alone for DiscoveryPolicy.quitWait, and the words "‹Mac› quit Sill…"
-    /// stay meanwhile; the row listed again (Sill is back), or still listed after that, is taken as
+    /// second): it is left alone for DiscoveryPolicy.quitWait, and the words "‹Mac› quit Skopry…"
+    /// stay meanwhile; the row listed again (Skopry is back), or still listed after that, is taken as
     /// above.
     @discardableResult
     func reconnectIfListed() -> Bool {
@@ -611,7 +611,7 @@ extension StreamClient {
         if let mac = choice.take, mac.endpoint != nil {
             // The row's door decides whether the reconnect dials it at all (DiscoveryPolicy.homeDial,
             // never an ask): a Mac that removed this device, or an unsaved one that requires
-            // pairing, waits for a tap, and one whose Sill is too old for this build is not dialed.
+            // pairing, waits for a tap, and one whose Skopry is too old for this build is not dialed.
             let id = mac.macID ?? r.macID
             let decision = homeDecision(mac, macID: id, tap: false)
             if DiscoveryPolicy.sessionTrust(decision, savedPin: id.flatMap { savedMac($0)?.fingerprintData }) != nil {
@@ -662,7 +662,7 @@ extension StreamClient {
                 status = line
                 return true
             }
-            if decision == .updateSill { status = DiscoveryPolicy.updateSillStatus(mac: mac.name) }
+            if decision == .updateSkopry { status = DiscoveryPolicy.updateSkopryStatus(mac: mac.name) }
             // A row that waits for a tap (an unsaved Mac that now asks devices to pair, a saved one
             // that removed this device): the reconnect never asks, so it ends here, with the words
             // a goodbye would have brought, rather than "…reconnects when it's back" for ever.
@@ -786,10 +786,10 @@ extension StreamClient {
         return ParsedAddress(host: pick.host, port: pick.port, kind: pick.isIPv6 ? .ipv6 : (pick.isName ? .name : .ipv4)).text
     }
 
-    /// A sill://pair link from outside the app: shown for confirmation, never acted on by itself (a
+    /// A skopry://pair link from outside the app: shown for confirmation, never acted on by itself (a
     /// poster or a message could otherwise add a look-alike "Mac" that collects keystrokes).
     func handleOpenURL(_ url: URL) {
-        guard url.scheme?.lowercased() == "sill" else { return }
+        guard url.scheme?.lowercased() == "skopry" else { return }
         switch PairLink.parse(url.absoluteString) {
         case .success(let link):
             pendingLink = link
@@ -940,7 +940,7 @@ extension StreamClient {
                     // Nothing listening (Remote Access off and no pairing window), or a door that
                     // turned the pairing away in its handshake.
                     self.pairing = .failed(.notPairing(macName ?? "The Mac at \(host)"))
-                case .notSill, .wrongMac: self.pairing = .failed(.notSill(host))
+                case .notSkopry, .wrongMac: self.pairing = .failed(.notSkopry(host))
                 case .localNetwork: self.pairing = .failed(.localNetwork(host))
                 default: self.pairing = .failed(.nothingAnswered(host))
                 }

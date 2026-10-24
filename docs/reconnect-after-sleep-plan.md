@@ -2,12 +2,12 @@
 
 2026-10-14. Branch `reconnect-after-sleep` (worktree `/Users/noah/Downloads/winstream-reconnect`)
 from origin/main at 985a733; line numbers are at 985a733. Issue #69. Written from the triage
-(`~/Downloads/sill-handoff/triage/2026-10-13-open-items.md`, "#69") and a read of
+(`~/Downloads/skopry-handoff/triage/2026-10-13-open-items.md`, "#69") and a read of
 `StreamClient.swift`, `StreamClient+Remote.swift`, `StreamClient+Home.swift`, `DiscoveryPolicy.swift`,
 `ContentView.swift` and the host's `StreamCoordinator.swift`. Device code, the support page and the
 docs; no wire change, nothing on the Mac.
 
-**The report (#69, 2026-10-13, Sill 0.5.1 on both, iPadOS, Wi-Fi):** "User couldn't get the app
+**The report (#69, 2026-10-13, Skopry 0.5.1 on both, iPadOS, Wi-Fi):** "User couldn't get the app
 to work after sitting dormant for a few hours. He had to login to my Mac and close and restart the
 app on my iPad before it would reconnect."
 
@@ -20,7 +20,7 @@ app on my iPad before it would reconnect."
    all (StreamClient.swift:887-900). iOS takes away the mDNSResponder connection of an app it
    suspends (`kDNSServiceErr_DefunctConnection`, -65569, Apple DTS), so after hours in the
    background the rows are what the browser last saw: a row of a Mac that went is dialled, and a
-   Mac that came back (its Sill relaunched after the Mac restarted, say) is never listed again; a
+   Mac that came back (its Skopry relaunched after the Mac restarted, say) is never listed again; a
    saved one shows as Remote, and a tap says it "didn't answer. It may be asleep." Only a relaunch
    of the app makes a new browser. That is the report's "close and restart the app".
 2. **The automatic reconnect gives up after about 11 s while the Mac's row stays listed.** A listed
@@ -35,7 +35,7 @@ app on my iPad before it would reconnect."
    Found while reading it: a reconnect dial that ends otherwise (`.waiting`, then cancelled after
    5 s; `.failed`; no window list within 10 s of a TLS `.ready`) goes through `sessionEnded` as if a
    session had ended. That makes a new `Reconnect` (its loss, its remote dials' timing and its
-   `afterQuit` start again), flips the status line ("Waiting for…", "‹Mac› disconnected. Sill will
+   `afterQuit` start again), flips the status line ("Waiting for…", "‹Mac› disconnected. Skopry will
    reconnect…", "Reconnecting to…") and dials again at once: a row whose dial waits (a stale row,
    a Mac whose port is closed) is dialled every 5 s for good.
 3. **A Desktop stream the Mac stops is not asked for again.** When ScreenCaptureKit stops a
@@ -47,7 +47,7 @@ app on my iPad before it would reconnect."
    sleep.
 4. **Nothing tells the person why.** The support page's "Your Mac isn't listed"
    (site/support.html:50-56) never mentions a sleeping or restarted Mac; sleep appears only under
-   Remote Access. Sill never keeps a Mac awake at home (only a remote device holds idle sleep off),
+   Remote Access. Skopry never keeps a Mac awake at home (only a remote device holds idle sleep off),
    and after a restart it runs only once someone logs in, with Launch at Login on.
 
 ## The change
@@ -86,7 +86,7 @@ app on my iPad before it would reconnect."
 - The failed browse's status line goes: the browser is made again, and the console says so
   ("browser: the network browser failed (…); making it again in 1 s", "browser: rebuilt the network
   browser (back from the background)", "browser: the new network browser has settled: …").
-- DEBUG `-SillBrowserFail N`: each of the first N network browsers is reported failed with
+- DEBUG `-SkopryBrowserFail N`: each of the first N network browsers is reported failed with
   -65569 half a second after it starts, as iOS reports a suspended app's, so the `.failed` path
   and its back-off run in the simulator (whose browsers use the Mac's own mDNSResponder, which never
   defuncts an app it does not know is suspended).
@@ -97,10 +97,10 @@ app on my iPad before it would reconnect."
   and the dials do not connect, again 5, 10, 20, then every 30 s after the last dial started
   (`reconnectRetry`), only in the foreground. The count is the listing's (the row's
   `sightings.since`, or `directSince` for a Direct row): the row going and coming back (the Mac's
-  Sill relaunched, its record renewed) is dialled at once; so is the first look after the return
+  Skopry relaunched, its record renewed) is dialled at once; so is the first look after the return
   from the background, which starts the count again.
 - After 3 dials that did not connect (`reconnectQuietAfter`, about 20 s) the status line says
-  "‹Mac› isn’t answering. It may be asleep. Sill keeps trying, or tap it to try now." and keeps
+  "‹Mac› isn’t answering. It may be asleep. Skopry keeps trying, or tap it to try now." and keeps
   saying it through the later dials (VoiceOver hears it once). After 12 (`reconnectDials`, about
   4.6 minutes) the dials stop: "Stopped trying to reach ‹Mac›. Tap it to try again.", the remote
   path's words; a new listing or the return to the foreground starts again. Each dial through a
@@ -130,19 +130,19 @@ most every 10 s, as it already was at its next window list. No host change.
 ### 4. The words
 
 - site/support.html, "Your Mac isn’t listed" (outside the Remote Access markers, which stay as they
-  are): a bullet for a sleeping Mac (Sill may not be able to wake it; keep it awake in System
-  Settings › Energy, Energy Saver on macOS 14, or Battery on a laptop, while you use Sill from another
-  room) and one for a Mac that restarted (Sill opens only once someone logs in, with Launch at Login
-  on: in the Sill menu, or Sill’s Settings › General). Whether Sill wakes a sleeping Mac is not
+  are): a bullet for a sleeping Mac (Skopry may not be able to wake it; keep it awake in System
+  Settings › Energy, Energy Saver on macOS 14, or Battery on a laptop, while you use Skopry from another
+  room) and one for a Mac that restarted (Skopry opens only once someone logs in, with Launch at Login
+  on: in the Skopry menu, or Skopry’s Settings › General). Whether Skopry wakes a sleeping Mac is not
   known: through a Bonjour Sleep Proxy with Wake for network access on, a dial may (Wake on Demand,
   the reason for the bound above); with none it should not. So the words say only that it may not
-  (the review found the first draft's "Sill can’t wake a sleeping Mac" at odds with that reason).
+  (the review found the first draft's "Skopry can’t wake a sleeping Mac" at odds with that reason).
   Noah's sleep-proxy test settles them: if a dial wakes the Mac and connects, the bullet can say
-  "With an Apple TV or HomePod at home and Wake for network access on, your Mac can wake when Sill
+  "With an Apple TV or HomePod at home and Wake for network access on, your Mac can wake when Skopry
   connects; otherwise keep it awake in …".
 - README.md's Good to know: the same two, in a sentence each.
 - docs/app-store-metadata.md: a line for the next version's What's New.
-- docs/DEVELOPMENT.md: the reconnect's behaviour, `-SillBrowserFail`, Known limitations.
+- docs/DEVELOPMENT.md: the reconnect's behaviour, `-SkopryBrowserFail`, Known limitations.
 
 ## Open questions, with the default taken
 
@@ -160,7 +160,7 @@ most every 10 s, as it already was at its next window list. No host change.
 6. The return from the background starts the count again (the person is there): **yes**.
 7. The failed browse's "Browse failed: …" line: **gone**; the browser is made again.
 8. The Desktop re-ask: **done**, under the 10 s spacing that already bounds the automatic Desktop.
-9. "Keep this Mac awake while Sill is open": **not here** (a product call; the triage's half day).
+9. "Keep this Mac awake while Skopry is open": **not here** (a product call; the triage's half day).
    The support page says how to keep the Mac awake.
 
 ## Test plan
@@ -174,28 +174,28 @@ most every 10 s, as it already was at its next window list. No host change.
   `remote-rules`) and their mutants again.
 - Builds: the iOS app Debug and Release for the generic simulator and Debug for a generic device
   (`CODE_SIGNING_ALLOWED=NO`); `swift build -c release`; `Tests/checks/run-all.sh`.
-- On a private simulator ("Sill reconnect", deleted after), the Debug app with `-SillServiceType
-  _silltest._tcp` against `SillHost --synthetic --pairing` registered with
-  `SILL_TEST_SERVICE_TYPE=_silltest._tcp`, on loopback, the software encoder, no router: pair, stream,
+- On a private simulator ("Skopry reconnect", deleted after), the Debug app with `-SkopryServiceType
+  _skoprytest._tcp` against `SkopryHost --synthetic --pairing` registered with
+  `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp`, on loopback, the software encoder, no router: pair, stream,
   `kill -STOP` the host for 20 s, `kill -CONT`. main's build: two "letting it go" lines, then
   silence under "Reconnecting…". This build: the dials at 0, 5, 15 and 35 s, the session back
   without a tap. A longer stop for the quiet line.
-- The browser: the app sent to the background and back (another app launched, then Sill), the
-  console's "browser: rebuilt" line, the rows unchanged; `-SillBrowserFail 3` for the `.failed`
+- The browser: the app sent to the background and back (another app launched, then Skopry), the
+  console's "browser: rebuilt" line, the rows unchanged; `-SkopryBrowserFail 3` for the `.failed`
   path (1, 2, 4 s).
 - The Desktop re-ask: a stand-in Mac (Python, loopback, a plain door) that sends a list with the
   Desktop streaming, then one with nothing: this build asks for the Desktop, main's does not.
-- Photos: the connect screen with the quiet line (a new harness case, `-SillConnectCase asleep`) at
+- Photos: the connect screen with the quiet line (a new harness case, `-SkopryConnectCase asleep`) at
   the Duo's sizes and a phone's, at the default and the largest text.
 
 ## Results
 
-All on 2026-10-14, on a private simulator, "Sill reconnect" (iPad mini (A17 Pro), iOS 27.0; deleted
+All on 2026-10-14, on a private simulator, "Skopry reconnect" (iPad mini (A17 Pro), iOS 27.0; deleted
 after), with the Debug app built ad hoc (`CODE_SIGN_IDENTITY=-`, so the simulator gives it a
-keychain), against `SillHost --synthetic --pairing` on 127.0.0.1 alone (SILL_TEST_LOOPBACK,
-SILL_TEST_SOFTWARE_ENCODER, SILL_TEST_NO_ROUTER, SILL_TEST_SERVICE_TYPE=_silltest._tcp, its identity
-and trust list in SILL_TEST_REMOTE_DIR), the app with `-SillServiceType _silltest._tcp -SillTapRow
-"Sill test"`, so the host was a real Bonjour row and its reconnect a row's. The device was paired
+keychain), against `SkopryHost --synthetic --pairing` on 127.0.0.1 alone (SKOPRY_TEST_LOOPBACK,
+SKOPRY_TEST_SOFTWARE_ENCODER, SKOPRY_TEST_NO_ROUTER, SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp, its identity
+and trust list in SKOPRY_TEST_REMOTE_DIR), the app with `-SkopryServiceType _skoprytest._tcp -SkopryTapRow
+"Skopry test"`, so the host was a real Bonjour row and its reconnect a row's. The device was paired
 once, with the code at the host's remote door (`--remote` for that run only): this Mac's console was
 locked, so the host answered the ask "locked", as it should. Times are from the console (each line
 stamped as it came) and the host's log; the loss is the device's "connection silent for 6 s".
@@ -208,37 +208,37 @@ stamped as it came) and the host's log; the loss is the device's "connection sil
   +35.3 s; the fourth connected at +35.3 s, without a tap. The third began 0.14 s before the host
   was continued, which then refused it over its pre-auth cap of two pending connections from one
   source ("1 over the limit": the two dials the device had cancelled were still in its listen
-  backlog), an artifact of SIGSTOP. "‹Mac› isn’t answering. It may be asleep. Sill keeps trying, or
+  backlog), an artifact of SIGSTOP. "‹Mac› isn’t answering. It may be asleep. Skopry keeps trying, or
   tap it to try now." from +20.5 s.
 - **The bound**: the host stopped for 300 s. Dials at +0, 5.3, 15.3, 35.3, 65.3, 95.8, 125.8, 155.8,
   186.0, 216.4, 246.7 and 276.8 s (the rule's 0, 5, 15, 35, then every 30 s, with the let-go's
   0.25 s and the timers' slack); the quiet line at +20.5 s; "Stopped trying to reach Noah’s MacBook
   Pro. Tap it to try again." at +281.8 s, and no dial after it, also once the host was back at
-  +299.5 s (no new listing: the bound's price, open question 4). Sill sent to the background (the
+  +299.5 s (no new listing: the bound's price, open question 4). Skopry sent to the background (the
   Settings app) at +360.9 s and back at +371.1 s: "browser: rebuilt the network browser (back from
-  the background); ["Sill test 2676"] kept beside it for 3 s", a dial at once, connected 40 ms later.
+  the background); ["Skopry test 2676"] kept beside it for 3 s", a dial at once, connected 40 ms later.
 - **The return from the background while streaming** (the Settings app for 15 s): the host had
   dropped the suspended app; on the return the device found the connection silent, the browser was
   made again with the row kept beside it, and the reconnect dialled at once: the session was back
   0.1 s after the return, and the new browser settled 3.0 s later with the row. No rebuild at launch.
-- **The browser after a failure** (`-SillBrowserFail 3`): failures 0.45, 2.03 and 4.66 s after
+- **The browser after a failure** (`-SkopryBrowserFail 3`): failures 0.45, 2.03 and 4.66 s after
   launch; made again 1.05, 2.12 and 4.21 s after each (the rule's 1, 2, 4); the fourth browser
   settled 3.13 s after it was made; the host's row listed throughout (one "discovery:" line). The
   first build let the second rebuilt browser's settle run out while it waited for its next rebuild,
   so the rows read for a moment from a browser that had failed: fixed in 03ca390 (a failure keeps
   the rows as they are), and the run then had one settle, the last browser's.
 - **The Desktop asked for again** (a stand-in Mac in Python on 127.0.0.1, a plain door, dialled by
-  `-SillConnect`, sending a list with the Desktop streaming and 3 s later one with nothing): this
+  `-SkopryConnect`, sending a list with the Desktop streaming and 3 s later one with nothing): this
   branch asked for the Desktop 10 ms after the second list ("session: the Mac stopped the Desktop;
   asking for it again"); main's build asked for nothing in the 12 s after it, as the stand-in sent
   no further list. Main asks again only with the Mac's next window list, which a Mac sends when a
   window opens, closes or changes (the review saw main's build ask 3 ms after a later list): so 0.5.1
   brings a stopped Desktop back at the Mac's next change of windows, and this build at once.
 - **Not provoked here**: the defunct connection itself. The simulator's apps use this Mac's
-  mDNSResponder, which does not know an iOS app is suspended; `-SillBrowserFail` and the return
+  mDNSResponder, which does not know an iOS app is suspended; `-SkopryBrowserFail` and the return
   from the background stand in for it. R6 (whether macOS stops a capture when the display sleeps or
   the Mac locks) needs Noah's display to sleep.
-- **Photos** (`-SillConnectCase asleep`): the new line at 951×669, 669×951, 466×678, 678×466 and
+- **Photos** (`-SkopryConnectCase asleep`): the new line at 951×669, 669×951, 466×678, 678×466 and
   744×1133, at the default text size and at accessibility-extra-large: it wraps to two lines and
   reads whole beside the rows; the connect case `homerows` at 951×669, 669×951 and 466×678 pixel for
   pixel main's build (0 pixels differ). The live photos show this Mac's name and windows and stay
@@ -253,11 +253,11 @@ stamped as it came) and the host's log; the loss is the device's "connection sil
 - **The review** (2026-10-14, after 1c4b921: an adversarial pass that ran the builds, every check and
   mutant and the live runs again on a simulator of its own) found four things, each checked against
   the code here and fixed in a commit of its own:
-  - *The words on waking a sleeping Mac* (should-fix, 1798232). The home-side words "Sill can’t wake
+  - *The words on waking a sleeping Mac* (should-fix, 1798232). The home-side words "Skopry can’t wake
     a sleeping Mac" (support.html, README, DEVELOPMENT.md, §4) were at odds with the reason this
     branch gives for the 12-dial bound, that a dial through a Bonjour Sleep Proxy may wake the Mac,
-    and neither is verified; Sill.app's own comment on App Nap (AppModel.swift) already says a device
-    at home can wake its Mac that way. The words now say Sill may not be able to wake it, so keep it
+    and neither is verified; Skopry.app's own comment on App Nap (AppModel.swift) already says a device
+    at home can wake its Mac that way. The words now say Skopry may not be able to wake it, so keep it
     awake (§4 has the wording for after Noah's sleep-proxy test). The Remote Access lines stay: no
     sleep proxy sits on a VPN path.
   - *A rebuild keeps a Mac by name, not by interface* (f39b875). §1 claimed the cable's settle
@@ -272,7 +272,7 @@ stamped as it came) and the host's log; the loss is the device's "connection sil
     from the background makes both browsers again; it makes the network browser again, and the
     nearby one only while it runs, as `cameForward`'s comment now says too.
 - **The review's own runs** on 1c4b921 agreed with the ones above (the 20 s stop back at the third
-  dial without a tap; the 300 s stop's 12 dials, quiet line and "Stopped trying…"; `-SillBrowserFail
+  dial without a tap; the 300 s stop's 12 dials, quiet line and "Stopped trying…"; `-SkopryBrowserFail
   3`; the Desktop; `policy` 158 of 158 mutants and the other three checks' 124, 21 and 72), and ran
   two paths these runs had not: a reconnect dial that ends before it connects (`sessionEnded`'s new
   branch), against a TLS stand-in holding the test host's key that completes the handshake and never
@@ -289,9 +289,9 @@ stamped as it came) and the host's log; the loss is the device's "connection sil
   446 cases (441, and the cable model's 5) and 158 of 158 mutants (53 min on that loaded Mac); `home-device` 182, `home-model` 62 and
   `remote-rules` 123 cases, their files unchanged, and their mutant patterns in DiscoveryPolicy.swift
   (124, 10 and 17) each found as often as at 1c4b921 and on main: the fixes change only a comment
-  there. Live, on a private simulator ("Sill reconnect-fix 69", iPad mini (A17 Pro), iOS 27.0, deleted
-  after), the Debug app built ad hoc against `SillHost --synthetic` (a plain door on 127.0.0.1 alone,
-  the software encoder, no router, registered as a `_silltest._tcp` row), found as a row and
+  there. Live, on a private simulator ("Skopry reconnect-fix 69", iPad mini (A17 Pro), iOS 27.0, deleted
+  after), the Debug app built ad hoc against `SkopryHost --synthetic` (a plain door on 127.0.0.1 alone,
+  the software encoder, no router, registered as a `_skoprytest._tcp` row), found as a row and
   streaming: four trips to the background (the Settings app for 2.3, 2.3, 2.3 and 15 s); each return
   made the network browser again with the row kept beside it, settled 3.05 to 3.13 s later, and the
   session went on over the one connection the host saw throughout (no "connection silent", no "Client

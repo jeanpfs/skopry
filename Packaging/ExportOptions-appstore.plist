@@ -7,14 +7,14 @@
 	     `xcodebuild -help` lists every key. -->
 	<key>method</key>
 	<string>app-store-connect</string>
-	<!-- export writes Sill.ipa on this Mac. release-ios.sh --upload uses a copy that says upload,
+	<!-- export writes Skopry.ipa on this Mac. release-ios.sh --upload uses a copy that says upload,
 	     so nothing here ever sends a build to Apple by itself. -->
 	<key>destination</key>
 	<string>export</string>
 	<key>teamID</key>
-	<string>9B2KKVM937</string>
+	<string>S3B386LYL8</string>
 	<!-- Xcode picks the Apple Distribution certificate and makes or renews the App Store profile
-	     for me.saffer.sill (release-ios.sh passes -allowProvisioningUpdates). -->
+	     for app.skopry (release-ios.sh passes -allowProvisioningUpdates). -->
 	<key>signingStyle</key>
 	<string>automatic</string>
 	<!-- The build number App Store Connect gets is the project's CURRENT_PROJECT_VERSION, never one

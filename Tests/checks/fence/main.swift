@@ -57,7 +57,7 @@
 // changes on one thread, no senders, pings or read loops, so each fence ends only where the script ends
 // it: the count after every step, then what each of eleven connections delivered, read to its end).
 // remote-bundle (2026-09-27, docs/remote-bundle-plan.md §7), the move home: a session through the remote
-// door handed to the home door. remotehome (both connections TLS 1.3 `sill/1`, the doors' own parameters
+// door handed to the home door. remotehome (both connections TLS 1.3 `skopry/1`, the doors' own parameters
 // and keys (RemoteTLS, RemoteIdentity) with any key trusted both ways: the remote door's, then the home
 // door's, which since pairing at home (the merge with main, 2026-10-08) speaks the same TLS and which the
 // move dials pinned; as `ok`, the fence's ping and pong inside TLS, and nothing goes out on the home
@@ -261,7 +261,7 @@ final class Stub {
 // MARK: The client, as StreamClient drives the link
 
 let link = SessionLink()
-let clientQueue = DispatchQueue(label: "sill.net")
+let clientQueue = DispatchQueue(label: "skopry.net")
 let stub = try Stub(tls: remoteModes.contains(mode))
 if stub.ready.wait(timeout: .now() + deadline) == .timedOut { print("mode \(mode): the stand-in never listened"); print("FAIL"); exit(1) }
 if stub.tlsListener != nil, stub.tlsReady.wait(timeout: .now() + deadline) == .timedOut {

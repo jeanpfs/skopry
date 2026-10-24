@@ -4,7 +4,7 @@ and must make it fail.
 usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillHost/VirtualDisplay.swift")
+F = os.path.join(WT, "Sources/SkopryHost/VirtualDisplay.swift")
 ACCEPTED = 'expected.first == "B" ? [expected, "c" + expected.dropFirst()] : [expected]'
 MUTANTS = [
     # TypeEncoding.accepted

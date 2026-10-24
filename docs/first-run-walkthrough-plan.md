@@ -127,7 +127,7 @@ carries the welcome in its subtitle instead, and one card less is one tap less.
   a second after the new layout is on screen, for the steps only that layout has (upright:
   `laptop`), never for the shared ones: someone who turns the device mid-work is not walked through
   the picture again.
-- **Never on the connect screen.** The pairing card, the Mac's notices ("Update Sill…") and every
+- **Never on the connect screen.** The pairing card, the Mac's notices ("Update Skopry…") and every
   status line live there. Never over the pairing overlay: an outside link that arrives during the
   tour puts the tour aside until the overlay has closed.
 
@@ -234,7 +234,7 @@ carries the welcome in its subtitle instead, and one card less is one tap less.
  │           2. TourOverlay: the dim with its cutout and ring, then the card (TourPolicy.place)   │
  │           3. PairingOverlay (an outside link puts the tour aside until it closes)              │
  │   Next ──▶ seen += that step     Done ──▶ the same     Skip ──▶ skipped = true                 │
- │   UserDefaults: Sill.tourSeen [String], Sill.tourSkipped Bool                                  │
+ │   UserDefaults: Skopry.tourSeen [String], Skopry.tourSkipped Bool                                  │
  └────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -339,7 +339,7 @@ struct Moment {
                                     // the pairing overlay or a link), or the app not active
     var offered: Bool               // this session has had its decision in this layout
     var voiceOver: Bool
-    var enabled: Bool               // Release: true; Debug: only with -SillTourState (§10)
+    var enabled: Bool               // Release: true; Debug: only with -SkopryTourState (§10)
 }
 enum Reason: Equatable { case nothingOwed, used, busy }          // for the console line
 enum Decision: Equatable { case show([TourTopic]), wait(until: Double?), pass(Reason) }
@@ -402,8 +402,8 @@ the cable or to Wi-Fi keeps the same `StreamScreen` and its `pictureAt`.
 
 | Key (UserDefaults, the app's own) | Type | Written |
 |---|---|---|
-| `Sill.tourSeen` | `[String]`, topic names | When Next or Done passes a step: that step's topic |
-| `Sill.tourSkipped` | `Bool` | When Skip is tapped |
+| `Skopry.tourSeen` | `[String]`, topic names | When Next or Done passes a step: that step's topic |
+| `Skopry.tourSkipped` | `Bool` | When Skip is tapped |
 
 - **Next** saves the step it leaves; **Done** saves the last; nothing is saved when a step merely
   shows. So a session that ends mid-tour (the Mac quits, a notice, a lost network) leaves the
@@ -412,8 +412,8 @@ the cable or to Wi-Fi keeps the same `StreamScreen` and its `pictureAt`.
 - **Take the Tour** saves each step passed as well (it can only add).
 - **A new topic in a later build** (a new control) is owed to every device that did not skip, and
   shows once: at a session's first picture, or at a turn when only that layout has it.
-- **Per device, not per Mac.** Kept in the app's own defaults, as `Sill.savedMacs` and
-  `Sill.directWirelessMacs` are. A backup and restore keeps it (the person knows the app); a
+- **Per device, not per Mac.** Kept in the app's own defaults, as `Skopry.savedMacs` and
+  `Skopry.directWirelessMacs` are. A backup and restore keeps it (the person knows the app); a
   delete and reinstall resets it. The privacy manifest's UserDefaults reason (CA92.1) covers it,
   and the App Store label stays Data Not Collected.
 - **No migration.** Only development and TestFlight builds exist before this one, so everyone gets
@@ -424,7 +424,7 @@ the cable or to Wi-Fi keeps the same `StreamScreen` and its `pictureAt`.
 #### 6.1 Structure
 
 - **Targets.** `View.tourTarget(_ t: TourTarget, inset: EdgeInsets = .init())` reports the view's
-  frame in the named coordinate space `"sill.screen"` through a preference `[TourTarget: CGRect]`
+  frame in the named coordinate space `"skopry.screen"` through a preference `[TourTarget: CGRect]`
   (a `GeometryReader` in a background, merged by key). `StreamScreen`'s `ZStack` names the space
   and keeps the rects with `onPreferenceChange`. Frames, not anchors, because the layer is a
   sibling drawn after the layouts, the way the pairing overlay is: over the stream's UIKit input
@@ -438,8 +438,8 @@ the cable or to Wi-Fi keeps the same `StreamScreen` and its `pictureAt`.
   screen keeps the top and side safe areas outside its frame (it ignores only the bottom one,
   StreamScreen.swift:169), so a phone upright has about 60 pt above it and a phone sideways its
   Dynamic Island's side, and on an iPad with a status bar the bar's colour runs under it (:475).
-  The targets are measured in `sill.screen`, whose origin is inside those insets, so the dim reads
-  its own frame in `sill.screen` (a `GeometryReader`) and moves the cutout by minus that origin.
+  The targets are measured in `skopry.screen`, whose origin is inside those insets, so the dim reads
+  its own frame in `skopry.screen` (a `GeometryReader`) and moves the cutout by minus that origin.
   Unmoved, the ring would sit an inset away from its controls on every phone, which the harness
   never shows: its fake screen has no insets (ContentView.swift:167-171). S1's live photos do.
 - **The dim's touch area leaves out the card.** Its tap (the nudge, §6.4) is on the screen less
@@ -631,7 +631,7 @@ scroll."). The name in each row is semibold. The check pins every string.
 | `touch` | Tap, Hold and Drag | What you do here happens on ‹Mac›. | `hand.tap` · **Tap** to click.<br>`contextualmenu.and.cursorarrow` · **Touch and hold** to right-click.<br>`hand.draw` · **Drag** to scroll.<br>`applepencil` · **Apple Pencil** works as a mouse. (iPad only) | Landscape: "The picture of ‹Mac› fills the screen below the bar." Portrait: "The picture of ‹Mac› fills the top half of the screen." |
 | `bar` | Windows and Text Size | — | `hand.point.up.left` · **Touch and hold** a window to close, minimize or go full screen. Keep holding and drag to move it.<br>`textformat.size` · **Aa**: touch it and slide to make a window’s text larger or smaller.<br>`keyboard` · **Keyboard** types on ‹Mac›, on screen or with a hardware keyboard. (landscape and a phone upright) | Landscape: "In the bar at the top, after Apps." Portrait: "In the bar below the picture, after Apps." A phone upright: "Under the picture: Aa and Keyboard in the first row, the windows in the second." |
 | `settings` | Settings | — | `xmark.circle` · **Disconnect** is at the bottom of Settings.<br>`questionmark.circle` · **Take the Tour** is there too, to see this again.<br>`ipad` or `iphone` · **Hold your ‹device› upright** for a trackpad and keys. (landscape only) | "The last button in the bar." |
-| `laptop` | Keys and Trackpad | Only as a run's first card: "Upright, Sill adds keys and a trackpad." | `command` · **cmd, opt, ctrl and shift** stay on for the next key or trackpad click: tap cmd, then C, to copy.<br>`keyboard` · **The keyboard key** types on ‹Mac›, on screen or with a hardware keyboard.<br>`cursorarrow.click.2` · **Tap with two fingers** on the trackpad to right-click.<br>`hand.draw` · **Touch and hold** the trackpad, **then drag**, to move a window or select text. | "Below the bar: the row of keys, then the trackpad." |
+| `laptop` | Keys and Trackpad | Only as a run's first card: "Upright, Skopry adds keys and a trackpad." | `command` · **cmd, opt, ctrl and shift** stay on for the next key or trackpad click: tap cmd, then C, to copy.<br>`keyboard` · **The keyboard key** types on ‹Mac›, on screen or with a hardware keyboard.<br>`cursorarrow.click.2` · **Tap with two fingers** on the trackpad to right-click.<br>`hand.draw` · **Touch and hold** the trackpad, **then drag**, to move a window or select text. | "Below the bar: the row of keys, then the trackpad." |
 
 - **A phone held upright** (§3.1): the picture's hint "The picture of ‹Mac› is at the top of the
   screen."; Settings' "The last button in the row under the picture."; the laptop card has no
@@ -679,28 +679,28 @@ scroll."). The name in each row is semibold. The check pins every string.
   Last because it is this device's, not the Mac's, and the outer display's 259 pt shows the Mac's
   rows first.
 - **The row:** a `Rows { Button }` like Pair This iPad… (:333-342): "Take the Tour", accent,
-  leading, 44 pt. Its footnote: "A short tour of Sill’s controls on this ‹device›." Its
-  accessibility hint: "Shows how to use Sill on this ‹device›."
+  leading, 44 pt. Its footnote: "A short tour of Skopry’s controls on this ‹device›." Its
+  accessibility hint: "Shows how to use Skopry on this ‹device›."
 - **What it does:** a `takeTour` closure, passed as `pairThisDevice` is (:23-25, StreamScreen.swift
   :365 and PortraitStreamScreen.swift:196), takes the panel's `keyboardBeforeSettings`, closes the
   panel without restoring the keyboard, and once the panel's 0.18 s close has run
   (StreamScreen.swift:273-274) starts every step of the layout on screen, from the first (under
   VoiceOver, less what §3.1 leaves out).
 - **Nothing about the Mac changes:** the row sends nothing, and the panel's other rows are as they
-  are. Every `-SillSettings 1` photo gains the row at the end.
+  are. Every `-SkoprySettings 1` photo gains the row at the end.
 
 ### 9. Files
 
 | File | Change |
 |---|---|
 | `iOSClient/TourPolicy.swift` (new; pure: Foundation and CoreGraphics; checked with swiftc) | `TourTopic`, `TourLayout`, `TourTarget`, `TourMemory`, the steps and targets (§3), the rule (§4), `passed`, `skipped` and `carry` (§3.2, §5), `place` and `crease` (§6.3), and every string (§7) as `TourCopy` values built from ‹Mac›, ‹device› and VoiceOver. pbxproj IDs `A1000001000000000000A401` / `…F401` |
-| `iOSClient/TourOverlay.swift` (new) | `TourDim`, `TourCard`, `TourCardLayout`, the `tourTarget` modifier and its preference, `TouchWatcher`, `TourStore` (the two keys, and Debug's `-SillTourState`), the stand-ins (§10) and the console lines. IDs `…A402` / `…F402` |
+| `iOSClient/TourOverlay.swift` (new) | `TourDim`, `TourCard`, `TourCardLayout`, the `tourTarget` modifier and its preference, `TouchWatcher`, `TourStore` (the two keys, and Debug's `-SkopryTourState`), the stand-ins (§10) and the console lines. IDs `…A402` / `…F402` |
 | `iOSClient/StreamScreen.swift` | The run and the rule's inputs as `@State` (`tour`, `targets`, `pictureAt`, `layoutAt`, `decided`, `offered`), the coordinate space, the watcher, the layer (§6.1), `startTour` and `endTour` (§6.6), an outside link putting the tour aside, the targets in TopBar and `contentArea`, and the DEBUG init's `tour:` |
 | `iOSClient/PortraitStreamScreen.swift` | The targets in `streamPane`, `windowBar`, `KeyRow` and `Trackpad`; `takeTour` passed to the panel |
 | `iOSClient/HostSettingsPanel.swift` | Take the Tour (§8) and its `takeTour` closure |
 | `iOSClient/StreamClient.swift` | `lastInputAt` in `sendInput`; DEBUG `tourShowing` and the tripwire (§6.6) |
-| `iOSClient/ContentView.swift` | The harness: `Spec` gains `tour` and passes it on; DEBUG `-SillOrientation` in the normal app; the contract comment (§10) |
-| `iOSClient/Sill.xcodeproj/project.pbxproj` | The two files' four entries each, by hand: build file, file reference, group, sources phase |
+| `iOSClient/ContentView.swift` | The harness: `Spec` gains `tour` and passes it on; DEBUG `-SkopryOrientation` in the normal app; the contract comment (§10) |
+| `iOSClient/Skopry.xcodeproj/project.pbxproj` | The two files' four entries each, by hand: build file, file reference, group, sources phase |
 | `Tests/checks/tour/` (new) | `main.swift`, `run.sh`, `mutants.py` (§13, H2) |
 | `Tests/checks/README.md`, `.github/workflows/ci.yml` | The check's row; `tour` in the mutants matrix (ci.yml:122) |
 
@@ -733,11 +733,11 @@ enum TourPolicy {
 
 ### 10. Harness and DEBUG arguments (ContentView's contract comment at :55-171, and CLAUDE.md)
 
-- **`-SillTour touch|bar|settings|laptop`:** the stream screen starts the tour at that step, as
+- **`-SkopryTour touch|bar|settings|laptop`:** the stream screen starts the tour at that step, as
   Take the Tour shows it (every step of the layout, from that one on), with no beat: in the mock at
-  once, and under `-SillLive 1` and in the normal app at the first picture. A step the layout lacks
+  once, and under `-SkopryLive 1` and in the normal app at the first picture. A step the layout lacks
   (`laptop` at 1000x710) starts at the first.
-- **`-SillTourState fresh|landscape|done|skipped|saved`:** in the normal app, under `-SillLive 1`
+- **`-SkopryTourState fresh|landscape|done|skipped|saved`:** in the normal app, under `-SkopryLive 1`
   and in the mock:
   - it turns the automatic tour on, which a Debug build otherwise never shows (open question 10);
   - `fresh` is nothing seen, `landscape` the three landscape steps seen (so an upright size shows
@@ -745,13 +745,13 @@ enum TourPolicy {
   - `saved` reads and writes the saved keys, as a Release build does.
 
   In the mock the picture counts from launch.
-- **`-SillTourPress next@S|skip@S`:** Debug only, a stand-in for a tap, since the gates may not
+- **`-SkopryTourPress next@S|skip@S`:** Debug only, a stand-in for a tap, since the gates may not
   drive the UI: S seconds after each card appears, press Next (Done on the last), or once, Skip.
-- **`-SillTourActivityAt S`:** Debug only, a stand-in for a touch S seconds after the picture, for
+- **`-SkopryTourActivityAt S`:** Debug only, a stand-in for a touch S seconds after the picture, for
   the rule's pass (the gates may not touch the screen).
-- **`-SillTourVoiceOver 1`:** Debug only, the run and its words as under VoiceOver, for photos
+- **`-SkopryTourVoiceOver 1`:** Debug only, the run and its words as under VoiceOver, for photos
   (VoiceOver cannot be turned on from the command line here).
-- **`-SillOrientation landscape|portrait`:** Debug, in the normal app: asks the window scene for
+- **`-SkopryOrientation landscape|portrait`:** Debug, in the normal app: asks the window scene for
   that orientation at launch (`UIWindowScene.requestGeometryUpdate`, iOS 16), so a phone simulator
   shows the real layout sideways, its insets included, with no hand on the simulator. Unverified:
   if the simulator does not turn, S1 says what replaces it.
@@ -788,18 +788,18 @@ tour: INPUT SENT WHILE THE TOUR SHOWED: …        (the tripwire; see §6.6)
 | The card | 360 pt wide (480 sideways under 520 pt tall, 560 at accessibility sizes, never more than the screen less 32); 14 pt padding; 16 pt from the edges; 12 pt from its targets while it fits beside them |
 | The tail | 16 × 7 pt; only where §6.3 allows |
 | Motion | In 0.25 s, a step 0.35 s, out 0.2 s; under Reduce Motion 0.2 s fades |
-| Kept | `Sill.tourSeen` (four topic names at most today), `Sill.tourSkipped` |
+| Kept | `Skopry.tourSeen` (four topic names at most today), `Skopry.tourSkipped` |
 
 ### 12. Edge cases
 
 | Case | Behaviour |
 |---|---|
-| The session ends during the tour (Sill.app quits, a notice, the network goes) | The tour goes with the stream screen. Steps passed stay passed; the next session starts at the first step owed, with its own beat and decision (the automatic reconnect's too, since a run was on screen) |
-| The session ends after its decision, and the automatic reconnect brings the picture back (a Wi-Fi drop, the Mac waking, an eviction after 4 s in another app, Sill.app relaunched) | The reconnect's session goes on with the last one's decision: no tour where it was decided; in a layout it never decided in, only what that layout has alone, a beat after the new picture. A session the person starts decides afresh |
+| The session ends during the tour (Skopry.app quits, a notice, the network goes) | The tour goes with the stream screen. Steps passed stay passed; the next session starts at the first step owed, with its own beat and decision (the automatic reconnect's too, since a run was on screen) |
+| The session ends after its decision, and the automatic reconnect brings the picture back (a Wi-Fi drop, the Mac waking, an eviction after 4 s in another app, Skopry.app relaunched) | The reconnect's session goes on with the last one's decision: no tour where it was decided; in a layout it never decided in, only what that layout has alone, a beat after the new picture. A session the person starts decides afresh |
 | A Mac refuses this device's version (the floor) | Never shows: no window list, no picture (§4.1) |
 | The first session is remote, or over the cable | The same rule; the tour does not care how the session came |
 | Pairing at home (after `home-pairing` lands) | The card on the connect screen, "Paired with Mac mini.", then the session: the tour follows its picture. Over the cable, "Paired with Mac mini over the cable." then the same |
-| An outside `sill://pair` link during the tour | The tour is put aside (not closed, nothing saved); the pairing overlay shows; when it closes and the session still streams, the tour comes back at the same step. If a turn ends it meanwhile (nothing of it in the new layout), the keyboard stays down under the overlay |
+| An outside `skopry://pair` link during the tour | The tour is put aside (not closed, nothing saved); the pairing overlay shows; when it closes and the session still streams, the tour comes back at the same step. If a turn ends it meanwhile (nothing of it in the new layout), the keyboard stays down under the overlay |
 | An outside link in the beat | The overlay is open at the decision: not this session |
 | The person rotates, resizes (Split View, Stage Manager) or folds the Duo during the tour | §3.2 |
 | The person rotates or folds within the beat | The beat starts again in the new layout, with every step owed there (§4) |
@@ -808,7 +808,7 @@ tour: INPUT SENT WHILE THE TOUR SHOWED: …        (the tripwire; see §6.6)
 | The software keyboard is up at the decision | Something open: not this session. Take the Tour takes it down and puts it back after |
 | A latched modifier in the key row | Kept through the tour; spent by the next key or trackpad click after it |
 | A Mac with no windows | `bar` lights the empty strip, Aa and Keyboard; the words hold |
-| A Mac with an older Sill (no settings) | The `settings` card's rows hold: Disconnect is there whatever the Mac |
+| A Mac with an older Skopry (no settings) | The `settings` card's rows hold: Disconnect is there whatever the Mac |
 | The app goes to the background during the tour | Back within 4 s: the tour is there, at the same step. Longer: the Mac evicts a suspended device after 4 s, the stream screen goes with the session, and the next session's tour starts at the first step not passed |
 | The app goes to the background in the beat | Not active at the decision: not this session |
 | The Desktop cannot stream (the Mac lacks Screen Recording) | No picture, so no tour: the black panel is the Mac's to fix |
@@ -826,7 +826,7 @@ tour: INPUT SENT WHILE THE TOUR SHOWED: …        (the tripwire; see §6.6)
 **Hard rules for the implementing session:**
 - **Disk and build folders:** at least 25 GB free before any build (`df -g /System/Volumes/Data`);
   DerivedData under the session's scratch folder, deleted at the end.
-- **The simulator:** a private one named "Sill walkthrough", deleted at the end:
+- **The simulator:** a private one named "Skopry walkthrough", deleted at the end:
   - an iPad Pro 13-inch (M5) for the Duo sizes and the iPad;
   - then, the iPad one deleted, an iPhone SE (3rd generation) of the same name, the smallest screen
     the app runs on;
@@ -835,14 +835,14 @@ tour: INPUT SENT WHILE THE TOUR SHOWED: …        (the tripwire; see §6.6)
   - `xcrun simctl io <udid> screenshot` only: never XCUITest, never `recordVideo`, never the Claude
     iOS Simulator panel.
 - **Live runs:**
-  - only `SillHost --synthetic` on loopback, reached with `-SillConnect 127.0.0.1:P`;
+  - only `SkopryHost --synthetic` on loopback, reached with `-SkopryConnect 127.0.0.1:P`;
   - only while `Scripts/encoder-check/no-device.sh` passes, before and every 2 s during (the
     synthetic host uses the hardware encoder);
   - each host under 60 s, started with `start_new_session=True`, killed by PID, none left running;
   - **no input is ever sent to a host** (a synthetic host on main posts real events on this Mac);
-  - if macOS's Application Firewall asks about the new SillHost binary, the gate stops and the
+  - if macOS's Application Firewall asks about the new SkopryHost binary, the gate stops and the
     hand-off says so.
-- **Never touch** `/Applications/Sill.app` or connect anything to it; never install anything on
+- **Never touch** `/Applications/Skopry.app` or connect anything to it; never install anything on
   Noah's devices; never push to main.
 
 **Headless (H):**
@@ -853,27 +853,27 @@ tour: INPUT SENT WHILE THE TOUR SHOWED: …        (the tripwire; see §6.6)
 | H1 | **Builds.** iOS Debug and Release for the simulator (`ARCHS=arm64 CODE_SIGNING_ALLOWED=NO`), Debug for a generic device (unsigned) | `** BUILD SUCCEEDED **` with only the known `StreamClient` capture warning |
 | H2 | **The pure check**, `Tests/checks/run-all.sh tour`, at least 150 cases: the steps and targets per layout, with and without VoiceOver; `owed` for each memory; `only`; the rule at every boundary (0.99 and 1.0 s of beat; activity at `opens` − 0.01 and at `opens`; a touch down; `busy`; `offered`; `decided` false and true, a turn offering only `laptop`; `enabled`; `skipped`; nothing owed; the beat starting again when the layout changes before the decision); `passed`, `skipped`, a session ending; `carry` for every step both ways, with and without VoiceOver, and a run with nothing left; `crease` against a copy of `ConnectLayout.topHalf` at 20 sizes; `width` at every size of §6.3's table and at accessibility text; `place` pinned for every step at the four Duo sizes and the iPhone SE's two, with a short and a tall card, and at a 400-size grid of screens by card heights: inside the margins, never across the crease, beside its targets (not over them) whenever it fits there, growing toward the top first and over its targets only when it must, a tail only where allowed and never on an overlapping card, its tip within the card's straight edge; every string of §7 for "Mac mini" and "iPad", "iPhone" (no Pencil row), the "your Mac" fallback, the landscape-only rows, the upright card's subtitle, and under VoiceOver no "tap", "touch and hold", "slide" or "drag" in a spoken row. `--mutants tour`, at least 26 (§14 step 1) | All pass; every mutant caught; `Tests/checks/run-all.sh` passes whole |
 | H3 | **Hard rules by grep** | No `.sheet(`, `.popover(`, `popoverTip`, `fullScreenCover`, `.alert(`, `import TipKit` or `Tips.` in `Tour*.swift`; no `sendInput`, `client.send`, `select(`, `launch(`, `command(` or `changeSettings` there either; `TourPolicy.swift` imports Foundation and CoreGraphics only; `requestGeometryUpdate` only inside `#if DEBUG`; `git diff origin/main --stat -- Sources Packaging Scripts iOSClient/Info.plist iOSClient/PrivacyInfo.xcprivacy` is empty; A401, F401, A402, F402 each appear in their four places |
-| H4 | **Nothing else changed on screen.** At 1000x710, 710x1000, 500x710 and 710x500: the mock with no argument, `-SillDrawer 1`, `-SillWindowMenu 1`, `-SillScaleOpen 1 -SillScale 1.5`, `-SillActive none`, `-SillScanOverlay 1`, `-SillConnectCase methods`, `-SillConnectCase addmac` (32 photos), base against this build | Pixel for pixel equal. `-SillSettings 1` at the four sizes differs only at the rows' end (the new row), or not at all where the end is out of view |
+| H4 | **Nothing else changed on screen.** At 1000x710, 710x1000, 500x710 and 710x500: the mock with no argument, `-SkopryDrawer 1`, `-SkopryWindowMenu 1`, `-SkopryScaleOpen 1 -SkopryScale 1.5`, `-SkopryActive none`, `-SkopryScanOverlay 1`, `-SkopryConnectCase methods`, `-SkopryConnectCase addmac` (32 photos), base against this build | Pixel for pixel equal. `-SkoprySettings 1` at the four sizes differs only at the rows' end (the new row), or not at all where the end is out of view |
 
 **Simulator (S), photographed and sheeted per size:**
 
 | # | Check |
 |---|---|
-| S1 | **Every step at every size.** On the iPad simulator, `-SillTour <step>` for the three landscape steps at 1000x710, 710x500 and 1376x1032 (drawn turned; `sips -r 270`), and the four portrait steps at 710x1000, 500x710 and 1032x1376: 21 photos. On the iPhone SE, the same at 667x375 (turned) and 375x667: 7. On the iPhone 18 Pro Max, the normal app connected to a synthetic host (`-SillConnect`, `-SillTour <step>`), upright: 4 photos with the phone's real insets (the console's `tour: screen` line gives the stream screen's size); then with `-SillOrientation landscape`: 3, rotated back. If the interface does not turn, those 3 come from the harness at 832x440, and the Dynamic Island's side is left to P11. With `-SillTourVoiceOver 1`, at 1000x710 and 500x710: 5. Each photo: the ring on its controls within a point (in the live photos an offset by an inset is the fault to look for, §6.1); the card where §6.3 puts it, with its tail; nothing crosses y = 500 at 710x1000; at 667x375 the `bar` card sits below the bar, not over it; nothing truncated; the iPhone photos read "iPhone", with no Pencil row. Send Noah the sheets |
+| S1 | **Every step at every size.** On the iPad simulator, `-SkopryTour <step>` for the three landscape steps at 1000x710, 710x500 and 1376x1032 (drawn turned; `sips -r 270`), and the four portrait steps at 710x1000, 500x710 and 1032x1376: 21 photos. On the iPhone SE, the same at 667x375 (turned) and 375x667: 7. On the iPhone 18 Pro Max, the normal app connected to a synthetic host (`-SkopryConnect`, `-SkopryTour <step>`), upright: 4 photos with the phone's real insets (the console's `tour: screen` line gives the stream screen's size); then with `-SkopryOrientation landscape`: 3, rotated back. If the interface does not turn, those 3 come from the harness at 832x440, and the Dynamic Island's side is left to P11. With `-SkopryTourVoiceOver 1`, at 1000x710 and 500x710: 5. Each photo: the ring on its controls within a point (in the live photos an offset by an inset is the fault to look for, §6.1); the card where §6.3 puts it, with its tail; nothing crosses y = 500 at 710x1000; at 667x375 the `bar` card sits below the bar, not over it; nothing truncated; the iPhone photos read "iPhone", with no Pencil row. Send Noah the sheets |
 | S2 | **Text size**, `xcrun simctl ui <udid> content_size`: every step at 710x500, 500x710 and 710x1000 on the iPad simulator and at 667x375 on the iPhone SE, at `extra-extra-extra-large` and `accessibility-extra-extra-extra-large` (28 photos). The title and rows wrap; a card too tall for its room grows toward the top (over the bar at 667x375) before its rows scroll, with the footer whole and reachable; at 710x1000 the card stays in the upper half |
-| S3 | **Take the Tour.** `-SillSettings 1 -SillSettingsEnd 1` at 500x710, 710x500 and 1000x710, cases `default`, `legacy` (no settings: the row is still there) and `remotepair`, at the default size and at xxLarge (the panel's cap) |
-| S4 | **The rule, in the mock.** `-SillTourState fresh` at 1000x710: no tour in a photo at 0.5 s, the `touch` card (1 of 3) at 2 s. `landscape` at 710x1000: at 2 s the `laptop` card with its subtitle and no dots. `done` and `skipped`: nothing at 3 s. `fresh` with `-SillDrawer 1`: nothing at 3 s, and the console's "not this session: the Apps list was open". `fresh` with `-SillTourActivityAt 0.5`: nothing at 3 s ("not this session: used within a second of the picture"). `fresh` with `-SillScanOverlay 1`: nothing at 3 s. With `-SillTourPress next@1` at 1000x710: Done after the third card, the console's "tour: done (saved: …)", nothing written (`fresh`) |
-| S5 | **Live**, one host at a time. (a) `-SillLive 1 -SillLayout 1000x710 -SillConnect 127.0.0.1:P -SillTourState fresh`: "tour: showing touch (1 of 3)" between 1.0 and 2.5 s after the console's `host:` line (the first window list; the picture follows it); a photo of the card over the test pattern. (b) On a fresh install (`xcrun simctl uninstall`, then `install`), the same with `saved` and `-SillTourPress next@1.5`: kill the host while the third card shows. Back on the connect screen, `plutil -p "$(xcrun simctl get_app_container "Sill walkthrough" me.saffer.sill data)/Library/Preferences/me.saffer.sill.plist"` lists `Sill.tourSeen` with touch and bar. A new host and the same launch: the tour starts at `settings`, with no dots and Done. (c) A host with `SILL_TEST_MIN_DEVICE_VERSION=99` and `-SillTourState fresh`: the notice on the connect screen and no `tour:` line in 10 s. (d) The console never prints the tripwire |
+| S3 | **Take the Tour.** `-SkoprySettings 1 -SkoprySettingsEnd 1` at 500x710, 710x500 and 1000x710, cases `default`, `legacy` (no settings: the row is still there) and `remotepair`, at the default size and at xxLarge (the panel's cap) |
+| S4 | **The rule, in the mock.** `-SkopryTourState fresh` at 1000x710: no tour in a photo at 0.5 s, the `touch` card (1 of 3) at 2 s. `landscape` at 710x1000: at 2 s the `laptop` card with its subtitle and no dots. `done` and `skipped`: nothing at 3 s. `fresh` with `-SkopryDrawer 1`: nothing at 3 s, and the console's "not this session: the Apps list was open". `fresh` with `-SkopryTourActivityAt 0.5`: nothing at 3 s ("not this session: used within a second of the picture"). `fresh` with `-SkopryScanOverlay 1`: nothing at 3 s. With `-SkopryTourPress next@1` at 1000x710: Done after the third card, the console's "tour: done (saved: …)", nothing written (`fresh`) |
+| S5 | **Live**, one host at a time. (a) `-SkopryLive 1 -SkopryLayout 1000x710 -SkopryConnect 127.0.0.1:P -SkopryTourState fresh`: "tour: showing touch (1 of 3)" between 1.0 and 2.5 s after the console's `host:` line (the first window list; the picture follows it); a photo of the card over the test pattern. (b) On a fresh install (`xcrun simctl uninstall`, then `install`), the same with `saved` and `-SkopryTourPress next@1.5`: kill the host while the third card shows. Back on the connect screen, `plutil -p "$(xcrun simctl get_app_container "Skopry walkthrough" app.skopry data)/Library/Preferences/app.skopry.plist"` lists `Skopry.tourSeen` with touch and bar. A new host and the same launch: the tour starts at `settings`, with no dots and Done. (c) A host with `SKOPRY_TEST_MIN_DEVICE_VERSION=99` and `-SkopryTourState fresh`: the notice on the connect screen and no `tour:` line in 10 s. (d) The console never prints the tripwire |
 
 **Noah's devices (P), handed over at the end:** the iPad mini and the iPhone 15 Pro. The automatic
 tour needs a Release or TestFlight build on a fresh install, or the Debug build launched with
-`-SillTourState fresh` (Xcode's scheme, Arguments).
+`-SkopryTourState fresh` (Xcode's scheme, Arguments).
 
 | # | Check |
 |---|---|
 | P1 | **The first picture.** About a second after the Mac's Desktop shows, with nothing touched meanwhile, the tour dims the screen and lights the picture. While it shows: tap, hold and drag on the dimmed picture; press keys on a hardware keyboard; hover and touch with the Pencil; use a trackpad or mouse on the iPad. Nothing happens on the Mac (its pointer does not move; the host's `[1s]` lines show no `in.pointer`, `in.scroll`, `in.text` or `in.key` meanwhile), and the picture keeps moving. Then, fresh again: touch the picture within the first second, and no tour comes this session |
 | P2 | **Each step** lights the control it names, in both layouts, and Done ends it. Held upright after a tour in landscape and left alone: the `laptop` card about a second after the turn, once |
-| P3 | **Interrupted.** Quit Sill.app on the Mac at the third card; reopen it. The next session's tour starts at the first step not passed |
+| P3 | **Interrupted.** Quit Skopry.app on the Mac at the third card; reopen it. The next session's tour starts at the first step not passed |
 | P4 | **Take the Tour,** in both layouts, with the keyboard up before opening Settings: the tour runs, and the keyboard is back after Done |
 | P5 | **Skip** on the first card: no tour at the next session, nor when held upright |
 | P6 | **VoiceOver:** no `touch` card and no trackpad rows; focus on each card's title as it comes; each row read whole, with no symbol names; the `bar` rows say to swipe up or down; the escape gesture skips; Magic Tap goes on; after Done, the stream screen is read afresh |
@@ -937,7 +937,7 @@ Commit messages end with the session's attribution lines.
 
 - **Apple frameworks only:** SwiftUI and UIKit. No TipKit in this step.
 - **No wire change, and nothing sent:** the tour sends nothing to the Mac, and while it shows the
-  device sends no input either (§6.6). `StreamProtocol`, the host, the CLI and Sill.app are
+  device sends no input either (§6.6). `StreamProtocol`, the host, the CLI and Skopry.app are
   untouched.
 - **No system presentation:** no sheet, popover, alert or full-screen cover. The tour is a view
   in the stream screen's hierarchy, as the Settings panel and the pairing overlay are.
@@ -950,7 +950,7 @@ Commit messages end with the session's attribution lines.
 - **Every layout:** the Duo's 1000×710, 710×1000, 500×710 and 710×500; iPhone upright and
   sideways, down to the iPhone SE; iPad. VoiceOver, every text size, Reduce Motion.
 - **iOS 17.0 APIs,** or an `#available` check with a fallback.
-- **The harness and every Debug run look as before** unless a `-SillTour…` argument asks.
+- **The harness and every Debug run look as before** unless a `-SkopryTour…` argument asks.
 - **New iOS files:** four pbxproj entries each, by hand. Swift 5 language mode.
 - **Tests** follow §13's rules: the private simulator, screenshots only, synthetic hosts on
   loopback while no device is connected, no input to any host.
@@ -969,7 +969,7 @@ Commit messages end with the session's attribution lines.
     touched; touch the picture at once to go without it, or take it once, before the screenshots.
 - **docs/release-checklist.md,** TestFlight §8: the same line for the screenshot session.
 - **site/privacy.html,** "On your iPhone or iPad": "Which parts of the tour you have seen." The
-  site reaches getsill.app with the next republish (the checklist's TestFlight §3).
+  site reaches skopry.app with the next republish (the checklist's TestFlight §3).
 - **Tests/checks/README.md:** the `tour` row.
 
 ### 17. The base, other branches, and what comes later
@@ -1041,7 +1041,7 @@ the HIG pages named at the top. What it found, and what changed:
 6. **The phone was never photographed as it is.** The harness draws a fake screen with no insets,
    and S1's phone sizes (956x440 and 440x956) are sizes the stream screen never has: it keeps the
    top and side safe areas (StreamScreen.swift:169). Now the phone photos come from the normal app
-   against a synthetic host (`-SillOrientation landscape` turns it), and the smallest screen the
+   against a synthetic host (`-SkopryOrientation landscape` turns it), and the smallest screen the
    app runs on, the iPhone SE's 667×375 and 375×667, joins every size check.
 7. **The cutout could miss its controls by an inset.** The dim was to cover the safe areas while
    the targets are measured in a space that starts inside them: on a phone upright the ring would
@@ -1058,8 +1058,8 @@ the HIG pages named at the top. What it found, and what changed:
     evicts a suspended device after that, and the next session resumes at the first step not
     passed (§12).
 11. Smaller: TipKit's inline `TipView` considered as well as `popoverTip`; the card's padding the
-    panel's 14 pt; no dots on a one-step run; `-SillTour` in the normal app; the stand-ins
-    `-SillTourActivityAt` and `-SillTourVoiceOver`; the tripwire's one expected case (a coast after
+    panel's 14 pt; no dots on a one-step run; `-SkopryTour` in the normal app; the stand-ins
+    `-SkopryTourActivityAt` and `-SkopryTourVoiceOver`; the tripwire's one expected case (a coast after
     a flick, under Take the Tour).
 
 Kept as it was, against the HIG's preference for tips in context and teaching by doing: the flow
@@ -1091,16 +1091,16 @@ two keys, Skip for good, Take the Tour last in Settings, and the Debug rule.
    tour, as a tip would.
 7. **Back.** Default: **none;** Take the Tour replays. The alternative: a Back button beside Skip.
 8. **The row's name and place.** Default: **"Take the Tour", the last row of the Settings panel's
-   scrolling rows.** The alternatives: "How to Use Sill"; beside Disconnect in the pinned foot; a
+   scrolling rows.** The alternatives: "How to Use Skopry"; beside Disconnect in the pinned foot; a
    "?" button in the bar (the outer display's bar has no room for it).
 9. **Text size.** Default: **every size, the accessibility sizes included;** a card too tall for
    its room grows toward the top, over its own targets if it must, then scrolls. The alternatives:
    capped at accessibility-3 (235 % of the default size, past the 200 % the HIG's Accessibility
    page asks for), or at xxLarge like the Settings panel.
-10. **Debug builds.** Default: **the automatic tour only with `-SillTourState`,** so no harness
+10. **Debug builds.** Default: **the automatic tour only with `-SkopryTourState`,** so no harness
     photo or other feature's live test ever gets a tour over it; Release and TestFlight always
     follow the rule. The alternative: Debug as Release, and every test run passes
-    `-SillTourState done`.
+    `-SkopryTourState done`.
 11. **Existing installs.** Default: **no migration;** everyone sees it once (only development and
     TestFlight builds exist). The alternative: skip it on a device that has connected before (a
     saved window order or a saved Mac).
@@ -1173,7 +1173,7 @@ default.
   card lands where the layout put it; the check asserts that over its whole grid.
 - **The Settings row's group** has 10 pt above it when it follows a row, not a footnote (while
   settings load, and for a Mac without them).
-- **Added:** `-SillTakeTourAt S` (the gates may not tap Take the Tour), and "S s after the picture"
+- **Added:** `-SkopryTakeTourAt S` (the gates may not tap Take the Tour), and "S s after the picture"
   on the console's `showing` lines. The scrolling words fade out over 16 pt above the footer instead
   of being cut mid-line; Next and Done get 4 pt more height at large sizes.
 
@@ -1205,7 +1205,7 @@ default.
   nothing active, the pairing overlay, the connect screen's methods and Add a Mac, at the four Duo
   sizes, this build against the base (this plan's commit, built from `git archive`): 28 of 32 equal
   pixel for pixel; the four held-thumbnail photos differ where it wiggles, as two photos of the base
-  do. `-SillSettings 1` equal at the four sizes; with `-SillSettingsEnd 1` the rows end in the new
+  do. `-SkoprySettings 1` equal at the four sizes; with `-SkoprySettingsEnd 1` the rows end in the new
   row.
 - **S1, S2:** every step at 1000x710, 710x500, 710x1000, 500x710, the iPad Pro 13-inch's
   1376x1032 and 1032x1376, and the iPhone SE's 667x375 and 375x667, at the default text size and at
@@ -1222,29 +1222,29 @@ default.
 - **S4:** in the mock: `fresh` no tour in the first second and the touch card at 1.07–1.17 s;
   `landscape` at 710x1000 the laptop card alone, with its subtitle and no dots; `done` and
   `skipped` nothing ("nothing owed here"); the Apps list open, a stand-in touch at 0.5 s and the
-  pairing overlay each "not this session" with the reason; `-SillTourPress next@1` through Done,
+  pairing overlay each "not this session" with the reason; `-SkopryTourPress next@1` through Done,
   "done (saved: touch, bar, settings; this run only)".
-- **The saved keys, in the mock** (a fresh install, `-SillTourState saved`): the first session
+- **The saved keys, in the mock** (a fresh install, `-SkopryTourState saved`): the first session
   showed the tour and saved each step as Next and Done passed it; the second said "nothing owed
-  here"; Take the Tour from the Settings panel (`-SillTakeTourAt 2`) showed it again from the
-  first step; the app's plist held `Sill.tourSeen` touch, bar, settings and `Sill.tourSkipped`
+  here"; Take the Tour from the Settings panel (`-SkopryTakeTourAt 2`) showed it again from the
+  first step; the app's plist held `Skopry.tourSeen` touch, bar, settings and `Skopry.tourSkipped`
   false.
-- **S5, live** (03:28–03:40, once Noah's iPad had left Sill.app: it streamed from 01:17 on, and
+- **S5, live** (03:28–03:40, once Noah's iPad had left Skopry.app: it streamed from 01:17 on, and
   `Scripts/encoder-check/no-device.sh` blocked every try until then). The normal app on an iPhone
-  18 Pro Max against `SillHost --synthetic` on loopback (`-SillConnect`), one host at a time, the
-  guard before each and a watchdog on Sill.log during, each host under 40 s, none left running:
-  - (a, b) on a fresh install with `-SillTourState saved`, the first connection showed the touch
-    card 1.06 s after the picture (1.10 s in the first run) and, `-SillTourPress next@2` pressing
+  18 Pro Max against `SkopryHost --synthetic` on loopback (`-SkopryConnect`), one host at a time, the
+  guard before each and a watchdog on Skopry.log during, each host under 40 s, none left running:
+  - (a, b) on a fresh install with `-SkopryTourState saved`, the first connection showed the touch
+    card 1.06 s after the picture (1.10 s in the first run) and, `-SkopryTourPress next@2` pressing
     through, saved touch, bar, settings and laptop; the second connection said "nothing owed here
-    (portrait; seen: touch, bar, settings, laptop)"; the third, with `-SillTakeTourAt 2`, opened
+    (portrait; seen: touch, bar, settings, laptop)"; the third, with `-SkopryTakeTourAt 2`, opened
     Settings and its Take the Tour showed the tour from the first step, 3.37 s after the picture.
   - A session cut at the third card (the host killed; the stand-in had just passed that card) went
     on at the next connection with what was left: the laptop card alone, 1 of 1, with its
     subtitle.
-  - (c) a host with `SILL_TEST_MIN_DEVICE_VERSION=99`: the connect screen's update notice, and no
+  - (c) a host with `SKOPRY_TEST_MIN_DEVICE_VERSION=99`: the connect screen's update notice, and no
     `tour:` line.
   - The phone's real safe areas: every step upright (the stream screen 440x894 under the Dynamic
-    Island) and sideways (`-SillOrientation landscape` turns the normal app; 832x440 between its
+    Island) and sideways (`-SkopryOrientation landscape` turns the normal app; 832x440 between its
     insets), at the default size and at accessibility-extra-large: each ring on its controls, not
     an inset away (the critique's §18 item 7), the cards clear of the Dynamic Island and the home
     indicator, "iPhone" and no Pencil row.
@@ -1281,7 +1281,7 @@ TourPolicy) found eight things. Each was checked here before it was fixed, one c
 4. **Every automatic reconnect decided afresh,** so someone at work got the dim a second after a
    dropped picture came back. What a session decided (`TourSession`) lives on StreamClient and the
    automatic reconnect's session goes on with it (open question 20), unless the last one ended
-   before its decision or mid-run. Live, on loopback through the remote door (`SillHost --synthetic
+   before its decision or mid-run. Live, on loopback through the remote door (`SkopryHost --synthetic
    --remote=PORT` with its identity kept in a scratch folder, the app paired at launch; the first
    host killed, a second on the same port and identity, the app's own automatic redial 4.1–4.2 s
    after the loss): a first session that passed (a stand-in touch), the reconnect's session kept
@@ -1302,7 +1302,7 @@ TourPolicy) found eight things. Each was checked here before it was fixed, one c
 Found while verifying them: the tour's delayed work (the beat's wait, Take the Tour's start, the
 DEBUG stand-ins) acted on a stream screen that had gone with its session; in the live run a
 stand-in pressed Next on a gone card and saved its step. It now goes ahead only in the session it
-began in. The DEBUG `-SillTourActivityAt` touches in the app run's first session only, so a live run
+began in. The DEBUG `-SkopryTourActivityAt` touches in the app run's first session only, so a live run
 can show a reconnect keeping its decision.
 
 ### Merged with main at 5c6a850 (PRs #29, the disk image, and #30, the iPhone's portrait layout)
@@ -1337,20 +1337,20 @@ tour's photos on the iPhone were the same before and after this merge (card fram
   but the bar card's new words and what differs between two runs of either build (the home
   indicator, a thumbnail strip's end); the largest size and accessibility-extra-large at 500x710,
   710x500, 710x1000 and 1000x710, every bar, Settings and laptop card beside its targets with its
-  tail. After it: the phone's arrangement (`-SillIdiom phone`) at 440x894, 402x812, 375x647 and
+  tail. After it: the phone's arrangement (`-SkopryIdiom phone`) at 440x894, 402x812, 375x647 and
   500x710, and at two larger sizes; the harness's other states (no tour) against main's build,
   equal but the Settings panel's last row and its scroll indicator, and what differs between two
   runs of main's own build; and, on the iPhone simulator, the halves (710x1000, and 500x710 as an
-  iPad draws it, `-SillIdiom pad`) and both landscape sizes, each card anchored and tailed where it
+  iPad draws it, `-SkopryIdiom pad`) and both landscape sizes, each card anchored and tailed where it
   was before the merge (its height differs only by the 3x screen's rounding and the iPhone's
   words).
 - On a private iPhone 18 Pro Max: the harness at 440x894 and 956x440 with the iPhone's words (no
-  Pencil row), and live against `SillHost --synthetic` (the guard before each host, a watchdog on
-  Sill.log during, each host under 30 s, none left running): every step upright (440x894 under the
+  Pencil row), and live against `SkopryHost --synthetic` (the guard before each host, a watchdog on
+  Skopry.log during, each host under 30 s, none left running): every step upright (440x894 under the
   Dynamic Island) and sideways (832x440), at the default size and accessibility-extra-large, each
   ring on its controls under the real safe areas. After the second merge, again live on the
-  iPhone (the hosts on loopback and the software encoder, `SILL_TEST_LOOPBACK`,
-  `SILL_TEST_SOFTWARE_ENCODER`): the reconnect after a session that passed showed nothing, the one
+  iPhone (the hosts on loopback and the software encoder, `SKOPRY_TEST_LOOPBACK`,
+  `SKOPRY_TEST_SOFTWARE_ENCODER`): the reconnect after a session that passed showed nothing, the one
   after a run cut at its second card showed the tour from the step not passed, and the phone's
   cards sat where they did before. The tripwire never fired in any live run.
 

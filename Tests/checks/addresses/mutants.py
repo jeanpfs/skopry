@@ -1,7 +1,7 @@
 """H3 (step 3) mutants of AddressList and PairingWindow."""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-A = os.path.join(WT, "Sources/SillHost/AddressList.swift"); P = os.path.join(WT, "Sources/SillHost/PairingWindow.swift")
+A = os.path.join(WT, "Sources/SkopryHost/AddressList.swift"); P = os.path.join(WT, "Sources/SkopryHost/PairingWindow.swift")
 M = [
     (A, "unnamed tunnels shown", "services.filter { !$0.name.isEmpty && isTunnel($0.interface) }", "services.filter { isTunnel($0.interface) }"),
     (A, "a nameless service hides its tunnel", "where !vpns.contains(where: { $0.interface == t.interface })", "where !input.services.contains(where: { $0.interface == t.interface })"),

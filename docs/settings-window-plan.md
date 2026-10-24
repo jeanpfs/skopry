@@ -2,7 +2,7 @@
 
 2026-10-14. Branch `settings-window-height` (worktree `/Users/noah/Downloads/winstream-settings-height`,
 PR #74) from origin/main at 985a733; line numbers are at 985a733. Issue #59 (rosstex, a 14-inch MacBook Pro
-on macOS 26.6.2, Sill 0.5.1 (563)): "The Remote Access settings on Mac are too tall and cannot be
+on macOS 26.6.2, Skopry 0.5.1 (563)): "The Remote Access settings on Mac are too tall and cannot be
 resized." Mac app only: no wire change, nothing on the iOS side, the CLI untouched.
 
 ## The problem, measured
@@ -25,14 +25,14 @@ The Settings window is as tall as the selected pane's whole content, whatever th
 - The constraint follows growth live (a switch turned on), and every tab switch makes a new one
   at that tab's full height. In the probe it did not follow shrinking: its pane (a `ForEach` over a
   count) made shorter, or a SwiftUI height limit lowered while it showed, left the window at its old
-  height. Sill's own Remote Access pane did shrink the window when the internet switch went off
+  height. Skopry's own Remote Access pane did shrink the window when the internet switch went off
   (Results), so this varies with the pane; the cap below does not depend on it.
 - The panes' natural heights (the previews at 985a733, pixels ÷ 2): Remote Access 700 to 703 pt
   with Tailscale and the other VPNs' rows, 754 with a port warning, 949 to 983 with "Allow
   connections from the internet" on; General 738; Streaming 474; Devices up to 435; Permissions
   275; Virtual Display 231. In the live window in test pattern mode (Results): General 727,
   Streaming 568, Remote Access 327 off and 909 on with the internet switch and this Mac's
-  addresses. The window adds the title bar and the toolbar: 80 pt in Sill's window (88 in the
+  addresses. The window adds the title bar and the toolbar: 80 pt in Skopry's window (88 in the
   probe's, whose toolbar differed).
 - The screens: this Mac's 14-inch display at its default scaling is 1,512 × 982 pt, 949 pt under
   the menu bar (33 pt on macOS 27, measured; the Dock hidden here). A Dock at the bottom takes
@@ -73,7 +73,7 @@ frame from the constraints at every layout pass.
 
 The constraint's constant is `SettingsWindowFit.contentLimit`, set by `refit()`:
 - at `show(tab:)` (before and after `WindowPlacement.bringForward`, which may move the window off
-  Sill's virtual display),
+  Skopry's virtual display),
 - on every tab switch (`SettingsTabController.tabView(_:didSelect:)`; the Dock may have changed
   since),
 - on `NSApplication.didChangeScreenParametersNotification` (a display added or removed, its
@@ -82,9 +82,9 @@ The constraint's constant is `SettingsWindowFit.contentLimit`, set by `refit()`:
 
 ### The arithmetic: `SettingsWindowFit` (pure, `Tests/checks/settings-window`)
 
-`Sources/SillMenuBar/SettingsWindowFit.swift`, CoreGraphics only:
+`Sources/SkopryMenuBar/SettingsWindowFit.swift`, CoreGraphics only:
 - `screenIndex(windowOn:screens:)`: the screen whose visible frame bounds the window: the one it is
-  on; on none, or on Sill's own virtual display (where a streamed window lives, off the user's
+  on; on none, or on Skopry's own virtual display (where a streamed window lives, off the user's
   screens), the first other screen, where `bringForward` puts it.
 - `visible(_:testHeight:)`: that screen's `visibleFrame` (under the menu bar, beside the Dock), or,
   TEST ONLY, its top `testHeight` points.
@@ -97,13 +97,13 @@ The constraint's constant is `SettingsWindowFit.contentLimit`, set by `refit()`:
   or as far as keeps its bottom inside. Taller than the visible frame: its top at the top, so the
   title bar stays reachable. Never resized, never moved sideways.
 
-### The move: only after Sill's own changes
+### The move: only after Skopry's own changes
 
 `windowDidResize(_:)` (the layout's resize after a tab switch, a pane that grew, or a new cap) and
 `refit()` apply `placed`, but only while the window is on screen and no mouse button is down: a
 window the user is dragging is never moved under the pointer; a move that falls due then waits for
 every button to be released (`placeOnRelease`, a Timer in the common modes looking ten times a
-second). A window the user left partly off the screen stays there until Sill next changes its size
+second). A window the user left partly off the screen stays there until Skopry next changes its size
 or shows it. A new cap lays a window on screen out at once (`layoutIfNeeded`) before it is placed:
 placed at its old height and then shortened from the bottom, it would keep no margin above (seen in
 the first runs: its top at the top of the visible frame). `show` lays the window out after
@@ -113,34 +113,34 @@ AppKit places the window too, and `placed` keeps what it does whenever the windo
 frame sets where the window's top-left goes (its pane, not the saved frame, sets its height), and
 a window that ran off the bottom of the screen while it was hidden is ordered in with its bottom at
 the screen's bottom (seen with the Dock hidden). A window inside the visible frame is never moved,
-so the 12 pt margin is kept only on a side Sill moved the window away from: a capped window can
+so the 12 pt margin is kept only on a side Skopry moved the window away from: a capped window can
 sit right under the menu bar with all 24 pt over the Dock, or on the screen's bottom with the 24 pt
 above it (Results).
 
-### Hooks (TEST ONLY; the bare SillMenuBar binary)
+### Hooks (TEST ONLY; the bare SkopryMenuBar binary)
 
-- `-SillSettingsAfter '<s> <tab>[; <s> <tab> …]'`: opens Settings on that tab s seconds after
+- `-SkoprySettingsAfter '<s> <tab>[; <s> <tab> …]'`: opens Settings on that tab s seconds after
   launch, through the menu's own path, and 0.6 s later prints one line with the window's frame, its
   content and chrome, the pane's whole height and what it shows (the Form's scroll view: its
   visible height against its content's, and how far it is scrolled), the screen's visible frame
   and the one used, the limit, and the room above and below the window. A tab is its name or the
   start of one (`remote`, `general`); `close` closes the window, `report` prints it as it stands,
-  `end` scrolls the pane to its last row, and `height=<points>` sets `-SillTestScreenHeight` (0:
+  `end` scrolls the pane to its last row, and `height=<points>` sets `-SkopryTestScreenHeight` (0:
   the screen's own) and posts `NSApplication.didChangeScreenParametersNotification`, so the path a
   real change of display or Dock takes runs.
-- `-SillTestScreenHeight <points>`: the cap and the move use the top `<points>` of the screen's
+- `-SkopryTestScreenHeight <points>`: the cap and the move use the top `<points>` of the screen's
   visible frame, as if the screen were that short with the Dock at its bottom, so the cap shows on
   a large screen.
-- `-SillSettingsShot <dir>`: each `-SillSettingsAfter` step also writes the window (its title bar,
+- `-SkoprySettingsShot <dir>`: each `-SkoprySettingsAfter` step also writes the window (its title bar,
   toolbar and pane, as `cacheDisplay` draws them) to `<dir>/settings-<s>s-<tab>.png`.
 
-Sill.app itself ignores all three with one line each, as it does every `-Sill…After` hook
+Skopry.app itself ignores all three with one line each, as it does every `-Skopry…After` hook
 (`DebugHooks.timedHooks` and `windowHooks`, under `AppModel.bundled`).
 
 ## Open questions, with the default taken
 
 1. **The margin.** The cap leaves 12 pt for above and below the window, 24 in all, and a window
-   Sill moves keeps 12 pt from the edge it is moved away from; where AppKit or the user put a
+   Skopry moves keeps 12 pt from the edge it is moved away from; where AppKit or the user put a
    window that fits, it stays, even flush with the menu bar or the screen's bottom (The move).
    Alternatives: none (a capped window fills the visible frame, as the green button's zoom does),
    or 20; or also moving a window that lies inside but within 12 pt of an edge (not taken: it
@@ -150,7 +150,7 @@ Sill.app itself ignores all three with one line each, as it does every `-Sill…
 3. **Resizable.** The window stays fixed in size; the cap decides its height, and the pane scrolls.
    Making it resizable alone would not help (each tab switch sets the height again) and would add a
    saved height to reconcile with every pane's own.
-4. **A pane that gets shorter.** Nothing done. Sill's Remote Access pane shrank the window with it
+4. **A pane that gets shorter.** Nothing done. Skopry's Remote Access pane shrank the window with it
    (Results); the probe's pane did not, so another pane might leave the window taller than its
    content until the next tab switch, as before this change. Forcing it would need AppKit's own
    constraint, which only AppKit names.
@@ -171,15 +171,15 @@ Sill.app itself ignores all three with one line each, as it does every `-Sill…
   sideways, and leaves a window inside alone). Mutants of every rule.
 - `swift build -c release`; `Tests/checks/run-all.sh`; the new check's `--mutants`.
 - The bare binary with `--synthetic` (no Screen Recording, nothing advertised), test hosts on
-  loopback with the software encoder, only while the no-device check passes, Sill.app untouched:
+  loopback with the software encoder, only while the no-device check passes, Skopry.app untouched:
   each tab at this screen's height (natural heights, nothing capped but what overflows 949 pt) and
-  with `-SillTestScreenHeight 700` (capped inside the imagined screen, 12 pt over the imagined
-  Dock when Sill moved it there, the Form scrolling); Remote Access with Remote Access and the
-  internet switch on (`-SillSetAfter`), the tallest pane; a switch from a tall tab to a short one
+  with `-SkopryTestScreenHeight 700` (capped inside the imagined screen, 12 pt over the imagined
+  Dock when Skopry moved it there, the Form scrolling); Remote Access with Remote Access and the
+  internet switch on (`-SkoprySetAfter`), the tallest pane; a switch from a tall tab to a short one
   and back; the window reopened after `close`; photos of each. A window opened at a saved frame
   from before the fix (951 pt tall), capped; after the review, where a capped window sits when
   AppKit placed it (a saved frame, a Dock appearing under it, a pane grown while it was closed).
-- Previews (`-SillRenderPreviews`) against 985a733's: identical (no pane changes).
+- Previews (`-SkopryRenderPreviews`) against 985a733's: identical (no pane changes).
 - No iOS file changes, so no iOS build is needed for this change; the CLI's output is untouched (no
   host file changes).
 
@@ -187,11 +187,11 @@ Sill.app itself ignores all three with one line each, as it does every `-Sill…
 
 All on this Mac (a 14-inch MacBook Pro at its default scaling, 1,512 × 982 pt, 949 under the menu
 bar, the Dock hidden; macOS 27.0.1), 2026-10-14, with the screen locked and nobody at it. Every live
-run was the bare `.build/release/SillMenuBar --synthetic` with `SILL_TEST_LOOPBACK=1
-SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1` (its doors on 127.0.0.1 alone, remote access on
-port 17459 where turned on, Sill.app's 7455 untouched), each started only while
-`Scripts/encoder-check/no-device.sh` found no device connected to Sill.app, each under 21 s.
-Nothing touched Sill.app, its preferences or the keychain; the bare binary's `SillMenuBar` domain
+run was the bare `.build/release/SkopryMenuBar --synthetic` with `SKOPRY_TEST_LOOPBACK=1
+SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1` (its doors on 127.0.0.1 alone, remote access on
+port 17459 where turned on, Skopry.app's 7455 untouched), each started only while
+`Scripts/encoder-check/no-device.sh` found no device connected to Skopry.app, each under 21 s.
+Nothing touched Skopry.app, its preferences or the keychain; the bare binary's `SkopryMenuBar` domain
 was emptied after.
 
 - **Builds.** `swift build -c release` from `git archive` of the branch, clean: 85 s, only the old
@@ -201,13 +201,13 @@ was emptied after.
 - **Checks.** `Tests/checks/settings-window`: 307,689 checks, 27 of 27 mutants caught (42 s); after
   the review 307,709 (20 for which pane fits which 14-inch scaling), 27 of 27 again (60 s).
   `Tests/checks/run-all.sh`: all 41 passed, and again after the review (372 s).
-- **Previews.** `-SillRenderPreviews` of the branch's binary and of 985a733's, run from the same
+- **Previews.** `-SkopryRenderPreviews` of the branch's binary and of 985a733's, run from the same
   path: 130 files each, identical byte for byte.
 - **Every tab at this screen's height** (limit 845): each at its natural height, nothing capped:
   General 727 (window 807), Devices 281, Streaming 568, Virtual Display 227, Permissions 275,
   Remote Access 327 (off).
 - **The tallest pane** (Remote Access on, with the internet switch, this Mac's addresses: 909):
-  capped at 845, scrolling, the window 925 pt, 12 pt from the visible frame's bottom and top (Sill
+  capped at 845, scrolling, the window 925 pt, 12 pt from the visible frame's bottom and top (Skopry
   moved it there: the switches went on with the window's top at 600, and it ran off the bottom as
   it grew).
 - **A pane that grows past the cap with the window low.** The window placed by a saved frame with
@@ -217,11 +217,11 @@ was emptied after.
 - **The screen changing while it shows** (`height=`, the notification's path): 845, then 596 (700
   pt), 396 (500 pt), back to 845, each time 12 pt from both edges of the frame in use; the window
   shrank and grew while the 909 pt pane showed. General at a 600 pt screen: capped at 496.
-- **`-SillTestScreenHeight 700`**: General (727) and Remote Access with the internet switch (909)
+- **`-SkopryTestScreenHeight 700`**: General (727) and Remote Access with the internet switch (909)
   capped at 596 and scrolling, 12 pt from both edges; Devices, Virtual Display and Streaming (568)
   at their natural heights. Close and reopen: capped again.
 - **Scrolled to the end** at a 600 pt screen: General scrolled 231 pt (727 − 496) and Streaming 72
-  (568 − 496), their last rows in view (`~/Downloads/sill-handoff/settings-window/`).
+  (568 − 496), their last rows in view (`~/Downloads/skopry-handoff/settings-window/`).
 - **rosstex's window**: a frame saved by a version before the fix, 951 pt tall with its top at the
   menu bar. A saved frame sets only this window's top-left (the review's logging build saw it 500
   × 580 before its first layout), so the run shows a window opened with its top at the menu bar
@@ -236,61 +236,61 @@ was emptied after.
   Remote Access and the internet switch turned on while Settings was closed (its top at 600): the
   hidden window laid out at 925 pt, its bottom at −325; reopened, AppKit ordered it in at the
   screen's bottom: 0 pt over the bottom, 24 under the menu bar. Every window fit, and `placed`
-  moved none (each lay inside the visible frame): the 12 pt margin holds only on a side Sill moved
+  moved none (each lay inside the visible frame): the 12 pt margin holds only on a side Skopry moved
   the window away from (The move).
 - **A pane that gets shorter**: the internet switch turned off while Remote Access showed: the pane
   909 → 734, the window 925 → 814 (open question 4).
-- **Sill.app ignores the hooks.** The same binary in a scratch bundle (its own bundle ID, so
-  nothing of Sill.app's preferences was read or written) under `sandbox-exec` with `network-bind`
+- **Skopry.app ignores the hooks.** The same binary in a scratch bundle (its own bundle ID, so
+  nothing of Skopry.app's preferences was read or written) under `sandbox-exec` with `network-bind`
   denied (a bundle is never a test host, so its doors would not keep to loopback): one "ignored"
-  line each for `-SillSettingsAfter`, `-SillTestScreenHeight`, `-SillSettingsShot` (and the old
-  `-SillQuitAfter`); no window opened, no photo written, no preferences domain made.
-- **Photos** (`-SillSettingsShot`): every tab at its natural height and General and Streaming
+  line each for `-SkoprySettingsAfter`, `-SkopryTestScreenHeight`, `-SkoprySettingsShot` (and the old
+  `-SkopryQuitAfter`); no window opened, no photo written, no preferences domain made.
+- **Photos** (`-SkoprySettingsShot`): every tab at its natural height and General and Streaming
   capped at a 600 pt screen, at the top and scrolled to the end, in
-  `~/Downloads/sill-handoff/settings-window/`. Those of Remote Access turned on show this Mac's
+  `~/Downloads/skopry-handoff/settings-window/`. Those of Remote Access turned on show this Mac's
   Tailscale name and addresses; they were deleted, not kept.
 
 Not verified here:
 - macOS 26, the reporter's (rosstex: 26.6.2). Everything the fix rests on was measured on macOS
   27.0.1 alone: AppKit's constraint at 501, under the cap's 750; the window keeping its top-left as
   it is laid out; a hidden window laid out all the same. Merging the pull request closes #59 (U6).
-- Sill's virtual display present. None was made here: adding a display can move the windows of
+- Skopry's virtual display present. None was made here: adding a display can move the windows of
   whoever uses this Mac. That the cap and the move never use it is in the check (`screenIndex`),
   and the move off it is `WindowPlacement.bringForward`'s, as before (U7).
 - Another display (this Mac has one), the Dock showing or changing (the notification's path was
   run with `height=`, not by the Dock itself), a drag between screens or a mouse button held during
-  a resize (no input is posted here), VoiceOver in a capped pane, Sill.app itself (the bundle's own
-  executable was not run: it would read and write Sill.app's preferences), and macOS 14 and 15.
+  a resize (no input is posted here), VoiceOver in a capped pane, Skopry.app itself (the bundle's own
+  executable was not run: it would read and write Skopry.app's preferences), and macOS 14 and 15.
 
 ## The review
 
 An adversarial review of the pull request (2026-10-14, at bb2451e) re-ran the builds, the checks,
 the previews and every live case above with a quiet build of its own (the same numbers), and found
 three things, each fixed in a commit of its own:
-1. **Should fix: the untested lists left out macOS 26 and Sill's virtual display** (5962ad4). The
+1. **Should fix: the untested lists left out macOS 26 and Skopry's virtual display** (5962ad4). The
    issue is from macOS 26.6.2, everything here ran on 27.0.1, and "Fixes #59" closes the issue on
    merge; the virtual display was in the implementer's report as not verified live, but not in
    this plan, the pull request or CLAUDE.md. Both are in "Not verified here" now, with U6 and U7.
 2. **Nit: CLAUDE.md and the pull request said the 501 constraint never shrinks and that General
    does not fit a 14-inch with the Dock** (7a7efcb). In the probe it did not follow a pane made
-   shorter, but Sill's Remote Access pane shrank the window (Results); General's 807 pt window fits
+   shorter, but Skopry's Remote Access pane shrank the window (Results); General's 807 pt window fits
    at the default scaling with a 70 pt Dock. Corrected there and in "The problem, measured" (which
    also had nothing fitting a 14-inch at More Space), with 20 checks for which pane fits which
    scaling.
 3. **Nit: U1, U2 and the pull request's steps promised 12 pt above and below**, which the design
-   keeps only on a side Sill moved the window away from (99bd169). Reworded there, in "The move",
+   keeps only on a side Skopry moved the window away from (99bd169). Reworded there, in "The move",
    open question 1, CLAUDE.md and docs/DEVELOPMENT.md, and measured (Results, "Where a capped
    window sits"). Moving a window that fits but lies within 12 pt of an edge was not taken: it
    would move a window the user put there at every tab click.
 
 ## Untested, for Noah
 
-With Sill.app from this branch (`Scripts/make-app.sh --install --open`) on the 14-inch MacBook:
+With Skopry.app from this branch (`Scripts/make-app.sh --install --open`) on the 14-inch MacBook:
 - **U1.** System Settings › Displays at the scaling at the far left (larger text), and the Dock
   showing (System Settings › Desktop & Dock, "Automatically hide and show the Dock" off). Open
   Settings (⌘,) and click every tab: each window fits between the menu bar and the Dock (12 pt
-  clear on a side Sill moved it away from; a window that fit where macOS put it stays there, so it
-  can sit right under the menu bar with 24 pt over the Dock); General scrolls to Quit Sill; Remote
+  clear on a side Skopry moved it away from; a window that fit where macOS put it stays there, so it
+  can sit right under the menu bar with 24 pt over the Dock); General scrolls to Quit Skopry; Remote
   Access, with Remote Access and "Allow connections from the internet" on, scrolls to Sleep. At
   the default scaling Remote Access with the internet switch still scrolls a little, and the others
   show whole.
@@ -303,13 +303,13 @@ With Sill.app from this branch (`Scripts/make-app.sh --install --open`) on the 1
   until its bottom clears the Dock. Drag it back: it grows to its pane's own height.
 - **U4.** With Settings low on the screen, press and hold the Remote Access tab: the window never
   moves while the button is held, and moves up once it is released if it ran off the screen.
-- **U5.** VoiceOver in a capped pane (General, larger text): moving through it reaches Quit Sill,
+- **U5.** VoiceOver in a capped pane (General, larger text): moving through it reaches Quit Skopry,
   the pane scrolling to it.
 - **U6.** macOS 26, the reporter's (rosstex: 26.6.2), before #59 is closed (merging this pull
   request closes it): U1 on a Mac with macOS 26, or a build of this branch for rosstex to try.
-- **U7.** Sill's virtual display: Virtual Display on (Sill's menu) and a window streaming to the
-  iPad, so Sill's own display exists. Open Settings from Sill's menu and click every tab: it shows
-  on the built-in display, never on Sill's, and fits it as in U1 (Remote Access with the internet
+- **U7.** Skopry's virtual display: Virtual Display on (Skopry's menu) and a window streaming to the
+  iPad, so Skopry's own display exists. Open Settings from Skopry's menu and click every tab: it shows
+  on the built-in display, never on Skopry's, and fits it as in U1 (Remote Access with the internet
   switch on scrolls, at any scaling but More Space). Then turn Virtual Display off with Settings
   open: it stays where it is and still fits.
 - **U8.** On macOS 14 or 15, if a Mac with one is at hand: U1.
@@ -317,11 +317,11 @@ With Sill.app from this branch (`Scripts/make-app.sh --install --open`) on the 1
 ## Progress
 
 - 2026-10-14: the probe; this plan (3b8c61d). `SettingsWindowFit` and its check (ec0d850); the
-  cap, the move and the hooks (f009b09); the check at Sill's measured chrome (367e8c8); a move
+  cap, the move and the hooks (f009b09); the check at Skopry's measured chrome (367e8c8); a move
   that waits for the buttons, the docs (654d782); the `end` step (c4a39a7). Every result above on
   c4a39a7 (after it only the hooks' messages and the docs changed). PR #74 opened; left open for
   Noah. Then the cap's constant starts at 10,000 pt (no cap) instead of 200 until a screen is
-  known, so a Mac with no usable screen (none, or only Sill's virtual display) never gets a 200 pt
+  known, so a Mac with no usable screen (none, or only Skopry's virtual display) never gets a 200 pt
   pane; a run of every step kind on it (General and Streaming natural, capped at a 600 pt screen,
   scrolled to the end, back to the screen's own, closed and reopened) gave the same numbers.
   `swift build -c release` of c2339e2 from `git archive`: only the CaptureProbe warning. CI's

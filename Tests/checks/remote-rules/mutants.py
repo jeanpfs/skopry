@@ -52,7 +52,7 @@ M = [
     (D, "S4 askAnswer: shown misspelt", "        case \"shown\"?: return .shown", "        case \"show\"?: return .shown"),
     (D, "S4 askAnswer: busy misspelt", "        case \"busy\"?: return .busy(", "        case \"Busy\"?: return .busy("),
     (D, "S4 rowWord: a revoked Mac dialed pinned", "            if saved && !revoked && !newKey { return .method(method) }", "            if saved && !newKey { return .method(method) }"),
-    (D, "S4 homeDial: a homeTLS Mac dialed plain in DEBUG", "            return debug && !homeTLS ? .plain : .updateSill", "            return debug ? .plain : .updateSill"),
+    (D, "S4 homeDial: a homeTLS Mac dialed plain in DEBUG", "            return debug && !homeTLS ? .plain : .updateSkopry", "            return debug ? .plain : .updateSkopry"),
     (S, "S4 adding forgets homeTLS", "        if list.contains(where: { $0.macID == mac.macID && $0.homeTLS == true }) { mac.homeTLS = true }\n", ""),
     (S, "S4 seenOverTLS marks nothing", "            next.homeTLS = true\n            return next\n        }\n    }\n\n    /// `revoked`", "            return next\n        }\n    }\n\n    /// `revoked`"),
     (S, "S4 revoking marks nothing", "            next.revoked = true\n", ""),

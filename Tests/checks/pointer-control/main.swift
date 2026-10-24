@@ -3,7 +3,7 @@ import Foundation
 
 // H3 of docs/pointer-visibility-plan.md, the host's part: PointerControl (who moves the Mac's
 // pointer, and the fraction kind 26 carries) and kind 26 itself (MacPointer's JSON, the kind table).
-// Compiled with Sources/StreamProtocol and Sources/SillHost/PointerControl.swift (its `import
+// Compiled with Sources/StreamProtocol and Sources/SkopryHost/PointerControl.swift (its `import
 // StreamProtocol` dropped), as build.sh does.
 var failures = 0, checks = 0
 func check(_ ok: Bool, _ what: @autoclosure () -> String, line: Int = #line) {
@@ -27,19 +27,19 @@ do {
     check(!c.read(pt(200, 100), now: 10.06) && c.controller == .mac, "a move while the Mac has it: still the Mac's, and no hand-over")
 }
 
-// A pointer input hands its device the pointer and opens the settle, which absorbs Sill's own move
-// (absolute, 300 pt away) and every read until it ends; then a move counts from where Sill left it.
+// A pointer input hands its device the pointer and opens the settle, which absorbs Skopry's own move
+// (absolute, 300 pt away) and every read until it ends; then a move counts from where Skopry left it.
 do {
     var c = C()
     c.read(pt(100, 100), now: 0.97)
     c.inputArrived(from: A, movesPointer: true, now: 1.0)
     check(c.controller == .client(A), "a pointer input hands its device the pointer")
-    check(!c.read(pt(400, 100), now: 1.03), "Sill's own move within the settle is Sill's")
-    check(!c.read(pt(420, 110), now: 1.20) && c.controller == .client(A), "every read within the settle is Sill's")
-    check(!c.read(pt(420, 110), now: 1.25), "the settle over, the pointer where Sill left it: nothing")
-    check(!c.read(pt(420.3, 110), now: 1.28), "0.3 pt from where Sill left it: nothing")
+    check(!c.read(pt(400, 100), now: 1.03), "Skopry's own move within the settle is Skopry's")
+    check(!c.read(pt(420, 110), now: 1.20) && c.controller == .client(A), "every read within the settle is Skopry's")
+    check(!c.read(pt(420, 110), now: 1.25), "the settle over, the pointer where Skopry left it: nothing")
+    check(!c.read(pt(420.3, 110), now: 1.28), "0.3 pt from where Skopry left it: nothing")
     check(!c.read(pt(420.49, 110), now: 1.31) && c.controller == .client(A), "0.49 pt from it: nothing")
-    check(c.read(pt(420.5, 110), now: 1.34), "0.5 pt from where Sill left it: the Mac's move, a hand-over")
+    check(c.read(pt(420.5, 110), now: 1.34), "0.5 pt from where Skopry left it: the Mac's move, a hand-over")
     check(c.controller == .mac, "…and the Mac has the pointer")
     check(!c.read(pt(430, 110), now: 1.37) && c.controller == .mac, "a hand-over happens once")
 }
@@ -50,7 +50,7 @@ do {
     c.read(pt(0, 0), now: 1.99)
     c.inputArrived(from: A, movesPointer: true, now: 2.0)
     c.read(pt(0, 0), now: 2.01)
-    check(!c.read(pt(50, 0), now: 2.2499) && c.controller == .client(A), "just inside the settle: Sill's")
+    check(!c.read(pt(50, 0), now: 2.2499) && c.controller == .client(A), "just inside the settle: Skopry's")
     check(c.read(pt(60, 0), now: 2.25) && c.controller == .mac, "at 2.25 the settle is over: the Mac's")
 }
 
@@ -85,7 +85,7 @@ do {
     check(!c.read(pt(100.4, 100), now: 0.06), "drift, second read: 0.4 pt")
     check(c.read(pt(100.6, 100), now: 0.09) && c.controller == .mac, "drift, third read: 0.6 pt, the Mac's")
 }
-// The same drift inside the settle, and 0.2 pt a read after it: still adds up from where Sill left it.
+// The same drift inside the settle, and 0.2 pt a read after it: still adds up from where Skopry left it.
 do {
     var c = C()
     c.read(pt(0, 0), now: 0.99)
@@ -120,28 +120,28 @@ do {
     check(c.read(pt(90, 0), now: 1.26), "nor extend it")
 }
 
-// Sill's own motion noted before a post or a warp opens the settle and never hands the pointer over:
+// Skopry's own motion noted before a post or a warp opens the settle and never hands the pointer over:
 // a held click posted long after it was read, or VirtualStage's warp home.
 do {
     var c = C()
     c.read(pt(300, 300), now: 5.0)
     c.inputArrived(from: A, movesPointer: false, now: 5.01)
-    c.sillMoved(now: 6.0)
-    check(c.controller == .client(A), "sillMoved leaves a device's control")
+    c.skopryMoved(now: 6.0)
+    check(c.controller == .client(A), "skopryMoved leaves a device's control")
     c.read(pt(300, 300), now: 6.0)
-    check(!c.read(pt(700, 400), now: 6.1) && c.controller == .client(A), "the late post's move is Sill's")
-    check(!c.read(pt(700, 400), now: 6.3), "…and where it landed counts as Sill's")
+    check(!c.read(pt(700, 400), now: 6.1) && c.controller == .client(A), "the late post's move is Skopry's")
+    check(!c.read(pt(700, 400), now: 6.3), "…and where it landed counts as Skopry's")
     check(c.read(pt(701, 400), now: 6.33) && c.controller == .mac, "then a real move is the Mac's")
-    c.sillMoved(now: 7.0)
-    check(c.controller == .mac, "sillMoved leaves the Mac's control too")
+    c.skopryMoved(now: 7.0)
+    check(c.controller == .mac, "skopryMoved leaves the Mac's control too")
 }
 // The settle runs to the latest end asked for, whatever order the notes come in.
 do {
     var c = C()
     c.read(pt(0, 0), now: 2.99)
     c.inputArrived(from: A, movesPointer: true, now: 3.0)   // to 3.25
-    c.sillMoved(now: 3.1)                                   // to 3.35
-    c.sillMoved(now: 3.0)                                   // a note from before: to 3.25, which ends nothing
+    c.skopryMoved(now: 3.1)                                   // to 3.35
+    c.skopryMoved(now: 3.0)                                   // a note from before: to 3.25, which ends nothing
     c.read(pt(0, 0), now: 3.2)
     check(!c.read(pt(40, 0), now: 3.3), "a later note extends the settle")
     check(!c.read(pt(45, 0), now: 3.34), "an earlier note does not cut it short")
@@ -173,13 +173,13 @@ do {
     check(c.controller == .mac, "a second leave changes nothing")
 }
 
-// A read after a gap starts afresh: the pointer was not watched, and Sill may have moved it then.
+// A read after a gap starts afresh: the pointer was not watched, and Skopry may have moved it then.
 do {
     var c = C()
     c.read(pt(100, 100), now: 0)
     c.inputArrived(from: A, movesPointer: false, now: 0.01)
     c.read(pt(100, 100), now: 0.03)
-    c.sillMoved(now: 0.1)                                  // the warp home, while no sample runs
+    c.skopryMoved(now: 0.1)                                  // the warp home, while no sample runs
     check(!c.read(pt(900, 500), now: 1.0) && c.controller == .client(A), "a read 0.97 s after the one before: afresh, not the Mac's")
     check(c.read(pt(901, 500), now: 1.03) && c.controller == .mac, "the next read's move counts from there")
 }
@@ -212,7 +212,7 @@ do {
     check(!c.isMoving(now: 1.161), "a still read does not extend it")
     c.inputArrived(from: A, movesPointer: true, now: 1.1)
     c.read(pt(300, 0), now: 1.12)
-    check(c.isMoving(now: 1.2), "Sill's own motion is motion too (another device may be watching)")
+    check(c.isMoving(now: 1.2), "Skopry's own motion is motion too (another device may be watching)")
     c.read(pt(310, 0), now: 2.0)
     check(!c.isMoving(now: 2.0), "a change across a gap is not motion")
 }
@@ -231,8 +231,8 @@ for e in [InputEvent.text("a"), .text("\n"), .key(hidUsage: 4, down: true, modif
 }
 check(!C.movesPointer(payload: Data()) && !C.movesPointer(payload: Data("{}".utf8)) && !C.movesPointer(payload: Data("{\"pointer\":{}}".utf8)),
       "a payload that does not decode moves nothing")
-check(C.movesPointer(payload: Data(#"{"pointer":{"_0":"move","x":0.25,"y":0.5}}"#.utf8)), "the wire's own move (sillclient.py's --move)")
-check(!C.movesPointer(payload: Data(#"{"key":{"down":true,"hidUsage":4,"modifiers":0}}"#.utf8)), "the wire's own key (sillclient.py's --key)")
+check(C.movesPointer(payload: Data(#"{"pointer":{"_0":"move","x":0.25,"y":0.5}}"#.utf8)), "the wire's own move (skopryclient.py's --move)")
+check(!C.movesPointer(payload: Data(#"{"key":{"down":true,"hidUsage":4,"modifiers":0}}"#.utf8)), "the wire's own key (skopryclient.py's --key)")
 
 // MARK: Random runs against the rules' invariants
 
@@ -256,9 +256,9 @@ for _ in 0..<5_000 {
             if moves { settleEnd = max(settleEnd, t + C.settle) }
             if c.controller != .client(who) { invariantFailures += 1; print("input did not hand over") }
         case 2:
-            c.sillMoved(now: t)
+            c.skopryMoved(now: t)
             settleEnd = max(settleEnd, t + C.settle)
-            if c.controller != before { invariantFailures += 1; print("sillMoved changed the controller") }
+            if c.controller != before { invariantFailures += 1; print("skopryMoved changed the controller") }
         case 3:
             let who = Bool.random(using: &rng) ? A : B
             c.clientLeft(who)

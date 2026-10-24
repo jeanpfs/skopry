@@ -5,7 +5,7 @@ import StreamProtocol
 struct ContentView: View {
     @StateObject private var client = StreamClient()
     /// Tells the host what this device sees, once a second while connected. Also covers the DEBUG
-    /// harness's `-SillLive 1` session, which runs on this same client.
+    /// harness's `-SkopryLive 1` session, which runs on this same client.
     @StateObject private var statsReporter = ClientStatsReporter()
 
     var body: some View {
@@ -15,7 +15,7 @@ struct ContentView: View {
     @ViewBuilder private var root: some View {
         #if DEBUG
         if let spec = LayoutHarness.Spec.fromLaunchArguments {
-            // The harness gets the app's own client so `-SillLive 1` can put a real session inside
+            // The harness gets the app's own client so `-SkopryLive 1` can put a real session inside
             // the fake screen; without that argument it never touches it.
             LayoutHarness(spec: spec, live: client)
         } else {
@@ -41,25 +41,25 @@ struct ContentView: View {
         .background(WindowSessionObserver(client: client))
         .onAppear {
             #if DEBUG
-            SecondWindow.openFromLaunchArgument()   // -SillSecondWindow 1
+            SecondWindow.openFromLaunchArgument()   // -SkoprySecondWindow 1
             #endif
             client.startBrowsing()
             client.startRemote()                 // saved Macs without a key are cleared; DEBUG pairing arguments
             #if DEBUG
-            client.connectFromLaunchArgument()   // -SillConnect host:port, for the off-Bonjour test hosts
-            Self.orientFromLaunchArgument()      // -SillOrientation landscape|portrait
+            client.connectFromLaunchArgument()   // -SkopryConnect host:port, for the off-Bonjour test hosts
+            Self.orientFromLaunchArgument()      // -SkopryOrientation landscape|portrait
             #endif
         }
-        // sill://pair from the Camera, Messages or `xcrun simctl openurl`: a confirmation first.
+        // skopry://pair from the Camera, Messages or `xcrun simctl openurl`: a confirmation first.
         .onOpenURL { client.handleOpenURL($0) }
     }
 
     #if DEBUG
-    /// `-SillOrientation landscape|portrait`: the normal app asks its window scene for that
+    /// `-SkopryOrientation landscape|portrait`: the normal app asks its window scene for that
     /// orientation at launch, so a phone simulator shows the real layout sideways, its safe areas
     /// included, with no hand on the simulator (the harness's fake screen has no insets).
     private static func orientFromLaunchArgument() {
-        guard let raw = UserDefaults.standard.string(forKey: "SillOrientation") else { return }
+        guard let raw = UserDefaults.standard.string(forKey: "SkopryOrientation") else { return }
         let mask: UIInterfaceOrientationMask = raw == "portrait" ? .portrait : .landscapeRight
         for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
             scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { error in
@@ -81,48 +81,48 @@ struct ContentView: View {
 ///
 /// Only a launch argument turns it on. The whole contract:
 ///
-/// * `-SillLayout 1000x710` — required; the fake screen's size in points. At the Duo's four sizes
-///   (951x669, 669x951, 466x678, 678x466) the fake screen has the safe area that display gives Sill
+/// * `-SkopryLayout 1000x710` — required; the fake screen's size in points. At the Duo's four sizes
+///   (951x669, 669x951, 466x678, 678x466) the fake screen has the safe area that display gives Skopry
 ///   (DuoPosture.displayInsets: the home indicator's 34 at the bottom; on the inner display the
 ///   status bar's strip, 84 pt at the right sideways and 82 at the top upright, but on the stream
-///   screen upright with `-SillHinge half` or `flat`, which hides it; on the cover the camera's
+///   screen upright with `-SkopryHinge half` or `flat`, which hides it; on the cover the camera's
 ///   84 pt strip, at the right upright and the left on its side); every other size has none, as
-///   before. `-SillSafeArea T,L,B,R` sets it (`none` for none).
-/// * `-SillHinge closed|half|flat` — stands in for the Duo's hinge (iOS 27.1's `onHingeChange`) and
+///   before. `-SkoprySafeArea T,L,B,R` sets it (`none` for none).
+/// * `-SkopryHinge closed|half|flat` — stands in for the Duo's hinge (iOS 27.1's `onHingeChange`) and
 ///   its fold (the `.division` reserved region): `half` the fold in the way, 40 pt across the middle
 ///   of the fake screen's longer side (the book pose sideways, the laptop pose upright); `flat` the
 ///   same fold, open flat; `closed` none, as on the cover. Without it the harness knows no hinge,
 ///   on the Duo's simulator too, and every layout is what the size alone gives, as before.
-/// * `-SillDrawer 1` — start with the app drawer open. This, `-SillScaleOpen 1` and `-SillSettings 1`
-///   also work in a live session (the normal app with `-SillConnect`, and `-SillLive 1`), where each
+/// * `-SkopryDrawer 1` — start with the app drawer open. This, `-SkopryScaleOpen 1` and `-SkoprySettings 1`
+///   also work in a live session (the normal app with `-SkopryConnect`, and `-SkopryLive 1`), where each
 ///   opens 1.5 s after the stream screen shows, once the Desktop has started (StreamScreen).
-///   `-SillDrawerSearch <text>`: the open drawer searches for that text with the keyboard up for its
+///   `-SkopryDrawerSearch <text>`: the open drawer searches for that text with the keyboard up for its
 ///   field (in a live session the real keyboard), so a photo shows what the keyboard leaves in view.
-/// * `-SillScaleOpen 1` — start with the Aa slider unfolded (as while a finger holds it);
-///   `-SillScale 1.5` sets the scale it opens at.
-/// * `-SillWindowMenu 1` — open the first thumbnail's traffic lights and keep them open.
-/// * `-SillKeyboard 1` — start with the software keyboard shown: in the mock only the Keyboard
-///   button lights (a real keyboard upsets the fake screen); under `-SillLive 1` and in the normal
-///   app (with `-SillConnect`) the input view takes first responder half a second after the stream
+/// * `-SkopryScaleOpen 1` — start with the Aa slider unfolded (as while a finger holds it);
+///   `-SkopryScale 1.5` sets the scale it opens at.
+/// * `-SkopryWindowMenu 1` — open the first thumbnail's traffic lights and keep them open.
+/// * `-SkopryKeyboard 1` — start with the software keyboard shown: in the mock only the Keyboard
+///   button lights (a real keyboard upsets the fake screen); under `-SkopryLive 1` and in the normal
+///   app (with `-SkopryConnect`) the input view takes first responder half a second after the stream
 ///   screen shows, so the keyboard really comes up. A simulator shows it only while UIKit there
 ///   counts no hardware keyboard: a fresh one (Tests/keyrig's keys make it count one for good).
-/// * `-SillKeyboardToggle <s>[,<s>…]` — at each of these seconds after the stream screen shows, the
+/// * `-SkopryKeyboardToggle <s>[,<s>…]` — at each of these seconds after the stream screen shows, the
 ///   keyboard toggles as the Keyboard button does (the Settings panel put away, then the input
 ///   view's first responder toggled): a stand-in for a tap, since no gate drives the UI. In the
 ///   normal app too, and in the mock (where a real keyboard then upsets the fake screen).
-/// * `-SillHardwareKeyboard 1|0` — a hardware keyboard is attached, or not, for this run, whatever
+/// * `-SkopryHardwareKeyboard 1|0` — a hardware keyboard is attached, or not, for this run, whatever
 ///   GameController says (HardwareKeyboardMonitor; docs/hardware-keyboard-plan.md). A simulator's
 ///   GameController always counts the simulator's own keyboard, so without it the stream's input view
 ///   takes the keyboard by itself there (an empty input view: nothing drawn). The console says
 ///   "keyboard: …" for what the rule does, and "hwkey: usage 41 down via pressesBegan: to the Mac"
 ///   (or `keyCommand`) for every hardware key the input view sees.
-/// * `-SillKeyProbe 1` — GameController's keyboard handler prints every key it sees as well
+/// * `-SkopryKeyProbe 1` — GameController's keyboard handler prints every key it sees as well
 ///   ("hwkey: usage 41 down via GameController"), beside UIKit's channels.
-/// * `-SillEscViaCommand 1` — the input view hands a hardware Esc on from pressesBegan, as a device
+/// * `-SkopryEscViaCommand 1` — the input view hands a hardware Esc on from pressesBegan, as a device
 ///   that keeps it from there would, so its Esc key commands take it (UIKit's own dispatch).
-/// * `-SillTurnAt <s>[,<s>…]` — at each of these seconds after the stream screen shows, the scene is
+/// * `-SkopryTurnAt <s>[,<s>…]` — at each of these seconds after the stream screen shows, the scene is
 ///   asked for the other orientation, a turn mid-session (an iPhone's; iPadOS's windowing refuses).
-/// * `-SillInputTest 1` — with `-SillConnect` on this Mac's loopback (127.0.0.1, ::1, [::1] or
+/// * `-SkopryInputTest 1` — with `-SkopryConnect` on this Mac's loopback (127.0.0.1, ::1, [::1] or
 ///   localhost), once per launch, in the portrait key row's and trackpad's own code: the key row
 ///   taps cmd, esc, shift and ctrl through its caps' action 1.0, 1.4, 1.8 and 2.0 s after it shows
 ///   (⌘esc goes out; shift and ctrl stay latched), then the trackpad checks that a touch at its
@@ -132,44 +132,44 @@ struct ContentView: View {
 ///   the keyboard), a trackpad's two-finger scroll of 40 pt down with its coast (5 s) and a wheel's
 ///   30 pt up (7.2 s). Each event goes out as the
 ///   controls send it, and the console says what ran ("input test: …"). A synthetic host counts
-///   what it gets as `in.dry` and posts nothing; a real host (Sill.app, SillHost without
+///   what it gets as `in.dry` and posts nothing; a real host (Skopry.app, SkopryHost without
 ///   `--synthetic`) posts it on this Mac, and the test does not check which it reached: point it
 ///   only at a synthetic host, or put a relay that drops kind 8 (input) in front of the host.
-/// * `-SillActive none` — start with nothing streaming (also `desktop`, or a window ID like `104`).
+/// * `-SkopryActive none` — start with nothing streaming (also `desktop`, or a window ID like `104`).
 ///   The mock otherwise starts on Code's window, as the boards draw it.
-/// * `-SillIdiom pad` — draw a screen taller than wide and narrower than 600 pt as an iPad draws
+/// * `-SkopryIdiom pad` — draw a screen taller than wide and narrower than 600 pt as an iPad draws
 ///   such a window (the compact halves), not as a phone does (`DuoLayout.phoneArrangement`), so an
 ///   iPhone simulator can photograph it; `phone` the other way round. Also in the normal app.
-/// * `-SillLive 1` — host the app's *real* `StreamClient` in the frame instead of the mock, so the
+/// * `-SkopryLive 1` — host the app's *real* `StreamClient` in the frame instead of the mock, so the
 ///   simulator can connect to a Mac over Bonjour at a Duo size. Not connected yet shows the normal
 ///   connect screen inside the frame. Without it nothing touches the network, exactly as before.
-/// * `-SillHUD 1` — not a harness argument, but it combines with these: the fps / frame age / RTT
+/// * `-SkopryHUD 1` — not a harness argument, but it combines with these: the fps / frame age / RTT
 ///   readout on the display view (see `DiagnosticsHUDView`). It works with or without the harness.
-/// * `-SillConnect 127.0.0.1:PORT` — connect straight to that address, in the normal app and under
-///   `-SillLive 1`. The synthetic test hosts (`SillHost --synthetic`, the bare `SillMenuBar
+/// * `-SkopryConnect 127.0.0.1:PORT` — connect straight to that address, in the normal app and under
+///   `-SkopryLive 1`. The synthetic test hosts (`SkopryHost --synthetic`, the bare `SkopryMenuBar
 ///   --synthetic`) stay off Bonjour, so this is how the simulator reaches them.
-/// * `-SillMoveTest 1` — with `-SillConnect`: that session counts as a direct (AWDL) one, and a
+/// * `-SkopryMoveTest 1` — with `-SkopryConnect`: that session counts as a direct (AWDL) one, and a
 ///   second later the same address is listed as the Mac's network row, so the move to the network
 ///   runs for real (a second connection shows the same host in its first window list and takes the
 ///   session over once the fence is down; the host logs a second "Client connected" and the first
 ///   "Client left", and streams on). `refused` lists port 1 instead: each try is given up after
 ///   5 s and the session stays direct. `other:PORT` lists that port of the same address under the
 ///   same name: another synthetic host there is refused at its first window list (another launch)
-///   and not tried again while it stays listed; the first host's own port, with `-SillConnect`
+///   and not tried again while it stays listed; the first host's own port, with `-SkopryConnect`
 ///   going through a proxy that delays each direction, moves once the fence has waited out the
 ///   proxy's round trip. `to:HOST:PORT` lists that address under the same name, read as
-///   `-SillConnect`'s is (`to:[::1]:P` works too): the same host reached another way, so the
+///   `-SkopryConnect`'s is (`to:[::1]:P` works too): the same host reached another way, so the
 ///   Settings panel's route word changes at the hand-over (from `127.0.0.1`, none, to this Mac's
 ///   `fe80::…%en0`, "Wi-Fi"). The console says what happened
 ///   ("discovery: …", "move to the network …", "session: …" for the route;
 ///   `xcrun simctl launch --console-pty`).
-/// * `-SillWiredTest HOST:PORT` — a "Wired" row's dial goes to the cable first and falls back to
-///   the row as listed; this puts that fallback under test. `-SillConnect`'s dial, any network
-///   row's (each counts as Wired) and a move's under `-SillMoveTest` go to HOST:PORT first, with
+/// * `-SkopryWiredTest HOST:PORT` — a "Wired" row's dial goes to the cable first and falls back to
+///   the row as listed; this puts that fallback under test. `-SkopryConnect`'s dial, any network
+///   row's (each counts as Wired) and a move's under `-SkopryMoveTest` go to HOST:PORT first, with
 ///   the address they would have dialled as the fallback: `192.0.2.1:9` (never answers) gives way
 ///   after 2.5 s, `127.0.0.1:1` (nothing listens) at once, and the session comes up on the
 ///   address as before ("wired dial … dialing unconstrained" on the console).
-/// * `-SillPathTest '<spec>'` — with `-SillConnect`: the session's Mac is listed as a network row
+/// * `-SkopryPathTest '<spec>'` — with `-SkopryConnect`: the session's Mac is listed as a network row
 ///   whose interfaces change on cue, so the session follows the best path for real
 ///   (`StreamClient.followBestPath`). The spec: `wifi=HOST:PORT cable=HOST:PORT` (where a dial to
 ///   the row's Wi-Fi and to its cable goes), then events `SECONDS:WHAT` from the first `.ready`:
@@ -181,17 +181,17 @@ struct ContentView: View {
 ///   is another synthetic host fails each move to the cable (tried less often each time, and
 ///   another host's listing not again). `direct` counts the session as one over AWDL, so the row
 ///   is where the move from AWDL takes it. With the iPad on this Mac's cable, this Mac's own
-///   `fe80::…%en14` reads "Wired" and `fe80::…%en0` "Wi-Fi": `-SillConnect fe80::…%en0:PORT
-///   -SillPathTest 'wifi=fe80::…%en0:PORT cable=fe80::…%en14:PORT 3:+cable'` moves the session to
+///   `fe80::…%en14` reads "Wired" and `fe80::…%en0` "Wi-Fi": `-SkopryConnect fe80::…%en0:PORT
+///   -SkopryPathTest 'wifi=fe80::…%en0:PORT cable=fe80::…%en14:PORT 3:+cable'` moves the session to
 ///   the cable 2 s after the cable is listed, and the host logs "Client connected: …%en14" and
 ///   "Client left: …%en0". The console says what happened ("path: …").
-/// * `-SillSettings 1` — start with the Settings panel open (a real Mac's state under `-SillLive 1`).
-/// * `-SillSettingsEnd 1` — with `-SillSettings 1`: the panel's rows start scrolled to their end,
+/// * `-SkoprySettings 1` — start with the Settings panel open (a real Mac's state under `-SkopryLive 1`).
+/// * `-SkoprySettingsEnd 1` — with `-SkoprySettings 1`: the panel's rows start scrolled to their end,
 ///   so a photo of a short screen shows the last groups (Direct Wireless, Away from home, This
-///   iPad, Take the Tour). `-SillSettingsScroll gestures` starts them at the This iPad group
+///   iPad, Take the Tour). `-SkoprySettingsScroll gestures` starts them at the This iPad group
 ///   instead (its switch and rows, which the footnotes under them push out of the end's view on a
 ///   short screen).
-/// * `-SillSettingsCase <case>` — what the mock Mac's settings look like: `default` (Sill.app),
+/// * `-SkoprySettingsCase <case>` — what the mock Mac's settings look like: `default` (Skopry.app),
 ///   `cli`, `software`, `custom`, `vdproblem`, `vdstream`, `legacy`, `pending`, `timeout`,
 ///   `direct`, `directlink` (connected over it), `nodirect` (a host without it), `wired` or
 ///   `noroute`; and for the Away from home group, away from home: `remote` (through Tailscale,
@@ -209,46 +209,46 @@ struct ContentView: View {
 ///   (Wired), `noroute` (none, as a connection whose path says nothing), and `remote`,
 ///   `remoteinternet`, `remoteslow` and the away and link cases but `awayhome` (none: the route line
 ///   under it says how instead).
-/// * `-SillLinkLine behind` — the mock Mac reports this connection's link behind, whatever the
+/// * `-SkopryLinkLine behind` — the mock Mac reports this connection's link behind, whatever the
 ///   settings case: the stream screen's line shows (the panel closed; with it open, the callout).
-/// * `-Sill.trackpadGestures 0` — not a harness argument either: this device's switch for
+/// * `-Skopry.trackpadGestures 0` — not a harness argument either: this device's switch for
 ///   three-finger gestures (the Settings panel's last group, This iPad) off for one run, in the
 ///   normal app too. The mock Mac takes gestures (`WindowList.gestures` 1) in every settings case
-///   but `legacy`, whose group then says to update Sill on the Mac.
-/// * `-Sill.shareClipboard 0` — not a harness argument either: this device's Share Clipboard (the
+///   but `legacy`, whose group then says to update Skopry on the Mac.
+/// * `-Skopry.shareClipboard 0` — not a harness argument either: this device's Share Clipboard (the
 ///   Settings panel's This iPad group) off for one run, in the normal app too. The mock Mac shares its
 ///   clipboard (`WindowList.clipboard` 1) in every settings case but `legacy`, whose group then has no
-///   clipboard rows. `-SillClipboardChip 1` offers the clipboard's chip over the mock's stream (as
-///   after a copy on this device; it stays), and `-SillClipboardNote sent|long|notsent` shows a Paste's
+///   clipboard rows. `-SkopryClipboardChip 1` offers the clipboard's chip over the mock's stream (as
+///   after a copy on this device; it stays), and `-SkopryClipboardNote sent|long|notsent` shows a Paste's
 ///   note in its place and under the group's Paste (docs/clipboard-plan.md).
-/// * `-Sill.largerPicture 1` — not a harness argument either: this device's Larger Picture switch
+/// * `-Skopry.largerPicture 1` — not a harness argument either: this device's Larger Picture switch
 ///   (the Settings panel's This iPhone group; docs/larger-picture-plan.md) on for one run, in the
 ///   normal app too. A phone held upright then has, while a window streams, no thumbnails, the
 ///   picture's room down to the keyboard's estimated top less the rows (PhonePortraitLayout), and the
-///   Menus button in row 1; with the Desktop or nothing streaming (`-SillActive desktop|none` in the
+///   Menus button in row 1; with the Desktop or nothing streaming (`-SkopryActive desktop|none` in the
 ///   mock, whose default is a window) the usual arrangement, and the console's `larger picture: the
 ///   switch on, the Desktop streams: the standard arrangement` says so.
-///   `-SillVideoSize 848x844` gives the mock's frame another shape (2800x1800 otherwise), so the
+///   `-SkopryVideoSize 848x844` gives the mock's frame another shape (2800x1800 otherwise), so the
 ///   pane at the top of that room can be drawn as a window the Mac fitted to it, or a taller one.
-///   `-SillLargerPictureToggle <s>[,<s>…]` switches it at those seconds after the stream screen
-///   shows, as the Settings panel's switch does (saved; leave out `-Sill.largerPicture`, which would
+///   `-SkopryLargerPictureToggle <s>[,<s>…]` switches it at those seconds after the stream screen
+///   shows, as the Settings panel's switch does (saved; leave out `-Skopry.largerPicture`, which would
 ///   hold it), so a live run shows the one new viewport each switch sends.
-/// * `-SillAXDump <s>` — `s` seconds after the stream screen shows, the console lists its
+/// * `-SkopryAXDump <s>` — `s` seconds after the stream screen shows, the console lists its
 ///   accessibility elements in the order the accessibility tree hands them to VoiceOver ("ax: 1
 ///   Open the app list (33,463 55×50)"). SwiftUI builds that tree only for an assistive technology:
 ///   on a private simulator, `xcrun simctl spawn UDID defaults write com.apple.Accessibility
 ///   ApplicationAccessibilityEnabled -bool true` first. In the mock and the normal app.
-/// * `-SillVoiceOver 1` — the Settings panel acts as if VoiceOver were on: the This iPad group's
+/// * `-SkopryVoiceOver 1` — the Settings panel acts as if VoiceOver were on: the This iPad group's
 ///   footnote says VoiceOver keeps three fingers and its rows do the gestures instead (they are
 ///   accessibility actions whether or not it is on).
-/// * `-SillScanOverlay 1` — the stream screen under Pair This iPad…'s overlay (a drawn viewfinder).
-///   `-SillOverlayLine asking|shown|openonmac|locked|noanswer`: the line under its title over a
+/// * `-SkopryScanOverlay 1` — the stream screen under Pair This iPad…'s overlay (a drawn viewfinder).
+///   `-SkopryOverlayLine asking|shown|openonmac|locked|noanswer`: the line under its title over a
 ///   session at home that speaks TLS, as the Mac's answer to the overlay's ask sets it
-///   (DiscoveryPolicy.overlayLine; the mock never asks). Under `-SillLive 1` the overlay opens over
+///   (DiscoveryPolicy.overlayLine; the mock never asks). Under `-SkopryLive 1` the overlay opens over
 ///   the live session as soon as it connects, and asks its Mac as Pair This iPad… does.
-/// * `-SillNoAutoDesktop 1` — (also in the normal app) the device never picks the Desktop by
+/// * `-SkopryNoAutoDesktop 1` — (also in the normal app) the device never picks the Desktop by
 ///   itself: a live gate's session streams nothing, so no host encodes while it runs.
-/// * `-SillMacMenu <case>` — the mock Mac's menus (docs/menu-bar-plan.md §7.8; see
+/// * `-SkopryMacMenu <case>` — the mock Mac's menus (docs/menu-bar-plan.md §7.8; see
 ///   `MockCatalog.MenuCase`): `code` (the default: VS Code's ten, File with shortcuts, sections, a ✓,
 ///   a disabled item and Open Recent ▸, Code › Settings ▸ Themes ▸ three deep, View › Appearance
 ///   with a mixed mark), `blender` (Blender and Window), `long` (a Window menu of 300 windows, and a
@@ -257,136 +257,136 @@ struct ContentView: View {
 ///   `slow` (each menu answered after 1.5 s, UIKit's placeholder meanwhile), `timeout` (never
 ///   answered: "Mac mini didn’t answer. Open the menu again." after 4 s) or `refuse` (every choice
 ///   refused). The mock answers a menu and a choice 0.2 s after it is asked. Ignored with
-///   `-SillLive 1`, whose session has the Mac's own menus.
-/// * `-SillMenusOpen 1` — the Menus button's pull-down opens after launch, as a tap opens it
-///   (`performPrimaryAction`, iOS 17.4); `-SillMenusOpen 'File'` or `'Code/Settings'` opens it on
+///   `-SkopryLive 1`, whose session has the Mac's own menus.
+/// * `-SkopryMenusOpen 1` — the Menus button's pull-down opens after launch, as a tap opens it
+///   (`performPrimaryAction`, iOS 17.4); `-SkopryMenusOpen 'File'` or `'Code/Settings'` opens it on
 ///   that menu's own items instead, each level fetched on the way as a tap on it would fetch it;
-///   `-SillMenusAt <s>` opens it `s` seconds after the button shows (not 0.8), and
-///   `-SillMenusCloseAfter <s>` dismisses it `s` seconds later, as a tap outside it would.
-///   `-SillMenuPress 'File/Save'` chooses that item once the first top level is in, as a tap would
+///   `-SkopryMenusAt <s>` opens it `s` seconds after the button shows (not 0.8), and
+///   `-SkopryMenusCloseAfter <s>` dismisses it `s` seconds later, as a tap outside it would.
+///   `-SkopryMenuPress 'File/Save'` chooses that item once the first top level is in, as a tap would
 ///   (the menus on the way fetched, the kind 25 sent). Both run once per launch, in the normal app
-///   and under `-SillLive 1` too, but only on the mock's menus or the test app's: against a
-///   synthetic host started with SILL_TEST_MENU_PID, dialled by `-SillConnect` to a loopback
+///   and under `-SkopryLive 1` too, but only on the mock's menus or the test app's: against a
+///   synthetic host started with SKOPRY_TEST_MENU_PID, dialled by `-SkopryConnect` to a loopback
 ///   address, whose window list gives no version and whose top level is menufixture's
-///   (`-SillMenuPress 'Probe/Set Label A'`; `StreamClient.menuHarnessRefusal`). Against anything
+///   (`-SkopryMenuPress 'Probe/Set Label A'`; `StreamClient.menuHarnessRefusal`). Against anything
 ///   else they print "refused" and open and choose nothing: on a real Mac a choice would be made in
 ///   whatever app it streams. A headless run cannot tap; these stand in for the taps.
-/// * The iPad's menu bar (iPadOS 26), in the normal app too: `-SillMenuBarLayout perMenu|replace|one`
-///   (where the Mac's menus go, the plan's Q1, for one run), `-SillMenuDump 1` (the main menu's
-///   root after each build, on the console), `-SillMenuBuildTwice 1` (the insertion made twice in
-///   one build: the second inserts nothing), `-SillMenuNoView 1` (View removed before the
-///   insertion) and `-SillSecondWindow 1` (a second window opens 2 s after launch: with two, the bar
+/// * The iPad's menu bar (iPadOS 26), in the normal app too: `-SkopryMenuBarLayout perMenu|replace|one`
+///   (where the Mac's menus go, the plan's Q1, for one run), `-SkopryMenuDump 1` (the main menu's
+///   root after each build, on the console), `-SkopryMenuBuildTwice 1` (the insertion made twice in
+///   one build: the second inserts nothing), `-SkopryMenuNoView 1` (View removed before the
+///   insertion) and `-SkoprySecondWindow 1` (a second window opens 2 s after launch: with two, the bar
 ///   gets none of the Mac's menus). The console's "menus: …" and "menubar: …" lines say what
 ///   happened.
-/// * `-SillPointer <state>` — the pointer sprite in one of docs/pointer-visibility-plan.md's states,
+/// * `-SkopryPointer <state>` — the pointer sprite in one of docs/pointer-visibility-plan.md's states,
 ///   over the mock's 2800×1800 frame, drawn as a dim rectangle so a photo shows where the frame is
 ///   (the mock never streams): `mac@0.40,0.30` (the Mac has the pointer, over the stream: its arrow
 ///   in every layout), `device@0.62,0.55` (this device's trackpad: its arrow in portrait only),
 ///   `hidden` (the Mac has it, off the stream: none) or `pencil@0.50,0.50` (this device's Pencil:
-///   none, unless `-SillPencilPointer 1`, Q2's flip, draws it in every layout). Ignored with
-///   `-SillLive 1`, whose session shows the real thing.
-/// * `-SillInputScript '<t> <step>; …'` — with `-SillLive 1` only: input for the simulator gates,
+///   none, unless `-SkopryPencilPointer 1`, Q2's flip, draws it in every layout). Ignored with
+///   `-SkopryLive 1`, whose session shows the real thing.
+/// * `-SkopryInputScript '<t> <step>; …'` — with `-SkopryLive 1` only: input for the simulator gates,
 ///   which have no finger (`InputScript`): `t` is seconds since the session's first window list, and
 ///   a step is `down`, `pad DX,DY`, `lift` or `click` on the portrait pad, `tap X,Y` on the stream
 ///   (a frame fraction), `key USAGE` (a hardware key) or `row USAGE` (a key of the portrait key
 ///   row), `esc [MODS]`, `scroll DX,DY`, `wheel DX,DY`, `keyboard attach|detach` or `orient
 ///   landscape|portrait` (InputScript has them all). The console says "input script: …" at each.
-///   It runs only when the session was dialled by `-SillConnect` to a loopback address and the
+///   It runs only when the session was dialled by `-SkopryConnect` to a loopback address and the
 ///   host's first window list has no version
-///   (Sill.app's always has, and would post the input to this Mac): else "input script: refused:
+///   (Skopry.app's always has, and would post the input to this Mac): else "input script: refused:
 ///   …" and nothing is sent. Point it only at `--synthetic` hosts.
-/// * `-SillSettingsScript '<t> <step>; …'` — the Settings panel's controls for the simulator gates,
+/// * `-SkoprySettingsScript '<t> <step>; …'` — the Settings panel's controls for the simulator gates,
 ///   in the normal app too: `set K=V[,K=V]` (a control's change), `suggestion` (the link
 ///   callout's button) or `paste TEXT` (the clipboard's Paste with TEXT, as the system's Paste control
-///   hands it over), `t` seconds after the session's first window list, under `-SillInputScript`'s
-///   guard (a session dialled to a loopback address whose host sends no version: never Sill.app).
+///   hands it over), `t` seconds after the session's first window list, under `-SkopryInputScript`'s
+///   guard (a session dialled to a loopback address whose host sends no version: never Skopry.app).
 ///   The console says "settings script: …" (`SettingsScript`).
-/// * `-SillMoveHomeTest to:HOST:PORT|refused|other:PORT` — with `-SillDialSaved 1`: a second after the
+/// * `-SkopryMoveHomeTest to:HOST:PORT|refused|other:PORT` — with `-SkopryDialSaved 1`: a second after the
 ///   remote session's first window list, its saved Mac is listed as a network row with its Mac ID
-///   (named "‹Mac› (home test)", so Sill.app's own row on this Mac never hides it) at a home door that
-///   speaks TLS, so the move home runs for real against `SillHost --synthetic --remote --pairing`
-///   with SILL_TEST_REMOTE_ORIGIN=vpn (one identity for both doors, SILL_TEST_REMOTE_DIR), dialed
+///   (named "‹Mac› (home test)", so Skopry.app's own row on this Mac never hides it) at a home door that
+///   speaks TLS, so the move home runs for real against `SkopryHost --synthetic --remote --pairing`
+///   with SKOPRY_TEST_REMOTE_ORIGIN=vpn (one identity for both doors, SKOPRY_TEST_REMOTE_DIR), dialed
 ///   pinned to the saved Mac's key, never plain: `to:` the host's home door, `refused` port 1 of the
 ///   remote session's host (each try fails), `other:` another synthetic host (another launch, or
-///   another key). `-SillDialSaved remotely` dials the first saved Mac as Connect Remotely does (a
+///   another key). `-SkopryDialSaved remotely` dials the first saved Mac as Connect Remotely does (a
 ///   session that never moves home). The console says "remote: …".
-/// * `-SillConnectCase <case>` — show the connect screen instead, in a discovery state: `looking`,
+/// * `-SkopryConnectCase <case>` — show the connect screen instead, in a discovery state: `looking`,
 ///   `hint` (nothing listed: the hint and Search Nearby), `nearby` (a Wi-Fi row and Direct
 ///   rows), `methods` (a row ending in each word: Wired, Wi-Fi, none, Direct, and long names) or
 ///   `denied` (Local Network access denied: the status says what to do, no hint); `update` (a Mac
-///   refused this version: "Update Sill on your iPad to keep using Mac mini. It needs version 1.2
-///   or later." as the status line above a Wi‑Fi row, and "Update Sill in the App Store" under it
-///   when `-SillAppStoreURL https://apps.apple.com/app/id000000000` gives the link an address) or
+///   refused this version: "Update Skopry on your iPad to keep using Mac mini. It needs version 1.2
+///   or later." as the status line above a Wi‑Fi row, and "Update Skopry in the App Store" under it
+///   when `-SkopryAppStoreURL https://apps.apple.com/app/id000000000` gives the link an address) or
 ///   `notice` (a goodbye reason this build does not know: the Mac's two-line message, no link);
 ///   or remote access's: `remote` (Remote rows), `addmac`, `addcode`, `addcodeerror`, `pairing`,
-///   `remotedial`, `remotefail` (with `-SillRemoteFailure vpnoff|timeout|timeoutip|refused|dns|
-///   wrongmac|revoked|notsill|gaveup|quit|removed|remoteoff`), `camera` (refused) or
+///   `remotedial`, `remotefail` (with `-SkopryRemoteFailure vpnoff|timeout|timeoutip|refused|dns|
+///   wrongmac|revoked|notskopry|gaveup|quit|removed|remoteoff`), `camera` (refused) or
 ///   `externalpair` (an outside link's confirmation); or pairing at home's
 ///   (docs/home-pairing-plan.md §7.9): `homerows` (a saved Wi-Fi row, "Not paired", an unpaired
 ///   "Wired" over the cable, a Wired row through a USB Ethernet adapter reading "Not paired", an
-///   open door's row reading "Not paired", "Update Sill", and long names), `homeasking` (a tap's ask: "Pairing with Mac mini…", the row
+///   open door's row reading "Not paired", "Update Skopry", and long names), `homeasking` (a tap's ask: "Pairing with Mac mini…", the row
 ///   lit), `homecard` (the home card, scanning), `homecode` (its typed path), `homecodeerror` (a
 ///   wrong code), `homelocked`, `homeopenonmac`, `homerevoked`, `homecabledone`, `homeolder` (a tap
-///   on an "Update Sill" row) or `pairingrequired`; or `asleep` (issue #69: a saved Mac's row stays
+///   on an "Update Skopry" row) or `pairingrequired`; or `asleep` (issue #69: a saved Mac's row stays
 ///   listed and the automatic reconnect's dials of it have not connected: "Mac mini isn’t answering.
-///   It may be asleep. Sill keeps trying, or tap it to try now."). Ignored with `-SillLive 1`. The
+///   It may be asleep. Skopry keeps trying, or tap it to try now."). Ignored with `-SkopryLive 1`. The
 ///   mock never browses; Search Nearby and a row's tap only change what it shows (see
 ///   `MockCatalog.ConnectCase`).
-/// * `-SillBrowserFail N` — in the normal app and under `-SillLive 1`: each of the first N network
+/// * `-SkopryBrowserFail N` — in the normal app and under `-SkopryLive 1`: each of the first N network
 ///   browsers is reported failed with kDNSServiceErr_DefunctConnection (-65569) half a second after it
 ///   starts, as iOS reports a suspended app's, so the browser is made again after 1, 2, 4… s
 ///   (DiscoveryPolicy.rebuildBrowser): the simulator's browsers use the Mac's own mDNSResponder, which
 ///   never makes an app's connection defunct. The console says what happened ("browser: …"; the return
 ///   from the background makes the network browser again too, and the nearby one if it runs, "browser:
 ///   rebuilt … (back from the background)"), and the automatic reconnect its dials ("reconnect: …").
-/// * Pairing at home, in the normal app and under `-SillLive 1` (§7.9): `-SillServiceType
-///   _silltest._tcp` (the browsers look for that type: a test host registered with
-///   SILL_TEST_SERVICE_TYPE is a real row, and no real Mac is; the Debug build's Info.plist
-///   declares it); `-SillHomeDoor paired|open|plain` (what a `-SillConnect` address counts as: an
+/// * Pairing at home, in the normal app and under `-SkopryLive 1` (§7.9): `-SkopryServiceType
+///   _skoprytest._tcp` (the browsers look for that type: a test host registered with
+///   SKOPRY_TEST_SERVICE_TYPE is a real row, and no real Mac is; the Debug build's Info.plist
+///   declares it); `-SkopryHomeDoor paired|open|plain` (what a `-SkopryConnect` address counts as: an
 ///   address has no TXT record; `paired` is the one saved Mac when exactly one is saved, else an
-///   unsaved Mac whose door asks for pairing); `-SillForgetHomeTLS 1` (dial an older Sill.app
-///   plainly again); `-SillCableTest 1` (this device's path counts as the USB cable for the ask);
-///   and for the gates, which drive no UI: `-SillTapRow <name prefix>` (taps that row once, as soon
-///   as it is listed), `-SillHomeCode <digits>` and `-SillHomeLink <sill://pair…>` (typed into, or
-///   scanned by, the home card once the Mac shows its code), `-SillOverlayCode <digits>` (Pair This
+///   unsaved Mac whose door asks for pairing); `-SkopryForgetHomeTLS 1` (dial an older Skopry.app
+///   plainly again); `-SkopryCableTest 1` (this device's path counts as the USB cable for the ask);
+///   and for the gates, which drive no UI: `-SkopryTapRow <name prefix>` (taps that row once, as soon
+///   as it is listed), `-SkopryHomeCode <digits>` and `-SkopryHomeLink <skopry://pair…>` (typed into, or
+///   scanned by, the home card once the Mac shows its code), `-SkopryOverlayCode <digits>` (Pair This
 ///   iPad… with that code, once, over a session at home over TLS).
-/// * Real pairing, in the normal app and under `-SillLive 1` (not the mock): `-SillPairURL
-///   '<sill://pair…>'` pairs with that link at launch, without the confirmation, at the link's own
+/// * Real pairing, in the normal app and under `-SkopryLive 1` (not the mock): `-SkopryPairURL
+///   '<skopry://pair…>'` pairs with that link at launch, without the confirmation, at the link's own
 ///   addresses only, as Add a Mac… does (a link with none, a home-only one, pairs nothing): a
-///   confirmed link tries the home rows first, which the gates reach with `-SillTapRow` and
-///   `-SillHomeLink` above; `-SillPairCode
-///   <12 digits> -SillPairAddress host:port` the typed path; `-SillDialSaved 1` dials the first
-///   saved Mac as a tap on its Remote row would; `-SillForgetMacs 1` clears the saved Macs and
-///   this device's key; `-SillDeviceKeySE 1` makes and uses a Secure Enclave device key under its
+///   confirmed link tries the home rows first, which the gates reach with `-SkopryTapRow` and
+///   `-SkopryHomeLink` above; `-SkopryPairCode
+///   <12 digits> -SkopryPairAddress host:port` the typed path; `-SkopryDialSaved 1` dials the first
+///   saved Mac as a tap on its Remote row would; `-SkopryForgetMacs 1` clears the saved Macs and
+///   this device's key; `-SkopryDeviceKeySE 1` makes and uses a Secure Enclave device key under its
 ///   own tag (R0-a: a real device only, the simulator has no Secure Enclave);
-///   `-Sill.savedMacs '<JSON>'` seeds the saved Macs for one run (never written; `'[]'` empties);
-///   `-SillRemoteRoute vpn|internet` makes a remote session to a test host on loopback count as
+///   `-Skopry.savedMacs '<JSON>'` seeds the saved Macs for one run (never written; `'[]'` empties);
+///   `-SkopryRemoteRoute vpn|internet` makes a remote session to a test host on loopback count as
 ///   one through Tailscale or over the internet (the 60 fps request, the slow-link callout), and
-///   `-SillScreenFPS 120` makes the simulator's screen count as a 120 Hz one (also in the mock).
-/// * `-Sill.directWirelessMacs '("Mac mini")'` — not a harness argument either: the device's saved
+///   `-SkopryScreenFPS 120` makes the simulator's screen count as a 120 Hz one (also in the mock).
+/// * `-Skopry.directWirelessMacs '("Mac mini")'` — not a harness argument either: the device's saved
 ///   memory of Macs seen with Direct Wireless on, which a launch argument sets for one run (`'()'`
-///   empties it), in the normal app and under `-SillLive 1`. Unlike `-Sill.savedMacs`, what the
+///   empties it), in the normal app and under `-SkopryLive 1`. Unlike `-Skopry.savedMacs`, what the
 ///   run learns is still saved.
-/// * Versions, in the normal app too: `-SillHelloVersion <v>` is the version this device's hello
-///   (kind 23) gives, for a host's device floor under test (`SILL_TEST_MIN_DEVICE_VERSION`);
-///   `-SillAppStoreURL <https url>` is the App Store link's address while SillLinks has none.
-/// * The first-run tour (TourPolicy, TourOverlay), in the mock, under `-SillLive 1` and in the
+/// * Versions, in the normal app too: `-SkopryHelloVersion <v>` is the version this device's hello
+///   (kind 23) gives, for a host's device floor under test (`SKOPRY_TEST_MIN_DEVICE_VERSION`);
+///   `-SkopryAppStoreURL <https url>` is the App Store link's address while SkopryLinks has none.
+/// * The first-run tour (TourPolicy, TourOverlay), in the mock, under `-SkopryLive 1` and in the
 ///   normal app. Without one of these no Debug build ever shows it by itself, so every other photo
 ///   and live test looks as it did; Release and TestFlight builds always follow its rule.
-///   `-SillTourState fresh|landscape|done|skipped|saved` turns the automatic tour on: `fresh` is
+///   `-SkopryTourState fresh|landscape|done|skipped|saved` turns the automatic tour on: `fresh` is
 ///   nothing seen, `landscape` the three sideways steps seen (an upright size shows the laptop
 ///   card), `done` all of it, `skipped` Skip tapped, each for this run only and never written;
-///   `saved` reads and writes `Sill.tourSeen` and `Sill.tourSkipped`, as a Release build does. In
-///   the mock the picture counts from launch. `-SillTour touch|bar|settings|laptop` starts the tour
+///   `saved` reads and writes `Skopry.tourSeen` and `Skopry.tourSkipped`, as a Release build does. In
+///   the mock the picture counts from launch. `-SkopryTour touch|bar|settings|laptop` starts the tour
 ///   at that step as Take the Tour shows it (every step of the layout, from that one; a step the
 ///   layout lacks starts at the first), with no beat, at the first picture. Stand-ins for what the
-///   gates may not do: `-SillTourPress next@S|skip@S` presses Next (Done on the last card) S
-///   seconds after each card appears, or Skip once; `-SillTourActivityAt S` is a touch S seconds
+///   gates may not do: `-SkopryTourPress next@S|skip@S` presses Next (Done on the last card) S
+///   seconds after each card appears, or Skip once; `-SkopryTourActivityAt S` is a touch S seconds
 ///   after the picture of the app run's first session (the automatic reconnect's session after
-///   it gets none); `-SillTakeTourAt S` opens the Settings panel S seconds after the picture and
-///   presses its Take the Tour a second later; `-SillTourVoiceOver 1` gives the run and its words
+///   it gets none); `-SkopryTakeTourAt S` opens the Settings panel S seconds after the picture and
+///   presses its Take the Tour a second later; `-SkopryTourVoiceOver 1` gives the run and its words
 ///   as under VoiceOver. The console says what happened ("tour: …").
-/// * `-SillOrientation landscape|portrait` — the normal app only: asks the window scene for that
+/// * `-SkopryOrientation landscape|portrait` — the normal app only: asks the window scene for that
 ///   orientation at launch (a phone simulator sideways, with its real safe areas). The Duo's inner
 ///   display refuses it (UISceneErrorDomain 101): fold and turn its simulator with Tests/duorig.
 ///
@@ -434,16 +434,16 @@ struct LayoutHarness: View {
         let scanOverlay: Bool
         /// The mock Mac's menus. Ignored when `live`, whose session has the Mac's own.
         let macMenu: MockCatalog.MenuCase
-        /// The mock's pointer state (`-SillPointer`), and Q2's flip (`-SillPencilPointer 1`). Ignored
+        /// The mock's pointer state (`-SkopryPointer`), and Q2's flip (`-SkopryPencilPointer 1`). Ignored
         /// when `live`.
         let pointer: String?
         let pencilPointer: Bool
-        /// The Duo's hinge stand-in (`-SillHinge`), nil for none; the fake screen's safe area.
+        /// The Duo's hinge stand-in (`-SkopryHinge`), nil for none; the fake screen's safe area.
         let hinge: DuoPosture.Hinge?
         let insets: EdgeInsets?
 
         /// What the screens read of the hinge here: the stand-in, or nothing (never the device's:
-        /// without `-SillHinge`, a stand-in of no hinge and no fold, so that the Duo simulator's own
+        /// without `-SkopryHinge`, a stand-in of no hinge and no fold, so that the Duo simulator's own
         /// fold, which DuoPosture.read goes by before a hinge is reported, never reaches the screen).
         var duoEnvironment: DuoEnvironment {
             guard let hinge else { return DuoEnvironment(hinge: .unknown, source: .standIn(nil)) }
@@ -452,33 +452,33 @@ struct LayoutHarness: View {
 
         static var fromLaunchArguments: Spec? {
             let defaults = UserDefaults.standard
-            guard let raw = defaults.string(forKey: "SillLayout") else { return nil }
+            guard let raw = defaults.string(forKey: "SkopryLayout") else { return nil }
             let parts = raw.lowercased().split(separator: "x")
             guard parts.count == 2,
                   let width = Double(parts[0]), let height = Double(parts[1]),
                   width > 0, height > 0 else { return nil }
             return Spec(size: CGSize(width: width, height: height),
-                        drawerOpen: defaults.bool(forKey: "SillDrawer"),
-                        keyboardShown: defaults.bool(forKey: "SillKeyboard"),
-                        scaleOpen: defaults.bool(forKey: "SillScaleOpen"),
-                        textScale: defaults.double(forKey: "SillScale") > 0 ? defaults.double(forKey: "SillScale") : nil,
-                        live: defaults.bool(forKey: "SillLive"),
-                        mockActive: mockActive(defaults.string(forKey: "SillActive")),
-                        settingsOpen: defaults.bool(forKey: "SillSettings"),
-                        settingsCase: MockCatalog.SettingsCase(rawValue: defaults.string(forKey: "SillSettingsCase") ?? "") ?? .default,
-                        connectCase: MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SillConnectCase") ?? ""),
-                        scanOverlay: defaults.bool(forKey: "SillScanOverlay"),
-                        macMenu: MockCatalog.MenuCase(rawValue: defaults.string(forKey: "SillMacMenu") ?? "") ?? .code,
-                        pointer: defaults.string(forKey: "SillPointer"),
-                        pencilPointer: defaults.bool(forKey: "SillPencilPointer"),
-                        hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SillHinge")),
-                        insets: insets(defaults.string(forKey: "SillSafeArea"), size: CGSize(width: width, height: height),
-                                       streamScreen: defaults.bool(forKey: "SillLive")
-                                           || MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SillConnectCase") ?? "") == nil,
-                                       hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SillHinge"))))
+                        drawerOpen: defaults.bool(forKey: "SkopryDrawer"),
+                        keyboardShown: defaults.bool(forKey: "SkopryKeyboard"),
+                        scaleOpen: defaults.bool(forKey: "SkopryScaleOpen"),
+                        textScale: defaults.double(forKey: "SkopryScale") > 0 ? defaults.double(forKey: "SkopryScale") : nil,
+                        live: defaults.bool(forKey: "SkopryLive"),
+                        mockActive: mockActive(defaults.string(forKey: "SkopryActive")),
+                        settingsOpen: defaults.bool(forKey: "SkoprySettings"),
+                        settingsCase: MockCatalog.SettingsCase(rawValue: defaults.string(forKey: "SkoprySettingsCase") ?? "") ?? .default,
+                        connectCase: MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SkopryConnectCase") ?? ""),
+                        scanOverlay: defaults.bool(forKey: "SkopryScanOverlay"),
+                        macMenu: MockCatalog.MenuCase(rawValue: defaults.string(forKey: "SkopryMacMenu") ?? "") ?? .code,
+                        pointer: defaults.string(forKey: "SkopryPointer"),
+                        pencilPointer: defaults.bool(forKey: "SkopryPencilPointer"),
+                        hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SkopryHinge")),
+                        insets: insets(defaults.string(forKey: "SkoprySafeArea"), size: CGSize(width: width, height: height),
+                                       streamScreen: defaults.bool(forKey: "SkopryLive")
+                                           || MockCatalog.ConnectCase(rawValue: defaults.string(forKey: "SkopryConnectCase") ?? "") == nil,
+                                       hinge: DuoPosture.hinge(argument: defaults.string(forKey: "SkopryHinge"))))
         }
 
-        /// `-SillSafeArea T,L,B,R` (or `none`), else the Duo's display's own at its four sizes, with
+        /// `-SkoprySafeArea T,L,B,R` (or `none`), else the Duo's display's own at its four sizes, with
         /// the status bar as this build shows it there: hidden on the stream screen with a hinge
         /// open, every pose (DuoPosture.hidesStatusBar), shown on every other screen and the cover.
         private static func insets(_ raw: String?, size: CGSize, streamScreen: Bool, hinge: DuoPosture.Hinge?) -> EdgeInsets? {
@@ -503,7 +503,7 @@ struct LayoutHarness: View {
     }
 
     let spec: Spec
-    /// The app's real client, used only when `-SillLive 1` was passed.
+    /// The app's real client, used only when `-SkopryLive 1` was passed.
     @ObservedObject var live: StreamClient
     @StateObject private var mock: StreamClient
 
@@ -546,7 +546,7 @@ struct LayoutHarness: View {
         // The iPad's menu bar follows the client this frame shows, as the app's does.
         .background(WindowSessionObserver(client: spec.live ? live : mock))
         .onAppear {
-            SecondWindow.openFromLaunchArgument()   // -SillSecondWindow 1
+            SecondWindow.openFromLaunchArgument()   // -SkoprySecondWindow 1
             if spec.live {
                 live.startBrowsing()
                 live.startRemote()
@@ -625,7 +625,7 @@ struct LayoutHarness: View {
     }
 }
 
-/// `-SillInputScript '<t> <step>; …'` (with `-SillLive 1`): input for the simulator gates of
+/// `-SkopryInputScript '<t> <step>; …'` (with `-SkopryLive 1`): input for the simulator gates of
 /// docs/pointer-visibility-plan.md (S2–S5), which cannot put a finger on the simulator. `t` is
 /// seconds since the session's first window list; a step is
 /// * `down` — a finger lands on the portrait pad: a stroke starts, its cursor from the anchor;
@@ -651,11 +651,11 @@ struct LayoutHarness: View {
 /// own methods, so the feed, the anchor and the sprite get what a finger would give them. The
 /// console prints "input script: t=… <step>" as each runs. Once per launch.
 ///
-/// Only against a test host on this Mac (`refusal`): the steps send real input, and Sill.app, whose
+/// Only against a test host on this Mac (`refusal`): the steps send real input, and Skopry.app, whose
 /// home door admits loopback, would post it, clicking, typing and moving the Mac's real pointer. So
 /// the session must have been dialled to a loopback address, and its first window list must carry
-/// no `hostVersion` (Sill.app always sends one; SillHost and the bare SillMenuBar never do). The
-/// gates start only `--synthetic` hosts, which post nothing; SillHost or the bare SillMenuBar without
+/// no `hostVersion` (Skopry.app always sends one; SkopryHost and the bare SkopryMenuBar never do). The
+/// gates start only `--synthetic` hosts, which post nothing; SkopryHost or the bare SkopryMenuBar without
 /// `--synthetic` would post the input, so never point a script at one.
 enum InputScript {
     enum Step: Equatable, CustomStringConvertible {
@@ -740,16 +740,16 @@ enum InputScript {
     }
 
     /// Why the script must not run against this session, or nil when it may: it runs only when the
-    /// session was dialled to a loopback address (`-SillConnect 127.0.0.1:PORT`, `::1:PORT`,
+    /// session was dialled to a loopback address (`-SkopryConnect 127.0.0.1:PORT`, `::1:PORT`,
     /// `[::1]:PORT` or `localhost:PORT`; a Bonjour row, a saved Mac or any other address never is)
-    /// and the host's first window list carries no `hostVersion`, which Sill.app always sends.
+    /// and the host's first window list carries no `hostVersion`, which Skopry.app always sends.
     /// (UserDefaults drops `[::1]:PORT`, a launch argument that starts like a property list but is
     /// not one; StreamClient.init puts it back from the command line.)
     static func refusal(endpoint: NWEndpoint?, hostVersion: String?) -> String? {
         guard let endpoint, isLoopback(endpoint) else {
-            return "the session was not dialled to a loopback address (-SillConnect 127.0.0.1:PORT)"
+            return "the session was not dialled to a loopback address (-SkopryConnect 127.0.0.1:PORT)"
         }
-        if let hostVersion { return "the host says it is Sill \(hostVersion), which posts input to this Mac" }
+        if let hostVersion { return "the host says it is Skopry \(hostVersion), which posts input to this Mac" }
         return nil
     }
 
@@ -769,7 +769,7 @@ enum InputScript {
     /// if `refusal` lets it.
     static func sessionListed(_ client: StreamClient) {
         let defaults = UserDefaults.standard
-        guard !started, defaults.bool(forKey: "SillLive"), let text = defaults.string(forKey: "SillInputScript") else { return }
+        guard !started, defaults.bool(forKey: "SkopryLive"), let text = defaults.string(forKey: "SkopryInputScript") else { return }
         started = true
         if let why = refusal(endpoint: client.connection?.endpoint, hostVersion: client.hostVersion) {
             print("input script: refused: \(why)")
@@ -824,7 +824,7 @@ enum InputScript {
     }
 }
 
-/// `-SillSettingsScript '<t> <step>; …'`: the Settings panel's controls for the simulator gates, which
+/// `-SkoprySettingsScript '<t> <step>; …'`: the Settings panel's controls for the simulator gates, which
 /// have no finger (docs/remote-bundle-plan.md S3): `t` is seconds since the session's first window
 /// list; a step is `set K=V[,K=V]` (maxFPS, bitrate, captureScale, prioritizeSpeed, virtualDisplay:
 /// a control's change, through `changeSettings` as the panel sends it), `suggestion` (the link
@@ -833,12 +833,12 @@ enum InputScript {
 /// `sendClipboard`, the receipt and its note included: docs/clipboard-plan.md). The
 /// console says "settings script: …" at each. It runs in the normal app too, under InputScript's
 /// guard: only a session dialled to a loopback address (a remote dial's winner through a relay
-/// counts) whose host's first window list has no version, so never Sill.app's settings.
+/// counts) whose host's first window list has no version, so never Skopry.app's settings.
 enum SettingsScript {
     private static var started = false
 
     static func sessionListed(_ client: StreamClient) {
-        guard !started, let text = UserDefaults.standard.string(forKey: "SillSettingsScript") else { return }
+        guard !started, let text = UserDefaults.standard.string(forKey: "SkoprySettingsScript") else { return }
         started = true
         if let why = InputScript.refusal(endpoint: client.connection?.endpoint, hostVersion: client.hostVersion) {
             print("settings script: refused: \(why)")
@@ -900,11 +900,11 @@ enum SettingsScript {
 /// reached over peer-to-peer Wi-Fi; "Remote" for a saved Mac dialed through its VPN or the internet;
 /// nothing when the device cannot tell), or, at home, in what a tap does first: "Not paired" (the
 /// Mac shows a code), "Wired" for an unpaired Mac on the USB cable (it pairs by itself), "Update
-/// Sill" (its Sill is too old for this build) (docs/home-pairing-plan.md §7.3); when none turns up
+/// Skopry" (its Skopry is too old for this build) (docs/home-pairing-plan.md §7.3); when none turns up
 /// on the network, why, with Search Nearby; and Add a Mac… last, which unfolds the pairing card in
 /// the column's place (docs/remote-access-plan.md §7.8, §7.10). When a tap's ask makes the Mac show
 /// its code, the home card unfolds there instead, for that row (§7.5, §7.8). A saved Mac's row has a
-/// menu: Connect or Connect Remotely, and Forget. Along the bottom, a footer says Sill needs its
+/// menu: Connect or Connect Remotely, and Forget. Along the bottom, a footer says Skopry needs its
 /// free Mac app and where to get it, and links support and the privacy policy (App Review
 /// guidelines 1.5, 2.1 and 5.1.1(i)). None of it shows while connected: the stream screen takes
 /// this one's place (`ContentView`).
@@ -1100,10 +1100,10 @@ struct ConnectScreen: View {
 
         // A Mac that no longer serves this version said so (GoodbyePolicy's "update", its words the
         // status line above): where to get the new one, while the status line still says why. Not
-        // before Sill's App Store address is known (SillLinks): the words say what to do anyway.
-        if let notice = client.notice, notice.storeLink, notice.text == client.status, let url = SillLinks.appStore {
+        // before Skopry's App Store address is known (SkopryLinks): the words say what to do anyway.
+        if let notice = client.notice, notice.storeLink, notice.text == client.status, let url = SkopryLinks.appStore {
             Link(destination: url) {
-                Text("Update Sill in the App Store")
+                Text("Update Skopry in the App Store")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Palette.accent)
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -1116,9 +1116,9 @@ struct ConnectScreen: View {
 
         ForEach(client.macs) { mac in
             // The kind of link, never the Wi-Fi network's name: that needs Location access, which
-            // Sill does not ask for (DiscoveryPolicy.method); "Remote" for a saved Mac dialed away
+            // Skopry does not ask for (DiscoveryPolicy.method); "Remote" for a saved Mac dialed away
             // from home; at home, what a tap does first when it pairs ("Not paired", "Wired" over
-            // the cable) or cannot connect ("Update Sill"), with VoiceOver's label and hint for it
+            // the cable) or cannot connect ("Update Skopry"), with VoiceOver's label and hint for it
             // (DiscoveryPolicy.RowWord). The row a tap's ask is waiting on is lit, as the drawer
             // lights the app on screen, while the status line says "Pairing with…".
             DrawerRow(height: 50, highlighted: client.homeAsk.map { $0.phase == .asking && $0.target.row == mac.id } ?? false,
@@ -1139,7 +1139,7 @@ struct ConnectScreen: View {
         }
 
         if client.showsNearbyHint {
-            Text("Your Mac has to be on the same Wi\u{2011}Fi network as this \(device), or have Direct Wireless Connection turned on in Sill. Away from home, add it once with a code from your Mac.")
+            Text("Your Mac has to be on the same Wi\u{2011}Fi network as this \(device), or have Direct Wireless Connection turned on in Skopry. Away from home, add it once with a code from your Mac.")
                 .font(.system(size: 13))
                 .foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1239,14 +1239,14 @@ struct ConnectScreen: View {
 
     // MARK: The footer
 
-    /// For someone who found Sill here first, and for App Review: what else it needs, where to get
+    /// For someone who found Skopry here first, and for App Review: what else it needs, where to get
     /// it, where to get help, and the privacy policy. Muted and 13 pt like the status line, but it
     /// follows the text size, up to the Settings panel's cap (the column keeps its fixed sizes); it
     /// wraps, never truncates. Each link opens in Safari (a Link hands its URL to the environment's
-    /// openURL), and VoiceOver reads it as a link. The addresses are SillLinks'.
+    /// openURL), and VoiceOver reads it as a link. The addresses are SkopryLinks'.
     private func footer(_ layout: ConnectLayout) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Needs the free Sill app on your Mac.")
+            Text("Needs the free Skopry app on your Mac.")
                 .foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true)
             // All three on one line while they fit, else the download link over the other two,
@@ -1278,15 +1278,15 @@ struct ConnectScreen: View {
     }
 
     private var downloadLink: some View {
-        footerLink("Get it at \(SillLinks.siteName)", to: SillLinks.download)
+        footerLink("Get it at \(SkopryLinks.siteName)", to: SkopryLinks.download)
     }
 
     /// Support, then the privacy policy, on one line.
     private var supportAndPrivacy: some View {
         HStack(spacing: 0) {
-            footerLink("Support", to: SillLinks.support)
+            footerLink("Support", to: SkopryLinks.support)
             linkSeparator
-            footerLink("Privacy Policy", to: SillLinks.privacy)
+            footerLink("Privacy Policy", to: SkopryLinks.privacy)
         }
     }
 

@@ -5,7 +5,7 @@ import SwiftUI
 // device without a hinge iOS 27.1 reports none: the environment then says `unknown`, and every layout
 // is what it was.
 //
-// - The hinge: `View.onHingeChange` at the app's root (SillApp, `readsDuoPosture()`), into the
+// - The hinge: `View.onHingeChange` at the app's root (SkopryApp, `readsDuoPosture()`), into the
 //   environment as `\.duoEnvironment`. Its change is what redraws the screens that read it.
 // - The fold: each screen reads it from its own GeometryReader (`DuoPosture.read`), as
 //   `GeometryProxy.reservedRegions(kind: .division, options: .includeInactive)` gives it: in that
@@ -15,7 +15,7 @@ import SwiftUI
 // - The stream screen hides the status bar on the inner display in every pose
 //   (DuoPosture.hidesStatusBar, `duoStatusBar`); every other screen keeps it.
 //
-// DEBUG: the harness's `-SillHinge closed|half|flat` stands in for all of it (ContentView's
+// DEBUG: the harness's `-SkopryHinge closed|half|flat` stands in for all of it (ContentView's
 // LayoutHarness): a hinge, and a fold given in the fake display's named space.
 
 /// What the app's root knows of the hinge, for the screens below it.
@@ -124,7 +124,7 @@ extension DuoPosture {
     /// first report, from the fold: `hinge(reported:regionActive:)`), the fold in that view's own
     /// space (the reserved region's frame, as iOS 27.1 gives it to a GeometryProxy; or the harness's
     /// stand-in, moved into that space). `unknown` before iOS 27.1, on a device without a hinge, and
-    /// in the harness without `-SillHinge`.
+    /// in the harness without `-SkopryHinge`.
     static func read(_ geo: GeometryProxy, _ environment: DuoEnvironment) -> DuoPosture {
         switch environment.source {
         case .standIn(let fold):

@@ -1,6 +1,6 @@
 #!/bin/bash
-# PointerControl (Sources/SillHost), who moves the Mac's pointer (docs/pointer-visibility-plan.md
-# §4.1): the settle that absorbs Sill's own input, posts and warps; a real move measured from the last
+# PointerControl (Sources/SkopryHost), who moves the Mac's pointer (docs/pointer-visibility-plan.md
+# §4.1): the settle that absorbs Skopry's own input, posts and warps; a real move measured from the last
 # position that counted (jitter never hands over, a slow drift adds up); keys handing the pointer back
 # without the settle; one controller among two devices, and a leaving driver; a read after a gap
 # starting afresh; when the pointer counts as moving (the frame-rate sampling, Q4); which inputs open

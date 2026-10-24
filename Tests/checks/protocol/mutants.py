@@ -9,7 +9,7 @@ MUTANTS = [
     ("proof_D label changed", "Pairing.swift", 'Data("\\(label) device".utf8)', 'Data("\\(label) devices".utf8)'),
     ("proof_M fingerprints swapped", "Pairing.swift", "m.append(macFingerprint); m.append(deviceFingerprint)", "m.append(deviceFingerprint); m.append(macFingerprint)"),
     ("PBKDF2 rounds cut", "Pairing.swift", "rounds: UInt32 = 600_000", "rounds: UInt32 = 60_000"),
-    ("tag label changed", "Pairing.swift", 'static let label = "sill-tag-v1"', 'static let label = "sill-tag-v2"'),
+    ("tag label changed", "Pairing.swift", 'static let label = "skopry-tag-v1"', 'static let label = "skopry-tag-v2"'),
     ("tag compares 5 bytes", "Pairing.swift", "for (a, b) in zip(expected, bytes.suffix(6))", "for (a, b) in zip(expected.prefix(5), bytes.suffix(6))"),
     ("link skips m == MacID(k)", "Pairing.swift", "guard m == MacID.make(fingerprint: fp) else { return .failure(.macIDMismatch) }", ""),
     ("link takes repeated k", "Pairing.swift", "guard values.count == 1, let v = values[0].value", "guard values.count >= 1, let v = values[0].value"),
@@ -24,10 +24,10 @@ MUTANTS = [
     ("kind 18 skips the macID binding", "Remote.swift", "guard decoded.macID == MacID.make(fingerprint: fp) else { return nil }", ""),
     ("kind 18 skips the signature", "Remote.swift", "publicKey.isValidSignature(signature, for: bytes),", ""),
     ("server verify block blind to ALPN", "RemoteTLS.swift", "complete(verify(peerLeaf(metadata).flatMap { SPKI.fingerprint(of: $0) }, negotiatedALPN(metadata)))", "complete(verify(peerLeaf(metadata).flatMap { SPKI.fingerprint(of: $0) }, nil))"),
-    ("a host stops offering sill-pair/1", "RemoteTLS.swift", "public static let serverALPNs = [sessionALPN, pairingALPN]", "public static let serverALPNs = [sessionALPN]"),
-    ("a later host offers sill/2 instead of sill/1", "RemoteTLS.swift", "public static let serverALPNs = [sessionALPN, pairingALPN]", 'public static let serverALPNs = ["sill/2", pairingALPN]'),
+    ("a host stops offering skopry-pair/1", "RemoteTLS.swift", "public static let serverALPNs = [sessionALPN, pairingALPN]", "public static let serverALPNs = [sessionALPN]"),
+    ("a later host offers skopry/2 instead of skopry/1", "RemoteTLS.swift", "public static let serverALPNs = [sessionALPN, pairingALPN]", 'public static let serverALPNs = ["skopry/2", pairingALPN]'),
     ("the clipboard numbered 30", "StreamMessage.swift", "case clipboard = 32", "case clipboard = 30"),
-    ("the server offers sill/1 alone, whatever serverALPNs says", "RemoteTLS.swift",
+    ("the server offers skopry/1 alone, whatever serverALPNs says", "RemoteTLS.swift",
      "for alpn in serverALPNs { sec_protocol_options_add_tls_application_protocol(sp, alpn) }", "sec_protocol_options_add_tls_application_protocol(sp, sessionALPN)"),
 ]
 results = []

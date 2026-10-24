@@ -2,7 +2,7 @@
 with the check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillMenuBar/UpdatePolicy.swift")
+F = os.path.join(WT, "Sources/SkopryMenuBar/UpdatePolicy.swift")
 MUTANTS = [
     ("the same version offered", "UpdatePolicy.swift", "return (r.version > running ? .newer", "return (r.version >= running ? .newer"),
     ("404 keeps the stored release", "UpdatePolicy.swift", "next.etag = nil; next.latestTag = nil; next.latestURL = nil", "next.etag = nil"),
@@ -17,7 +17,7 @@ MUTANTS = [
     ("up to date logged by automatic checks", "UpdatePolicy.swift", "return manual ? \"Update check: up to date", "return true ? \"Update check: up to date"),
     ("a retry that fell due asleep runs at once", "UpdatePolicy.swift", "if let retryAt { return max(retryAt, now.addingTimeInterval(delay)) }", "if let retryAt { return retryAt }"),
     ("no jitter", "UpdatePolicy.swift", "return lastCheck!.addingTimeInterval(period + jitter)", "return lastCheck!.addingTimeInterval(period)"),
-    ("a stored page offered unchecked", "UpdatePolicy.swift", "guard let running, let tag = stored.latestTag, let version = SillVersion(tag), version > running,\n              let text = stored.latestURL, let url = releasePage(text, anyReleaseURL: anyReleaseURL) else { return nil }", "guard let running, let tag = stored.latestTag, let version = SillVersion(tag), version > running,\n              let text = stored.latestURL, let url = URL(string: text) else { return nil }"),
+    ("a stored page offered unchecked", "UpdatePolicy.swift", "guard let running, let tag = stored.latestTag, let version = SkopryVersion(tag), version > running,\n              let text = stored.latestURL, let url = releasePage(text, anyReleaseURL: anyReleaseURL) else { return nil }", "guard let running, let tag = stored.latestTag, let version = SkopryVersion(tag), version > running,\n              let text = stored.latestURL, let url = URL(string: text) else { return nil }"),
     ("fewer no-connection codes", "UpdatePolicy.swift", "static let noConnectionCodes: Set<Int> = [-1009, -1005, -1004, -1003, -1006, -1020, -1018]", "static let noConnectionCodes: Set<Int> = [-1009, -1005, -1004, -1003]"),
     ("TLS failures read as offline", "UpdatePolicy.swift", "return (tlsCodes.contains(code) ? \"Couldn’t check: \\(description)\" : \"Couldn’t check: this Mac isn’t connected to the internet.\", true)", "return (\"Couldn’t check: this Mac isn’t connected to the internet.\", true)"),
     ("Check Now enabled in test pattern mode", "UpdatePolicy.swift", "let canCheck = hasVersion && !testPatternOnly", "let canCheck = hasVersion"),

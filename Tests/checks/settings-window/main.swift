@@ -1,10 +1,10 @@
 import CoreGraphics
 import Foundation
 
-// Checks SettingsWindowFit (Sources/SillMenuBar/SettingsWindowFit.swift; issue #59,
-// docs/settings-window-plan.md): how tall Sill's Settings window may be on a screen, and where it
-// goes when Sill changes its size. Compiled alone with swiftc (CoreGraphics only), build.sh:
-//   swiftc -O Sources/SillMenuBar/SettingsWindowFit.swift Tests/checks/settings-window/main.swift
+// Checks SettingsWindowFit (Sources/SkopryMenuBar/SettingsWindowFit.swift; issue #59,
+// docs/settings-window-plan.md): how tall Skopry's Settings window may be on a screen, and where it
+// goes when Skopry changes its size. Compiled alone with swiftc (CoreGraphics only), build.sh:
+//   swiftc -O Sources/SkopryMenuBar/SettingsWindowFit.swift Tests/checks/settings-window/main.swift
 // First the cases the issue raises, then seeded random screens, chromes and frames against the
 // rules' properties.
 
@@ -25,8 +25,8 @@ let m = Fit.margin
 same(m, 12, "the margin")
 same(Fit.minimumContent, 200, "the least a pane is given")
 
-// The title bar and the toolbar of Sill's Settings window as macOS 27.0.1 draws them: 80 pt
-// (-SillSettingsAfter's "chrome"; the plan's probe, with a toolbar of its own, had 88).
+// The title bar and the toolbar of Skopry's Settings window as macOS 27.0.1 draws them: 80 pt
+// (-SkoprySettingsAfter's "chrome"; the plan's probe, with a toolbar of its own, had 88).
 let chrome: CGFloat = 80
 /// What the window shows of a pane `pane` points tall under a cap `limit`, and its frame height.
 func shown(_ pane: CGFloat, _ limit: CGFloat) -> CGFloat { min(pane, limit) }
@@ -34,7 +34,7 @@ func windowHeight(_ pane: CGFloat, _ limit: CGFloat) -> CGFloat { shown(pane, li
 
 // The panes' natural heights: Remote Access's from the previews at 985a733 (pixels ÷ 2), with the
 // internet switch on and with Tailscale; the others from the live window in test pattern mode
-// (-SillSettingsAfter); and rosstex's window, 951 pt.
+// (-SkoprySettingsAfter); and rosstex's window, 951 pt.
 let remoteInternet: CGFloat = 983, remoteTailscale: CGFloat = 701, general: CGFloat = 727
 let streaming: CGFloat = 568, permissions: CGFloat = 275, rosstexPane: CGFloat = 951 - chrome
 
@@ -157,21 +157,21 @@ same(Fit.placed(CGRect(x: -400, y: 500, width: 520, height: 600), in: mbp),
 
 // MARK: The screen
 
-let laptop = Fit.Screen(visible: mbp, sillVirtual: false)
-let external = Fit.Screen(visible: above, sillVirtual: false)
-let sillVirtual = Fit.Screen(visible: CGRect(x: 4000, y: 0, width: 1920, height: 1200), sillVirtual: true)
-check(Fit.screenIndex(windowOn: 0, screens: [laptop, sillVirtual]) == 0, "on the laptop: the laptop")
+let laptop = Fit.Screen(visible: mbp, skopryVirtual: false)
+let external = Fit.Screen(visible: above, skopryVirtual: false)
+let skopryVirtual = Fit.Screen(visible: CGRect(x: 4000, y: 0, width: 1920, height: 1200), skopryVirtual: true)
+check(Fit.screenIndex(windowOn: 0, screens: [laptop, skopryVirtual]) == 0, "on the laptop: the laptop")
 check(Fit.screenIndex(windowOn: 1, screens: [laptop, external]) == 1, "on an external display: that display")
-check(Fit.screenIndex(windowOn: 1, screens: [laptop, sillVirtual]) == 0, "on Sill's virtual display: the first other screen")
-check(Fit.screenIndex(windowOn: nil, screens: [laptop, sillVirtual]) == 0, "on no screen: the first")
-check(Fit.screenIndex(windowOn: 0, screens: [sillVirtual, external, laptop]) == 1, "the virtual display listed first: never it")
-check(Fit.screenIndex(windowOn: nil, screens: [sillVirtual, laptop]) == 1, "on no screen, the virtual display first: the next")
+check(Fit.screenIndex(windowOn: 1, screens: [laptop, skopryVirtual]) == 0, "on Skopry's virtual display: the first other screen")
+check(Fit.screenIndex(windowOn: nil, screens: [laptop, skopryVirtual]) == 0, "on no screen: the first")
+check(Fit.screenIndex(windowOn: 0, screens: [skopryVirtual, external, laptop]) == 1, "the virtual display listed first: never it")
+check(Fit.screenIndex(windowOn: nil, screens: [skopryVirtual, laptop]) == 1, "on no screen, the virtual display first: the next")
 check(Fit.screenIndex(windowOn: 7, screens: [laptop, external]) == 0, "an index no screen has: the first")
 check(Fit.screenIndex(windowOn: -1, screens: [laptop]) == 0, "a negative index: the first")
-check(Fit.screenIndex(windowOn: 0, screens: [sillVirtual]) == nil, "only the virtual display: none")
+check(Fit.screenIndex(windowOn: 0, screens: [skopryVirtual]) == nil, "only the virtual display: none")
 check(Fit.screenIndex(windowOn: nil, screens: []) == nil, "no screen: none")
 
-// MARK: The test height (-SillTestScreenHeight)
+// MARK: The test height (-SkopryTestScreenHeight)
 
 same(Fit.visible(mbp, testHeight: 700), CGRect(x: 0, y: 249, width: 1512, height: 700), "700 pt: the top 700 of the visible frame")
 same(Fit.contentLimit(visible: Fit.visible(mbp, testHeight: 700), chrome: chrome), 596, "700 pt: the limit, as the live window showed")
@@ -245,15 +245,15 @@ for _ in 0..<20_000 {
 
     // A screen list: never the virtual display, the window's own screen when it is a real one.
     let count = rng.int(0...4)
-    let screens = (0..<count).map { _ in Fit.Screen(visible: visible, sillVirtual: rng.int(0...2) == 0) }
+    let screens = (0..<count).map { _ in Fit.Screen(visible: visible, skopryVirtual: rng.int(0...2) == 0) }
     let on: Int? = rng.int(0...5) == 0 ? nil : rng.int(-1...5)
     let index = Fit.screenIndex(windowOn: on, screens: screens)
     if let index {
-        check(screens.indices.contains(index) && !screens[index].sillVirtual, "a real screen: \(index) of \(screens.map(\.sillVirtual))")
-        if let on, screens.indices.contains(on), !screens[on].sillVirtual { check(index == on, "the window's own screen: \(on), got \(index)") }
-        else { check(index == screens.firstIndex { !$0.sillVirtual }, "the first real screen: got \(index) of \(screens.map(\.sillVirtual))") }
+        check(screens.indices.contains(index) && !screens[index].skopryVirtual, "a real screen: \(index) of \(screens.map(\.skopryVirtual))")
+        if let on, screens.indices.contains(on), !screens[on].skopryVirtual { check(index == on, "the window's own screen: \(on), got \(index)") }
+        else { check(index == screens.firstIndex { !$0.skopryVirtual }, "the first real screen: got \(index) of \(screens.map(\.skopryVirtual))") }
     } else {
-        check(screens.allSatisfy(\.sillVirtual), "none only when every screen is the virtual display: \(screens.map(\.sillVirtual))")
+        check(screens.allSatisfy(\.skopryVirtual), "none only when every screen is the virtual display: \(screens.map(\.skopryVirtual))")
     }
     let test = rng.half(-100...3200)
     let tv = Fit.visible(visible, testHeight: test)

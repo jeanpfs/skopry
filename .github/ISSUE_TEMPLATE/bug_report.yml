@@ -1,19 +1,19 @@
 name: Bug report
-description: Something in Sill doesn't work as it should.
+description: Something in Skopry doesn't work as it should.
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: >-
         A security problem? Please don't report it here:
-        [SECURITY.md](https://github.com/Saffsanity/sill/security/policy) says how to report it
-        privately. Setting Sill up? The [support page](https://getsill.app/support) has quick
+        [SECURITY.md](https://github.com/jeanpfs/skopry/security/policy) says how to report it
+        privately. Setting Skopry up? The [support page](https://skopry.app/support) has quick
         fixes for the common problems.
   - type: textarea
     id: what
     attributes:
       label: What happened
-      description: What you did, what you expected, and what Sill did instead.
+      description: What you did, what you expected, and what Skopry did instead.
     validations:
       required: true
   - type: textarea
@@ -32,10 +32,10 @@ body:
     validations:
       required: true
   - type: input
-    id: mac-sill
+    id: mac-skopry
     attributes:
-      label: Sill for Mac's version
-      description: The line at the foot of Sill's Settings › General, such as "Sill 0.5.1 (563)".
+      label: Skopry for Mac's version
+      description: The line at the foot of Skopry's Settings › General, such as "Skopry 0.5.1 (563)".
     validations:
       required: true
   - type: input
@@ -46,11 +46,11 @@ body:
     validations:
       required: true
   - type: input
-    id: device-sill
+    id: device-skopry
     attributes:
-      label: The Sill app's version
+      label: The Skopry app's version
       description: >-
-        Settings › General › iPhone Storage (or iPad Storage) › Sill shows it. Sill's log on your
+        Settings › General › iPhone Storage (or iPad Storage) › Skopry shows it. Skopry's log on your
         Mac names it too, on its "Client hello" line.
   - type: dropdown
     id: route
@@ -63,7 +63,7 @@ body:
         - Direct (Direct Wireless Connection)
         - Remote (Remote Access)
         - Not paired (it asked to pair)
-        - Update Sill
+        - Update Skopry
         - It didn't connect
         - I don't know
     validations:
@@ -71,10 +71,10 @@ body:
   - type: textarea
     id: log
     attributes:
-      label: Sill's log on your Mac
+      label: Skopry's log on your Mac
       description: >-
-        Optional. Show Log… in the Sill menu, or ~/Library/Logs/Sill/Sill.log. Paste only the lines
+        Optional. Show Log… in the Skopry menu, or ~/Library/Logs/Skopry/Skopry.log. Paste only the lines
         around the problem. The log names your windows, your devices and their network addresses,
         and this issue is public: take out what you don't want to share, or email the lines to
-        support@getsill.app instead.
+        support@skopry.app instead.
       render: text

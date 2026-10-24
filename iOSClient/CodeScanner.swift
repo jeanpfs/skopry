@@ -5,7 +5,7 @@ import StreamProtocol
 
 /// The embedded code scanner (docs/remote-access-plan.md §7.7, §7.10): VisionKit's
 /// DataScannerViewController in the card's viewfinder, never a presentation. It reads QR codes; a
-/// sill://pair link goes to `onLink`, anything else shows "That’s not a Sill code." under the
+/// skopry://pair link goes to `onLink`, anything else shows "That’s not a Skopry code." under the
 /// viewfinder for 2 s. The person chose to point the camera, so there is no confirmation step.
 /// A link arrives each time the scanner finds the code (again, when a scanner is shown anew with
 /// the code in view) and each time the person taps it; StreamClient.scanned decides what starts.
@@ -24,15 +24,15 @@ struct CodeScanner: View {
     }
 
     let mode: Mode
-    /// A sill://pair link, and whether the person tapped the code rather than the scanner finding it.
+    /// A skopry://pair link, and whether the person tapped the code rather than the scanner finding it.
     let onLink: (PairLink, _ tapped: Bool) -> Void
     /// A scan failed and the same code is held: the caption says a tap on it tries again.
     var retryNeedsTap = false
     /// The Mac whose code it reads, for the caption and VoiceOver: the home card's names it
     /// ("Point at the code on Mac mini", docs/home-pairing-plan.md §7.7); nil for "your Mac".
     var mac: String? = nil
-    @State private var notSill = false
-    @State private var notSillToken = 0
+    @State private var notSkopry = false
+    @State private var notSkopryToken = 0
     /// The camera as this view knows it. DataScannerViewController never asks by itself (it only
     /// reports itself unavailable until the camera is allowed), so the first live viewfinder asks.
     @State private var access = AVCaptureDevice.authorizationStatus(for: .video)
@@ -58,7 +58,7 @@ struct CodeScanner: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Palette.control)
                 if denied {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Sill can’t use the camera. Enter the code instead, or allow the camera in Settings.")
+                        Text("Skopry can’t use the camera. Enter the code instead, or allow the camera in Settings.")
                             .font(.system(size: 15))
                             .foregroundStyle(Palette.text)
                             .fixedSize(horizontal: false, vertical: true)
@@ -88,17 +88,17 @@ struct CodeScanner: View {
             .accessibilityElement(children: denied ? .contain : .ignore)
             .accessibilityLabel(denied ? "" : mac.map(DiscoveryPolicy.HomeCopy.viewfinderLabel) ?? "Camera. Point it at the code on your Mac.")
             if !denied {
-                Text(notSill ? "That’s not a Sill code." : retryNeedsTap ? "Tap the code to try again."
+                Text(notSkopry ? "That’s not a Skopry code." : retryNeedsTap ? "Tap the code to try again."
                      : mac.map(DiscoveryPolicy.HomeCopy.viewfinderCaption) ?? "Point at the code on your Mac")
                     .font(.system(size: 13))
-                    .foregroundStyle(notSill ? Color.orange : Palette.muted)
-                    .accessibilityHidden(!notSill && !retryNeedsTap)
+                    .foregroundStyle(notSkopry ? Color.orange : Palette.muted)
+                    .accessibilityHidden(!notSkopry && !retryNeedsTap)
             }
         }
-        .task(id: notSillToken) {
-            guard notSillToken > 0 else { return }
+        .task(id: notSkopryToken) {
+            guard notSkopryToken > 0 else { return }
             try? await Task.sleep(for: .seconds(2))
-            if !Task.isCancelled { notSill = false }
+            if !Task.isCancelled { notSkopry = false }
         }
         .task {
             // The person opened the scanner, so this is the moment to ask for the camera.
@@ -111,10 +111,10 @@ struct CodeScanner: View {
     private func handle(_ payload: String, tapped: Bool) {
         if case .success(let link) = PairLink.parse(payload) {
             onLink(link, tapped)
-        } else if !notSill {
-            notSill = true
-            notSillToken += 1
-            AccessibilityNotification.Announcement("That’s not a Sill code.").post()
+        } else if !notSkopry {
+            notSkopry = true
+            notSkopryToken += 1
+            AccessibilityNotification.Announcement("That’s not a Skopry code.").post()
         }
     }
 

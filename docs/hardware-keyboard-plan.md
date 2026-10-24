@@ -3,7 +3,7 @@
 2026-10-14. Branch `hardware-keyboard` (worktree `/Users/noah/Downloads/winstream-hardware-keys`)
 from origin/main at 985a733, PR #80; line numbers are at 985a733. Issues #67 and #68. Device app only; no
 wire change, nothing on the Mac changes. The triage that led here, with file:line evidence for each
-cause, is `~/Downloads/sill-handoff/triage/2026-10-13-open-items.md`.
+cause, is `~/Downloads/skopry-handoff/triage/2026-10-13-open-items.md`.
 
 **Noah's request (2026-10-14, as the workflow relayed it):** "Work on the keyboard and trackpad
 change (#67 and #68 together)". The workflow's brief: Esc through a key command, hardware keys
@@ -20,16 +20,16 @@ and iPadOS does not hand a hardware Escape to `pressesBegan` of a text-input fir
 iPadOS 27 simulator never did either: docs/remote-access-plan.md R12, commit 5468bdc). UIKit's
 header says why a key command can still get it: `wantsPriorityOverSystemBehavior` "indicates
 whether the key command should execute if it conflicts with focus or text-editing system
-commands". Sill already uses such a command for Esc where a field has the keyboard (`EscapeKey`,
+commands". Skopry already uses such a command for Esc where a field has the keyboard (`EscapeKey`,
 AddMacCard.swift:303). Sideways there is no on-screen esc at all (only the portrait key row has one),
 and an iPad on a Magic Keyboard is always sideways.
 
 **#68 (b), typing needs the Keyboard button.** Keys and text reach the Mac only while the stream's
 input view (`InputOverlayView`, a `UIKeyInput`) is first responder (InputOverlay.swift:343, 375–394,
 462–479). Only the Keyboard button, a restore after Settings, the Menus pull-down or the tour, or
-DEBUG `-SillKeyboard 1` make it so. A new session, a rotation (the other layout's input view is a new
+DEBUG `-SkopryKeyboard 1` make it so. A new session, a rotation (the other layout's input view is a new
 view) and Pair This iPad… all leave it down, and with nothing first responder iPadOS's own File ›
-Close takes ⌘W and closes Sill's window (docs/menu-bar-plan.md, "Why the device never registers the
+Close takes ⌘W and closes Skopry's window (docs/menu-bar-plan.md, "Why the device never registers the
 Mac's shortcuts as key commands": while the input view is first responder it wins every key,
 ⌘W included).
 
@@ -52,7 +52,7 @@ The Mac already takes both kinds of scroll: phased gestures with momentum, and b
   the responder chain only while it is first responder, so the commands are out of the way whenever
   the overlay does not take keys; the two conditions say so again in `keyCommands` and in
   `canPerformAction`.
-- **Each Sill window is its own** (the review's first finding). Every window has its own responder
+- **Each Skopry window is its own** (the review's first finding). Every window has its own responder
   chain, so an `EscapeKey`'s command, on its window's view controller, never sees a key pressed in
   another window: Settings left open in a window behind must not take Esc from the stream in front
   (`EscapeKey.onScreen(in:)`), and Esc pressed in a window goes to the newest `EscapeKey` in that
@@ -72,7 +72,7 @@ The Mac already takes both kinds of scroll: phased gestures with momentum, and b
 - **DEBUG, which channel delivered it.** Every hardware key the overlay sees prints one line, as
   Noah needs on a device: `hwkey: usage 41 down via keyCommand (shift): to the Mac`, `hwkey: usage 41
   down via pressesBegan: to the Mac`, `hwkey: usage 4 down via pressesBegan: the text system's`,
-  `hwkey: usage 41 down via pressesBegan: the key command sent it`. With `-SillKeyProbe 1` the
+  `hwkey: usage 41 down via pressesBegan: the key command sent it`. With `-SkopryKeyProbe 1` the
   GameController keyboard's own handler prints `hwkey: usage 41 down via GameController` too, so a
   key iPadOS gives to neither UIKit channel still shows (the next fix would then be a GameController
   path).
@@ -88,7 +88,7 @@ The Mac already takes both kinds of scroll: phased gestures with momentum, and b
 only; `Tests/checks/hardware-keyboard`). A state machine the stream screen's `InputOverlayProxy` owns
 (it outlives a rotation; a new session makes a new one). It knows:
 - `attached`: a hardware keyboard is attached (`GCKeyboard.coalesced`, and
-  `GCKeyboardDidConnect` and `DidDisconnect`; DEBUG `-SillHardwareKeyboard 1|0` overrides it);
+  `GCKeyboardDidConnect` and `DidDisconnect`; DEBUG `-SkopryHardwareKeyboard 1|0` overrides it);
 - `takers`: what is open that takes the keyboard for itself or must keep keys from the Mac: the
   Settings panel, the pairing overlay (Pair This iPad… or an outside link), the tour, the Apps
   drawer (its search field), the Menus pull-down. The Add a Mac card is the connect screen's, where
@@ -138,7 +138,7 @@ Two more pan recognizers on `InputOverlayView`, scroll-only: `maximumNumberOfTou
 `allowedTouchTypes = [.indirectPointer]`, refusing every touch in the delegate:
 - **`.continuous`** (a trackpad's two fingers, a Magic Mouse): the finger pan's path, at the
   pointer's location: `.scrollGesture(.began)`, a `.scroll` delta per change (fractions of the
-  picture, natural sign), `.scrollGesture(.ended)`, then Sill's own coast from the lift's velocity.
+  picture, natural sign), `.scrollGesture(.ended)`, then Skopry's own coast from the lift's velocity.
   iPadOS hands a pan no momentum of its own (a scroll view decelerates by itself), so this is no
   double coast; if a device shows one, a new scroll gesture stops the coast at its begin, as a new
   finger does.
@@ -172,17 +172,17 @@ Settings panel already cover the stream for hit-testing.
 6. **The person's own software keyboard across a rotation.** Default: down, as today (only the
    hardware hold comes back). Alternative: carried to the other layout.
 7. **⌘W while something else has the keyboard** (Settings, the drawer, Menus, the tour, pairing).
-   Default: unchanged, the iPad's File › Close closes Sill's window (docs/menu-bar-plan.md Q8).
+   Default: unchanged, the iPad's File › Close closes Skopry's window (docs/menu-bar-plan.md Q8).
    Alternative: remove the iPad's File › Close while a session streams.
-8. **The trackpad's coast.** Default: Sill's own, as a finger's. Alternative: none for a trackpad.
+8. **The trackpad's coast.** Default: Skopry's own, as a finger's. Alternative: none for a trackpad.
 9. **The portrait on-screen trackpad.** Default: a hardware trackpad's scroll over it does nothing
    (it scrolls over the picture). Alternative: scroll there too.
-10. **The GameController probe.** Default: DEBUG only, behind `-SillKeyProbe 1`.
+10. **The GameController probe.** Default: DEBUG only, behind `-SkopryKeyProbe 1`.
 11. **Full Keyboard Access and Switch Control** (the review's fourth finding). With a keyboard attached the
     stream's input view holds the keyboard whenever nothing is open over the stream, so Tab, Space and the
     arrows go to the Mac and Esc's commands ask for priority over the focus system; and while a keyboard is
     attached the Keyboard button never lets go for good (a second press goes back to the hold,
-    `HardwareKeyboardPolicy.toggled()`). Someone who moves through Sill's bar from the keyboard may then
+    `HardwareKeyboardPolicy.toggled()`). Someone who moves through Skopry's bar from the keyboard may then
     not reach Settings or Disconnect while streaming. Default: the hold as for anyone, until step 13 says
     otherwise. Alternative: no automatic hold while such a technology runs. UIKit can tell Switch Control
     (`UIAccessibility.isSwitchControlRunning`) but not Full Keyboard Access (the iOS 27.1 SDK's UIKit
@@ -205,12 +205,12 @@ Settings panel already cover the stream for hit-testing.
   file changes); `Tests/checks/run-all.sh`, all.
 - **H4** Harness photos on a private simulator, this branch against main's build, at the Duo's and
   an iPad's sizes, landscape and portrait, with the drawer, the Settings panel and the keyboard
-  button lit: identical (also with `-SillHardwareKeyboard 1`, whose hold draws nothing).
-- **H5** Live against `SillHost --synthetic` on loopback (`SILL_TEST_LOOPBACK=1
-  SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 SILL_TEST_INPUT_LOG=1`), a private simulator,
-  `-SillLive 1`: `-SillInputTest 1` with the overlay's new half (Esc through the key command's own
+  button lit: identical (also with `-SkopryHardwareKeyboard 1`, whose hold draws nothing).
+- **H5** Live against `SkopryHost --synthetic` on loopback (`SKOPRY_TEST_LOOPBACK=1
+  SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 SKOPRY_TEST_INPUT_LOG=1`), a private simulator,
+  `-SkopryLive 1`: `-SkopryInputTest 1` with the overlay's new half (Esc through the key command's own
   action, ⇧Esc, a trackpad scroll with its coast, a wheel), the host's `in.dry` counts and its "Test
-  input" lines; with `-SillHardwareKeyboard 1` the automatic hold at the session's start and after a
+  input" lines; with `-SkopryHardwareKeyboard 1` the automatic hold at the session's start and after a
   rotation (an InputScript step turns the scene), let go while Settings and the tour show (nothing
   sent then), taken again after.
 - **H6** If the simulator takes one: a virtual HID keyboard and mouse inside the private simulator
@@ -222,13 +222,13 @@ Settings panel already cover the stream for hit-testing.
 ## Untested, for Noah
 
 On the iPad with a Magic Keyboard (the reporter's is an iPad Pro 13" M4 on iPadOS 27.0.1), a Debug build of
-this branch (the console's `hwkey:` and `keyboard:` lines) against Sill.app built from this branch or main
+this branch (the console's `hwkey:` and `keyboard:` lines) against Skopry.app built from this branch or main
 (nothing on the Mac changed), streaming a window:
 
 1. **Esc and its channel.** Press Esc in a text field on the Mac: it reaches the Mac (the Mac's app
-   reacts, and Sill.log's `[1s]` line counts `in.key`; #67's log had only `in.text`). The console says
+   reacts, and Skopry.log's `[1s]` line counts `in.key`; #67's log had only `in.text`). The console says
    which channel brought it: `hwkey: usage 41 down
-   via pressesBegan (none): to the Mac`, or `via keyCommand`. With `-SillKeyProbe 1` a line `via
+   via pressesBegan (none): to the Mac`, or `via keyCommand`. With `-SkopryKeyProbe 1` a line `via
    GameController` comes too; if only that one comes, iPadOS gives the key to neither of UIKit's channels,
    and the next fix is a GameController path (say so). Note the keyboard model and whether Caps Lock is
    remapped to Escape (Settings › General › Keyboard › Hardware Keyboard).
@@ -237,15 +237,15 @@ this branch (the console's `hwkey:` and `keyboard:` lines) against Sill.app buil
 3. **Typing with no Keyboard button**, at once after connecting (the Keyboard button stays dark), after
    turning the iPad, after Settings, Menus, the Apps list and Pair This iPad… close, and after a reconnect
    (Wi-Fi off and on). Shortcuts too (⌘S, ⌘Z, ⌘Tab stays iPadOS's).
-4. **⌘W** reaches the Mac (its window closes) and Sill's window stays.
+4. **⌘W** reaches the Mac (its window closes) and Skopry's window stays.
 5. **Nothing drawn**: no on-screen keyboard and no shortcuts bar over the stream while typing on the Magic
    Keyboard; folding the keyboard away (or taking the iPad off it) brings no on-screen keyboard up over
    the stream, and the console says `keyboard: the keyboard went …; let go`.
 6. **The Keyboard button** with the keyboard attached: pressed, it lights and iPadOS shows its own small
    keyboard bar (or the on-screen keyboard); pressed again, it goes dark and typing still reaches the Mac.
-7. **Esc over Sill's own panels**: Settings open, Esc closes it and nothing reaches the Mac; the tour, Esc
+7. **Esc over Skopry's own panels**: Settings open, Esc closes it and nothing reaches the Mac; the tour, Esc
    skips it; Pair This iPad…, Esc cancels.
-8. **The tour on a fresh install** (TestFlight or a Release build, or Debug with `-SillTourState fresh`)
+8. **The tour on a fresh install** (TestFlight or a Release build, or Debug with `-SkopryTourState fresh`)
    with the keyboard attached: it still shows a second after the picture.
 9. **Trackpad scrolling over the picture**: two fingers scroll the Mac's window under the pointer, a flick
    coasts once (watch for a double coast: the content running on twice as far, or a second stretch after
@@ -255,16 +255,16 @@ this branch (the console's `hwkey:` and `keyboard:` lines) against Sill.app buil
 11. **An input method** (Japanese or Chinese on the Magic Keyboard, if used): during the hold the input view
     is empty, so iPadOS's candidate bar may not show; the Keyboard button then gives iPadOS's own keyboard
     views back. Note whether typing in one works either way.
-12. **Two Sill windows** side by side (Split View, or Stage Manager), each streaming: open Settings in one,
+12. **Two Skopry windows** side by side (Split View, or Stage Manager), each streaming: open Settings in one,
     then press Esc in the other. Esc reaches the Mac (`hwkey: … to the Mac`), and Settings stays open in
     the first window. Then open Settings in both and press Esc in one: only that window's panel closes (the
     console: `escape: … in its window …; 1 in other windows, left alone`).
 13. **Full Keyboard Access and Switch Control** (open question 11). Turn on Settings › Accessibility ›
     Keyboards › Full Keyboard Access with the Magic Keyboard attached and stream a window. Does Tab still
-    move through Sill's bar (Apps, the thumbnails, Aa, Keyboard, Desktop, Settings), does Space press
+    move through Skopry's bar (Apps, the thumbnails, Aa, Keyboard, Desktop, Settings), does Space press
     Settings and then its Disconnect, and does Esc still back out of a focus group, or does each go to the
     Mac? Then Switch Control with a key of the keyboard as its switch: does the switch still move through
-    Sill's controls while the stream holds the keyboard? If either is stuck, say so: the alternative is no
+    Skopry's controls while the stream holds the keyboard? If either is stuck, say so: the alternative is no
     automatic hold while one runs.
 
 ## Words that wait for a device
@@ -273,7 +273,7 @@ Done on 2026-10-15: steps 1, 7 and 9 passed on the iPad through Universal Contro
 "Noah's test through Universal Control"), and on Noah's word the four lines below went into README,
 the support page and the App Store text, as written here.
 
-No device has shown Esc reaching the Mac (step 1), Esc over Sill's own panels (step 7) or scrolling with a
+No device has shown Esc reaching the Mac (step 1), Esc over Skopry's own panels (step 7) or scrolling with a
 trackpad or a mouse (step 9): in the simulator Esc came through `pressesBegan`, which #67's iPad never
 used, and no real trackpad's events reached the continuous pan. So the public words leave them out for now
 (the review's second finding): README's How it works, the support page, the App Store description's
@@ -299,11 +299,11 @@ text go out with the release. Once the steps pass, these lines take their places
 ## Results
 
 All on this Mac, 2026-10-14, while other sessions ran their own builds and mutants (load averages up to
-418): private simulators "Sill hwkeys" (iPad Pro 13-inch (M5), iOS 27.0), "Sill hwkeys phone" and "Sill
-hwkeys phone2" (iPhone 18 Pro, iOS 27.0), deleted after; every host `SillHost --synthetic` on loopback with
-`SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 SILL_TEST_INPUT_LOG=1` and
-`SILL_TEST_POINTER_PATH` (a test host's Desktop takes no input without its scripted pointer: its
-`currentSourceRect` is nil). Nothing touched Sill.app, a device, the hardware encoder or input on the Mac.
+418): private simulators "Skopry hwkeys" (iPad Pro 13-inch (M5), iOS 27.0), "Skopry hwkeys phone" and "Skopry
+hwkeys phone2" (iPhone 18 Pro, iOS 27.0), deleted after; every host `SkopryHost --synthetic` on loopback with
+`SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 SKOPRY_TEST_INPUT_LOG=1` and
+`SKOPRY_TEST_POINTER_PATH` (a test host's Desktop takes no input without its scripted pointer: its
+`currentSourceRect` is nil). Nothing touched Skopry.app, a device, the hardware encoder or input on the Mac.
 
 **First, what the simulator does** (H6, `Tests/keyrig`, a virtual HID keyboard and mouse inside the
 simulator; its README):
@@ -324,7 +324,7 @@ simulator; its README):
   path instead (the input test, the script). Scroll events marked as momentum after a scroll's end never
   reached a pan: no double coast from UIKit, in the simulator.
 - iPadOS 27's windowing refuses `requestGeometryUpdate`, and duorig's orientation event does not turn an
-  iPad simulator; an iPhone simulator turns on request (`-SillTurnAt`).
+  iPad simulator; an iPhone simulator turns on request (`-SkopryTurnAt`).
 
 **Found by these runs, and fixed:**
 - A lone wheel notch was never sent (the pan began and ended with no change, and the begin's translation
@@ -345,43 +345,43 @@ before; 9 new).
 **H3** `swift build -c release`: complete in 74 s, only the CaptureProbe warning. The iOS app, Debug and
 Release for the generic simulator and Debug for a generic device (`CODE_SIGNING_ALLOWED=NO`): each
 succeeded with main's warnings only (the StreamClient capture warning and appintentsmetadataprocessor's
-note). The Release binary holds none of the DEBUG flags' strings (`SillHardwareKeyboard`, `SillKeyProbe`,
-`SillEscViaCommand`, `SillTurnAt`, `hwkey:`, `keyboard:`), links GameController (Apple's), and
+note). The Release binary holds none of the DEBUG flags' strings (`SkopryHardwareKeyboard`, `SkopryKeyProbe`,
+`SkopryEscViaCommand`, `SkopryTurnAt`, `hwkey:`, `keyboard:`), links GameController (Apple's), and
 release-ios.sh's required-reason check finds SystemBootTime and UserDefaults, both declared, as before.
 `Tests/checks/run-all.sh`: all 41 pass.
 
 **H4** Harness photos, this branch against main's build (985a733) on the same simulators, compared pixel
 for pixel below the status bar: 19 of 19 identical. iPad: 1000×710 plain, with the drawer, the Settings
-panel, `-SillKeyboard 1`, `-SillHardwareKeyboard 0` and the Menus pull-down open (on its top level, and on
+panel, `-SkopryKeyboard 1`, `-SkopryHardwareKeyboard 0` and the Menus pull-down open (on its top level, and on
 File › Open Recent); 710×1000 plain and with Settings; 500×710; the
-Duo's book and laptop poses (`-SillHinge half`) and its cover. iPhone: the phone's arrangement upright
-(402×780) plain, with Settings, the drawer and `-SillKeyboard 1`; sideways (780×360); the connect screen
-(`-SillConnectCase methods`). In each the branch's input view held the keyboard (GameController's keyboard)
+Duo's book and laptop poses (`-SkopryHinge half`) and its cover. iPhone: the phone's arrangement upright
+(402×780) plain, with Settings, the drawer and `-SkopryKeyboard 1`; sideways (780×360); the connect screen
+(`-SkopryConnectCase methods`). In each the branch's input view held the keyboard (GameController's keyboard)
 and drew nothing.
 
-**H5** Live, the normal app with `-SillConnect` (or the harness with `-SillLive 1`), keys and wheels from
+**H5** Live, the normal app with `-SkopryConnect` (or the harness with `-SkopryLive 1`), keys and wheels from
 the rig:
-- iPad, upright: the hold taken as the session's view joined; `-SillInputTest 1`: the key row's ⌘esc,
+- iPad, upright: the hold taken as the session's view joined; `-SkopryInputTest 1`: the key row's ⌘esc,
   the trackpad's tap and scroll, then Esc and ⇧Esc through the key command's own action (the host: key 53
   down and up, key 53 down with shift), a trackpad scroll with its coast and a wheel (98 scroll events in
-  all); then the rig's Esc (key 53), "a" (typed), ⌘W (key 13 with command, Sill's window stayed) and F5
+  all); then the rig's Esc (key 53), "a" (typed), ⌘W (key 13 with command, Skopry's window stayed) and F5
   (key 96), all with no Keyboard button.
-- iPhone, `-SillTurnAt 8,14`: Esc and a letter upright, after the turn sideways (the new view took the
+- iPhone, `-SkopryTurnAt 8,14`: Esc and a letter upright, after the turn sideways (the new view took the
   hold) and after the turn back, each reaching the host; no keyboard drawn in either layout.
 - A fresh iPhone (UIKit showing the software keyboard, GameController counting one), photos every second
-  with `-SillKeyboardToggle 6,12`: nothing drawn under the hold, then the software keyboard and the lit
+  with `-SkopryKeyboardToggle 6,12`: nothing drawn under the hold, then the software keyboard and the lit
   button, then both gone; main's build gives the same pictures for the same presses.
-- `-SillSettings 1`: the hold let go as the panel opened; the rig's Esc then closed the panel through its
+- `-SkoprySettings 1`: the hold let go as the panel opened; the rig's Esc then closed the panel through its
   EscapeKey with nothing at the host; the hold came back and the next Esc and "a" reached the host.
-- `-SillTourState fresh`: the tour showed 1.11 s after the picture with the keyboard attached; "a" typed
+- `-SkopryTourState fresh`: the tour showed 1.11 s after the picture with the keyboard attached; "a" typed
   during it reached nothing; Esc skipped it ("escape: Esc to what is on screen"), nothing at the host; the
   hold came back and the next Esc and "b" reached the host.
-- The Menus pull-down (the harness's mock menus, `-SillMenusOpen 1 -SillMenusCloseAfter 4`): the hold let
+- The Menus pull-down (the harness's mock menus, `-SkopryMenusOpen 1 -SkopryMenusCloseAfter 4`): the hold let
   go as it opened, the pull-down stayed open (the photos above), and the hold came back as it was
   dismissed; UIKit gave the keyboard back by itself in no run.
-- `-SillEscViaCommand 1`: Esc, ⇧Esc, ⌘Esc and ⌥⌘Esc through UIKit's own key-command dispatch, each key 53
+- `-SkopryEscViaCommand 1`: Esc, ⇧Esc, ⌘Esc and ⌥⌘Esc through UIKit's own key-command dispatch, each key 53
   at the host with its flags and every modifier let go after.
-- The harness at 1000×710 with `-SillLive 1` and the script's `keyboard detach` (3 s) and `attach` (12 s):
+- The harness at 1000×710 with `-SkopryLive 1` and the script's `keyboard detach` (3 s) and `attach` (12 s):
   the hold let go and came back; the rig's keys between reached nothing and after reached the host; the
   script's `esc`, `esc shift+command`, `scroll 0,40` and `wheel 0,-30` reached the host.
 
@@ -394,18 +394,18 @@ direct touches only, not scroll events: the wheel's pan ran under the key rig in
 found four things, and two claims that did not hold. Each was checked here against the code first, then
 fixed in a commit of its own:
 
-1. **Esc and `EscapeKey` across Sill's windows** (should-fix; bdc121d). `EscapeKey.onScreen` counted the
+1. **Esc and `EscapeKey` across Skopry's windows** (should-fix; bdc121d). `EscapeKey.onScreen` counted the
    EscapeKeys of every window, so Settings, the tour, the pairing overlay or the Add a Mac card open in one
    window took the stream's Esc key commands away in every other; on a device that gives Esc only to the
    key command (#67's), Esc then went nowhere in the window in front. And `fire()` answered with the newest
    EscapeKey in any window, so Esc in one window could close another's panel. Now `onScreen(in:)` and
    `fire(in:)` take the window (§1). On a private iPad Pro 13-inch (M5) simulator, iOS 27.0, against
-   loopback `SillHost --synthetic` with keys from the key rig:
-   - `-SillSecondWindow 1 -SillSettings 1 -SillEscViaCommand 1` (Settings open in the first window, behind;
+   loopback `SkopryHost --synthetic` with keys from the key rig:
+   - `-SkoprySecondWindow 1 -SkoprySettings 1 -SkopryEscViaCommand 1` (Settings open in the first window, behind;
      the second in front, holding the keyboard), then Esc and "a": 2fc53ed's build handed Esc on with no
      key-command line, and the host got only the "a" (key 0); this build: `hwkey: usage 41 down via
      keyCommand (none): to the Mac`, and the host got key 53 down and up, then key 0.
-   - `-SillSecondWindow 1 -SillTour touch -SillTakeTourAt 5` (a tour in each window, then Settings opening
+   - `-SkoprySecondWindow 1 -SkopryTour touch -SkopryTakeTourAt 5` (a tour in each window, then Settings opening
      in the one behind), Esc in the front window: this build closed the front window's tour (`escape: Esc
      to what is on screen in its window (its EscapeKey), not to the Mac; 1 in other windows, left alone`;
      the photo after it shows the front window with no tour). 2fc53ed's build closed the front window's
@@ -415,13 +415,13 @@ fixed in a commit of its own:
      `fire()`'s old mistake needs two windows side by side, or a switch from one to the other, which these
      runs could not make: Noah's step 12.
    - One window, as before the fix: with Settings open, Esc closed it through its EscapeKey with nothing at
-     the host, then Esc and "a" reached the host (key 53, key 0); with `-SillTourState fresh` the tour
+     the host, then Esc and "a" reached the host (key 53, key 0); with `-SkopryTourState fresh` the tour
      showed 1.10 s after the picture with the keyboard attached, an "a" during it reached nothing, Esc
-     skipped it, then Esc and "c" reached the host; with `-SillEscViaCommand 1`, Esc, ⇧Esc and ⌥⌘Esc came
+     skipped it, then Esc and "c" reached the host; with `-SkopryEscViaCommand 1`, Esc, ⇧Esc and ⌥⌘Esc came
      through the key command, each key 53 at the host with its flags and every modifier let go after;
-     `-SillInputTest 1`: Esc and ⇧Esc through the key command, a trackpad's scroll with its coast and a
-     wheel's (104 scroll events at the host); in the harness the Add a Mac card (`-SillLayout 1000x710
-     -SillConnectCase addmac`) closed on Esc.
+     `-SkopryInputTest 1`: Esc and ⇧Esc through the key command, a trackpad's scroll with its coast and a
+     wheel's (104 scroll events at the host); in the harness the Add a Mac card (`-SkopryLayout 1000x710
+     -SkopryConnectCase addmac`) closed on Esc.
 2. **Public words beyond what a device has shown** (nit; af9f13c). README.md, public as soon as this
    merges, said Esc reaches the Mac and a trackpad or a mouse scrolls, and so did the support page, the App
    Store description's bullet and the next What's New. They now keep to typing without the Keyboard
@@ -452,7 +452,7 @@ compiles a file this round changed (AddMacCard.swift, InputOverlay.swift, Conten
 mutants were not run again: hardware-keyboard's 31 of 31 and key-strokes' 81 of 81 stand (the review's
 runs). The touch rig, whose stub follows `onScreen(in:)`: 72 scenarios on main's surfaces and on this
 branch's, `compare.py` 72 checks, 0 failed. No screen changed, so no harness photos were taken again. The
-private simulators ("Sill hwkeys review-fixes iPad", "Sill review-fixes touchrig") and every host are
+private simulators ("Skopry hwkeys review-fixes iPad", "Skopry review-fixes touchrig") and every host are
 gone.
 
 **Not verified here:** anything on a device (§ Untested); the continuous recognizer with a real trackpad's
@@ -477,7 +477,7 @@ hands were Noah's; the logs are the evidence.
 - Esc reached the host (`hwkey: usage 41 down via pressesBegan (none): to the Mac`; the host's key
   53 down and up). The key-command channel was not needed on this keyboard.
 - ⌘W reached the host (key 55's flags, key 13 down and up with command, the flags cleared, the
-  tripwire armed) and Sill's window stayed.
+  tripwire armed) and Skopry's window stayed.
 - Two-finger scrolling over the picture gave the host 38 scroll events with phases
   (`in.scrollPhase`), the continuous pan's.
 - Settings open: the hold let go (`automatic → none`), Esc closed the panel and nothing reached the
@@ -501,8 +501,8 @@ two windows (steps 2, 5, 8, 10 to 13) are still Noah's.
   only the StreamClient capture warning). The private simulators are deleted. The pull request merges
   into main (985a733) without a conflict. With the other open pull requests it meets in the docs
   (CLAUDE.md's Current step, ci.yml's mutants matrix, Tests/checks/README.md, docs/DEVELOPMENT.md,
-  docs/app-store-metadata.md) and, with #79, in StreamScreen.swift's DEBUG hooks (`-SillTurnAt` beside
-  its `-SillAXDump` and `-SillLargerPictureToggle`: keep both), so whichever merges second takes main in.
+  docs/app-store-metadata.md) and, with #79, in StreamScreen.swift's DEBUG hooks (`-SkopryTurnAt` beside
+  its `-SkopryAXDump` and `-SkopryLargerPictureToggle`: keep both), so whichever merges second takes main in.
 - 2026-10-14: the review's findings fixed: Esc's key commands and EscapeKey keep to their own window
   (bdc121d); the public words keep to what a device has shown, and the support page's Keyboard button
   sentence (af9f13c); Full Keyboard Access and Switch Control, open question 11 and step 13 (7fdc902).

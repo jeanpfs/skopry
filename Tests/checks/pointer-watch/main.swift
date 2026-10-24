@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-// docs/pointer-visibility-plan.md, the host's step: PointerWatch (Sources/SillHost), the shell around
+// docs/pointer-visibility-plan.md, the host's step: PointerWatch (Sources/SkopryHost), the shell around
 // PointerControl, with the readers and the clock it is given, and its TEST ONLY scripted pointer and
 // hooks. Compiled with PointerControl.swift, Stats.swift and Sources/StreamProtocol (their `import
 // StreamProtocol` dropped), as build.sh does.
@@ -62,7 +62,7 @@ func waitUntil(_ cond: () -> Bool) -> Bool {
     for _ in 0..<3000 { if cond() { return true }; usleep(1000) }
     return cond()
 }
-/// Time for a re-read that should not have started to show that it did (they run on sill.pointer).
+/// Time for a re-read that should not have started to show that it did (they run on skopry.pointer).
 func quiet() { usleep(60_000) }
 func watch(synthetic: Bool = false, path: TestPointerPath? = nil, clock: Clock, location: Location,
            windows: Windows = Windows(), after: Double = 0.1, anyway: Double = 2) -> PointerWatch {
@@ -157,8 +157,8 @@ do {
     c.now += 0.03
     w.inputArrived(from: A, movesPointer: true)
     check(w.sample(devices: both)?.controller == .client(A), "a device's input hands it the pointer")
-    c.now += 0.03; l.point = pt(400, 100)   // Sill's own move, absolute
-    check(w.sample(devices: both)?.controller == .client(A), "Sill's move within the settle stays the device's")
+    c.now += 0.03; l.point = pt(400, 100)   // Skopry's own move, absolute
+    check(w.sample(devices: both)?.controller == .client(A), "Skopry's move within the settle stays the device's")
     for _ in 0..<8 { c.now += 0.03; _ = w.sample(devices: both) }   // the settle runs out, the pointer still
     check(w.sample(devices: both)?.controller == .client(A), "a still pointer after the settle stays the device's")
     c.now += 0.03; l.point = pt(401, 100)
@@ -176,7 +176,7 @@ do {
     check(w.sample(devices: both)?.controller == .mac, "the driving device left: the Mac has it")
 }
 
-// Sill's own post, noted just before it, opens the settle without handing the pointer to anyone.
+// Skopry's own post, noted just before it, opens the settle without handing the pointer to anyone.
 do {
     let c = Clock(), l = Location()
     let w = watch(clock: c, location: l)
@@ -188,12 +188,12 @@ do {
     c.now += 2          // long after: a held click's post
     _ = w.sample(devices: both)      // the pointer unwatched meanwhile: this read starts afresh
     c.now += 0.03
-    w.sillMoved()
+    w.skopryMoved()
     l.point = pt(300, 300)
     c.now += 0.03
-    check(w.sample(devices: both)?.controller == .client(A), "a post noted before it lands stays Sill's")
+    check(w.sample(devices: both)?.controller == .client(A), "a post noted before it lands stays Skopry's")
     c.now += 0.03
-    w.sillMoved(to: pt(700, 400))   // a real host: `to` moves nothing
+    w.skopryMoved(to: pt(700, 400))   // a real host: `to` moves nothing
     l.point = pt(300, 300)
     check(w.sample(devices: both).map { $0.x == 0.3 && $0.y == 0.6 } == true, "on a real host the location reader alone says where it is")
 }
@@ -237,7 +237,7 @@ do {
     check(every(false, false, false, f120) == nil && every(true, false, false, f24) == nil, "none of it: the tick")
 }
 
-// MARK: A regular-mode window: its bounds and on-screen flag, re-read on sill.pointer
+// MARK: A regular-mode window: its bounds and on-screen flag, re-read on skopry.pointer
 
 do {
     let c = Clock(), l = Location(), wins = Windows()
@@ -249,7 +249,7 @@ do {
     w.setGeometry(.window(7, first), fps: 60)
     check(waitUntil { wins.calls.count == 1 }, "a window geometry is re-read at once")
     check(waitUntil { w.sample(devices: both)?.x == 0.25 }, "the re-read's bounds replace the coordinator's")
-    check(wins.labels.allSatisfy { $0 == "sill.pointer" }, "re-read on sill.pointer, never on the sampling thread: \(wins.labels)")
+    check(wins.labels.allSatisfy { $0 == "skopry.pointer" }, "re-read on skopry.pointer, never on the sampling thread: \(wins.labels)")
     for _ in 0..<5 { _ = w.sample(devices: both) }
     quiet()
     check(wins.calls.count == 1, "a still pointer, the clock still: no re-read")
@@ -322,10 +322,10 @@ do {
     l.point = pt(100, 100); c.now = 100
     w.setGeometry(.window(7, bounds), fps: 60)
     check(waitUntil { wins.calls.count == 1 }, "the geometry's own re-read")
-    // A drives: each input arrives, Sill posts it (the settle), and the pointer moves where it says.
+    // A drives: each input arrives, Skopry posts it (the settle), and the pointer moves where it says.
     for i in 1...20 {
         c.now = 100 + Double(i) * 0.03
-        w.inputArrived(from: A, movesPointer: true); w.sillMoved(); l.point = pt(100 + CGFloat(i) * 5, 100)
+        w.inputArrived(from: A, movesPointer: true); w.skopryMoved(); l.point = pt(100 + CGFloat(i) * 5, 100)
         _ = w.sample(devices: [A])
     }
     quiet()
@@ -334,7 +334,7 @@ do {
     c.now = 102.1; _ = w.sample(devices: [A])
     check(waitUntil { wins.calls.count == 2 }, "…and the 2 s re-read runs anyway")
     // B joins and watches while A drives: A's next move starts a re-read.
-    c.now = 102.25; w.inputArrived(from: A, movesPointer: true); w.sillMoved()
+    c.now = 102.25; w.inputArrived(from: A, movesPointer: true); w.skopryMoved()
     c.now = 102.3; l.point = pt(300, 100)
     check(w.sample(devices: [A, B])?.controller == .client(A), "A still drives with B watching")
     check(waitUntil { wins.calls.count == 3 }, "a device watching: A's move re-reads the window")
@@ -404,7 +404,7 @@ do {
     check(l.reads == 0, "the real pointer never read")
 }
 
-// A dry run's move, noted as Sill's, moves the scripted pointer; the newer of it and a step wins.
+// A dry run's move, noted as Skopry's, moves the scripted pointer; the newer of it and a step wins.
 do {
     let c = Clock(), l = Location()
     let path = TestPointerPath(steps: [.init(t: 0, point: pt(100, 100)), .init(t: 1.0, point: pt(200, 100)),
@@ -415,23 +415,23 @@ do {
     check(w.sample(devices: both)?.x == 0.1, "the path starts: its first step")
     c.now = 50.5
     w.inputArrived(from: A, movesPointer: true)
-    w.sillMoved(to: pt(600, 600))
+    w.skopryMoved(to: pt(600, 600))
     let r = w.sample(devices: both)
     check(r.map { $0.x == 0.6 && $0.y == 0.6 } == true, "the dry run's move (\(String(describing: r)))")
-    check(r?.controller == .client(A), "…is Sill's: the device keeps the pointer")
+    check(r?.controller == .client(A), "…is Skopry's: the device keeps the pointer")
     c.now = 50.9
     check(w.sample(devices: both)?.x == 0.6, "no step since: it stays")
     c.now = 51.2
     check(w.sample(devices: both)?.x == 0.2, "the step at 1.0 s is newer: it wins")
     c.now = 51.95
-    w.sillMoved(to: pt(700, 700))
+    w.skopryMoved(to: pt(700, 700))
     c.now = 52.1       // the step at 2.0 s (52.0) is newer than the move at 51.95
     check(w.sample(devices: both)?.x == 0.3, "a step due after the move wins, even read later")
     c.now = 52.2
-    w.sillMoved(to: pt(800, 800))
+    w.skopryMoved(to: pt(800, 800))
     check(w.sample(devices: both)?.x == 0.8, "a move after the latest step wins")
     c.now = 53.05      // the step at 3.0 s (53.0) came due before this move, but no sample read it
-    w.sillMoved(to: pt(900, 900))
+    w.skopryMoved(to: pt(900, 900))
     c.now = 53.1
     check(w.sample(devices: both)?.x == 0.9, "a step due before a move, read after it, loses to the move")
     check(l.reads == 0, "the real pointer never read")
@@ -442,7 +442,7 @@ do {
     let c = Clock(), l = Location()
     let w = watch(synthetic: true, path: TestPointerPath(steps: [.init(t: 0, point: pt(10, 10))]), clock: c, location: l)
     w.setGeometry(.rect(CGRect(x: 0, y: 0, width: 100, height: 100)), fps: 60)
-    w.sillMoved(to: pt(50, 50))
+    w.skopryMoved(to: pt(50, 50))
     c.now += 0.01
     check(w.sample(devices: both)?.x == 0.1, "a step at 0 s starts with the first sample, after the move")
 }
@@ -453,9 +453,9 @@ do {
     let w = watch(synthetic: true, path: TestPointerPath(steps: []), clock: c, location: l)
     w.setGeometry(.rect(CGRect(x: 0, y: 0, width: 100, height: 100)), fps: 60)
     check(w.sample(devices: both) == nil, "no step, no move: no sample")
-    w.sillMoved(to: pt(25, 75))
+    w.skopryMoved(to: pt(25, 75))
     check(w.sample(devices: both).map { $0.x == 0.25 && $0.y == 0.75 } == true, "a dry run's move puts it there")
-    w.sillMoved()
+    w.skopryMoved()
     check(w.sample(devices: both)?.x == 0.25, "a scroll's note (no position) moves nothing")
 }
 
@@ -508,27 +508,27 @@ do {
     typealias H = PointerTestHooks
     check(H.pointerPath(synthetic: true, environment: [:]).path == nil && H.pointerPath(synthetic: true, environment: [:]).line == nil,
           "no variable: nothing, and no line")
-    check(H.pointerPath(synthetic: true, environment: ["SILL_TEST_POINTER_PATH": ""]).line == nil, "an empty variable: no line")
-    let real = H.pointerPath(synthetic: false, environment: ["SILL_TEST_POINTER_PATH": good])
-    check(real.path == nil && real.line == "SILL_TEST_POINTER_PATH=\(good) ignored: only a --synthetic host takes it.",
+    check(H.pointerPath(synthetic: true, environment: ["SKOPRY_TEST_POINTER_PATH": ""]).line == nil, "an empty variable: no line")
+    let real = H.pointerPath(synthetic: false, environment: ["SKOPRY_TEST_POINTER_PATH": good])
+    check(real.path == nil && real.line == "SKOPRY_TEST_POINTER_PATH=\(good) ignored: only a --synthetic host takes it.",
           "a real host ignores it: \(String(describing: real.line))")
-    let taken = H.pointerPath(synthetic: true, environment: ["SILL_TEST_POINTER_PATH": good])
+    let taken = H.pointerPath(synthetic: true, environment: ["SKOPRY_TEST_POINTER_PATH": good])
     check(taken.path?.steps.count == 5 && taken.line == "Test pointer: 5 steps from \(good); this host records input and never posts it.",
           "a synthetic host takes it: \(String(describing: taken.line))")
     let one = dir.appendingPathComponent("one").path
     FileManager.default.createFile(atPath: one, contents: Data("0.5 1 1\n".utf8))
-    check(H.pointerPath(synthetic: true, environment: ["SILL_TEST_POINTER_PATH": one]).line == "Test pointer: 1 step from \(one); this host records input and never posts it.",
+    check(H.pointerPath(synthetic: true, environment: ["SKOPRY_TEST_POINTER_PATH": one]).line == "Test pointer: 1 step from \(one); this host records input and never posts it.",
           "one step")
-    let refused = H.pointerPath(synthetic: true, environment: ["SILL_TEST_POINTER_PATH": bad])
-    check(refused.path == nil && refused.line == "SILL_TEST_POINTER_PATH=\(bad) ignored: line 3 is not \"T X Y\" (seconds, then points).",
+    let refused = H.pointerPath(synthetic: true, environment: ["SKOPRY_TEST_POINTER_PATH": bad])
+    check(refused.path == nil && refused.line == "SKOPRY_TEST_POINTER_PATH=\(bad) ignored: line 3 is not \"T X Y\" (seconds, then points).",
           "a bad file is refused whole: \(String(describing: refused.line))")
     check(H.softwareEncoder(synthetic: true, environment: [:]) == (false, nil), "no variable: software only is off, silently")
-    check(H.softwareEncoder(synthetic: true, environment: ["SILL_TEST_SOFTWARE_ENCODER": "1"])
-          == (true, "Test encoder: software only (SILL_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed."), "=1 on a synthetic host")
-    check(H.softwareEncoder(synthetic: false, environment: ["SILL_TEST_SOFTWARE_ENCODER": "1"])
-          == (false, "SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it."), "a real host ignores it")
-    check(H.softwareEncoder(synthetic: true, environment: ["SILL_TEST_SOFTWARE_ENCODER": "yes"])
-          == (false, "SILL_TEST_SOFTWARE_ENCODER=yes ignored: 1 turns it on."), "another value is ignored")
+    check(H.softwareEncoder(synthetic: true, environment: ["SKOPRY_TEST_SOFTWARE_ENCODER": "1"])
+          == (true, "Test encoder: software only (SKOPRY_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed."), "=1 on a synthetic host")
+    check(H.softwareEncoder(synthetic: false, environment: ["SKOPRY_TEST_SOFTWARE_ENCODER": "1"])
+          == (false, "SKOPRY_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it."), "a real host ignores it")
+    check(H.softwareEncoder(synthetic: true, environment: ["SKOPRY_TEST_SOFTWARE_ENCODER": "yes"])
+          == (false, "SKOPRY_TEST_SOFTWARE_ENCODER=yes ignored: 1 turns it on."), "another value is ignored")
 }
 
 print(failures == 0 ? "pointer-watch: all \(checks) checks passed" : "pointer-watch: \(failures) of \(checks) checks FAILED")

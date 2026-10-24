@@ -12,10 +12,10 @@ panel, as a host setting like the other five.
 
 **Why (CLAUDE.md, trackpad stutter).** `includePeerToPeer = true` sits on the host's NWListener
 (StreamServer.swift:109) and on the iPad's NWBrowser and NWConnection (StreamClient.swift:171 and
-:223). It makes the kernel enable AWDL as `_sill._tcp` registers ("Enabling AWDL due to Mdns"). The
+:223). It makes the kernel enable AWDL as `_skopry._tcp` registers ("Enabling AWDL due to Mdns"). The
 Mac's one radio then leaves its Wi‑Fi channel for up to ~97 ms every 524 ms: 17–33 % of packets
 are delayed, and p90 is 48–67 ms against ~4 ms with AWDL off. On a shared network AWDL carries
-none of Sill's data.
+none of Skopry's data.
 
 ---
 
@@ -88,7 +88,7 @@ this judgement):
 - **Reconnect matching with the " (n)" suffix stripped would rejoin the wrong Mac.** Two Macs that
   share a computer name ("MacBook Pro" / "MacBook Pro (2)") are common in one household.
 - **Test type and construction.** It passes the test type through a CLI flag and
-  `-SillTestServiceType`. It also adds a second, advertising `StreamServer` construction in
+  `-SkopryTestServiceType`. It also adds a second, advertising `StreamServer` construction in
   synthetic mode, right next to a hard rule.
 - **Scope beyond the ask:**
   - NWPathMonitor, and the 10 s and 30 s timers;
@@ -107,7 +107,7 @@ this judgement):
   missing from the network after 3 s, or when the user taps Search Nearby.
 - **`FoundMac`,** a constructible row type the harness can seed, and step 3's list can grow from.
 - **The panel row** comes after the closing footer, whose "The stream restarts for a moment" is
-  false for this setting. The SillHost sentence moves to the very end.
+  false for this setting. The SkopryHost sentence moves to the very end.
 - **A "Connected directly" header line.**
 - **Ledger rule 9:** a field the host did not report is never sent.
 - **A status menu item.** It's situational: on in a café, off at home. And Noah said "menus".
@@ -143,9 +143,9 @@ this judgement):
 - Swift and Apple frameworks only.
 - Comments say why.
 
-**Noah's running Sill.app** (PR #4, from /Applications, with the iPad connected):
+**Noah's running Skopry.app** (PR #4, from /Applications, with the iPad connected):
 
-- never kill it, and never touch `/Applications/Sill.app` or the `me.saffer.sill.mac` domain;
+- never kill it, and never touch `/Applications/Skopry.app` or the `app.skopry.mac` domain;
 - never run `Scripts/make-app.sh --install/--open`;
 - never run `tccutil`;
 - never install anything on the iPad.
@@ -155,22 +155,22 @@ this judgement):
 - Only from `/Users/noah/Downloads/winstream-ipad-settings/.build/release`.
 - Start them from Python with `start_new_session=True`, kill them by PID, and leave none running.
 - Only `--synthetic` hosts; never select a real window on a `--virtual-display` host.
-- Use the bare `SillMenuBar`, never the bundle's binary, which would use `me.saffer.sill.mac`. Its
-  defaults domain is `SillMenuBar`; delete it afterwards.
+- Use the bare `SkopryMenuBar`, never the bundle's binary, which would use `app.skopry.mac`. Its
+  defaults domain is `SkopryMenuBar`; delete it afterwards.
 - Nothing you launch gets a permission.
 
 **Code rules.**
 
-1. Never use `MainActor.assumeIsolated` in `Sources/SillHost`; hop with `Task { @MainActor in … }`.
+1. Never use `MainActor.assumeIsolated` in `Sources/SkopryHost`; hop with `Task { @MainActor in … }`.
 2. Never call `SCStream.updateConfiguration`.
 3. **The CLI's default-path stdout stays byte for byte** with no device connected. Check it
    masked and sorted against 35a1238.
-   - "Advertising _sill._tcp on the local network." stays.
-   - New lines appear only with `--direct-wireless`, with a `SILL_TEST_*` variable, or when a
+   - "Advertising _skopry._tcp on the local network." stays.
+   - New lines appear only with `--direct-wireless`, with a `SKOPRY_TEST_*` variable, or when a
      device sends kind 17.
    - No new `Stats.bump` key.
 4. `server = try StreamServer(advertise: !synthetic)` stays byte for byte
-   (StreamCoordinator.swift:129). A synthetic host never registers `_sill._tcp`.
+   (StreamCoordinator.swift:129). A synthetic host never registers `_skopry._tcp`.
 5. **Off by default:**
    - the virtual display;
    - Direct Wireless (`HostConfig.standard`);
@@ -187,7 +187,7 @@ this judgement):
 
 **Radio hygiene while testing.**
 
-- AWDL-on checks use test service types only (`_silltest._tcp`), and each lasts under 20 s.
+- AWDL-on checks use test service types only (`_skoprytest._tcp`), and each lasts under 20 s.
 - A `dns-sd -includeAWDL -B` browse adds 1 to the kernel's AWDL service count while it runs, so
   never overlap one with a `ValidSvc` reading.
 - **dns-sd options go before the command:** `dns-sd -includeAWDL -B …`. The suffix form
@@ -210,7 +210,7 @@ this judgement):
 **The Mac.**
 
 - A sixth host setting, `directWireless`, is **off** in `HostConfig.standard`. So the CLI and a
-  fresh or updated Sill.app ask for no AWDL.
+  fresh or updated Skopry.app ask for no AWDL.
 - On, the listener is built with `includePeerToPeer = true`, so its Bonjour registration includes
   AWDL. That is what turns the Mac's AWDL on.
 - A change applies **live**. StreamServer replaces its listener:
@@ -220,7 +220,7 @@ this judgement):
   4. advertise it 1.5 s later.
 - Devices already streaming keep streaming, and the stream never restarts for this setting.
 - It is changed from Settings › General ("Direct wireless connection"), from the status menu
-  ("Direct Wireless Connection"), from a device's panel, from `-SillSetAfter`, and from the CLI's
+  ("Direct Wireless Connection"), from a device's panel, from `-SkoprySetAfter`, and from the CLI's
   `--direct-wireless` flag at launch.
 
 **The iPad.**
@@ -267,7 +267,7 @@ public struct HostSettingsChange {
   - "The five streaming settings" becomes "the settings a device sees and changes: five for the
     stream, and one (Direct Wireless) for how devices reach the Mac";
   - "All five setting fields nil" becomes "All setting fields nil";
-  - add `DebugHooks.apply` (`-SillSetAfter`) to the Sill.app line of the "places a new setting
+  - add `DebugHooks.apply` (`-SkoprySetAfter`) to the Skopry.app line of the "places a new setting
     goes" list;
   - add one rule: a field a host did not report is never sent (the device ledger's rule 9).
 
@@ -293,7 +293,7 @@ old host the state has no "directWireless" key → the device decodes nil
   counts a refusal: correct feedback.
 - A device may set `true` or `false` on every host (§3.1).
 
-### 3. Host (`SillHostCore`)
+### 3. Host (`SkopryHostCore`)
 
 #### 3.1 `HostConfig.swift` and `DeviceSettings.swift`
 
@@ -370,9 +370,9 @@ private static let cancelTimeout: TimeInterval = 1.0
 The code, in outline. Write it in this shape; every step is on `queue`.
 
 ```swift
-init(serviceType: String = "_sill._tcp", advertise: Bool = true) throws {   // signature unchanged
+init(serviceType: String = "_skopry._tcp", advertise: Bool = true) throws {   // signature unchanged
     if advertise { service = .init(name: Host.current().localizedName ?? "Mac", type: serviceType); serviceIsTest = false }
-    else if let t = Self.testServiceType { service = .init(name: "Sill test \(getpid())", type: t); serviceIsTest = true }
+    else if let t = Self.testServiceType { service = .init(name: "Skopry test \(getpid())", type: t); serviceIsTest = true }
     else { service = nil; serviceIsTest = false }
     listener = try Self.makeListener(peerToPeer: false, port: nil)
     listener.service = service
@@ -413,7 +413,7 @@ listener's late callbacks are inert.
   - Then `onListenerState?(state)` as today.
 - **Registration handler.**
   - A **test service** prints one line on `.add` and returns:
-    `Test service registered as "Sill test 4242" (_silltest._tcp, peer-to-peer on); no device browses this type.`
+    `Test service registered as "Skopry test 4242" (_skoprytest._tcp, peer-to-peer on); no device browses this type.`
     The on/off reads `l.parameters.includePeerToPeer`, the listener's parameters themselves.
   - Otherwise today's forwarding: `.add` → `onServiceRegistered(name)`, `.remove` →
     `onServiceRegistered(nil)`.
@@ -473,7 +473,7 @@ has visibly failed.
 
 | t | Host | Devices |
 |---|---|---|
-| 0 | "Settings from iPad…: direct wireless off → on", publish, answer, then "Settings: direct wireless off → on" and `setPeerToPeer(true)` | The broadcast and the answer arrive first: they are queued on `sill.net` before the swap. |
+| 0 | "Settings from iPad…: direct wireless off → on", publish, answer, then "Settings: direct wireless off → on" and `setPeerToPeer(true)` | The broadcast and the answer arrive first: they are queued on `skopry.net` before the swap. |
 | +0–2 ms | The old listener `.cancelled`; the new one bound on the same port | A connect in this window is refused, and the iOS client retries. Streaming connections are untouched. |
 | ≈ +1 s | | Browsers drop the Mac (goodbye) |
 | +1.5 s | Service set; the one "listening … again" line | |
@@ -522,19 +522,19 @@ absent.
 
 #### 3.4 Test-only hooks (StreamServer only; off unless set; not in the README)
 
-**`SILL_TEST_SERVICE_TYPE=_silltest._tcp`**
+**`SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp`**
 
 - It is honoured only when `advertise == false`, which means the `--synthetic` hosts: the CLI and
   the bare app.
-- It accepts only a `_name._tcp` other than `_sill._tcp`.
-- The listener then registers as "Sill test ‹pid›" under that type, with the listener's own
+- It accepts only a `_name._tcp` other than `_skopry._tcp`.
+- The listener then registers as "Skopry test ‹pid›" under that type, with the listener's own
   peer-to-peer flag. So the registration follows Direct Wireless exactly as the real one would, and
   a `dns-sd` browse can check it.
-- Devices browse only `_sill._tcp` (both Info.plists), so nothing ever sees it.
+- Devices browse only `_skopry._tcp` (both Info.plists), so nothing ever sees it.
 - The registration is never forwarded to `onServiceRegistered`, so the app's "Status: Test Pattern
   Mode — … port N" line stays.
 
-**`SILL_TEST_SWAP_FAIL=port|all`**
+**`SKOPRY_TEST_SWAP_FAIL=port|all`**
 
 - `port`: a replacement's same-port attempt fails as EADDRINUSE, without binding.
 - `all`: the any-port attempt fails as well.
@@ -543,28 +543,28 @@ absent.
 Read both once, into `private static let`s, with a `// TEST ONLY` comment saying why. List them in
 StreamServer's doc comment and in CLAUDE.md's "Build and run".
 
-### 4. CLI (`Sources/SillHostCLI/main.swift`)
+### 4. CLI (`Sources/SkopryHostCLI/main.swift`)
 
 Add this next to `--virtual-display` (:28-29):
 
 ```swift
-// `SillHost --direct-wireless`: also advertise over, and accept connections from, peer-to-peer
+// `SkopryHost --direct-wireless`: also advertise over, and accept connections from, peer-to-peer
 // Wi-Fi (AWDL), so a device with no network in common can connect. Off by default: while it is on
 // the Mac's radio leaves its Wi-Fi channel up to ~97 ms every 524 ms, which is the stutter in
-// CLAUDE.md. A device can still turn it on or off; that lasts until SillHost quits.
+// CLAUDE.md. A device can still turn it on or off; that lasts until SkopryHost quits.
 config.directWireless = CommandLine.arguments.contains("--direct-wireless")
 ```
 
 - **Output:**
   - Without the flag, nothing changes.
   - With it, the coordinator's one line from §3.3 prints.
-  - "Advertising _sill._tcp on the local network." stays byte for byte in both cases.
+  - "Advertising _skopry._tcp on the local network." stays byte for byte in both cases.
 - **A device's change** swaps live and lasts until the CLI quits (`persistent: false` already says
   so). It prints three lines: "Settings from …", "Settings: …", and the swap line.
 - **Exit rule:** unchanged. It is reached only after a swap's same-port and any-port attempts have
   both failed. Under `--virtual-display`, `atexit` still restores a staged window.
 
-### 5. Sill.app
+### 5. Skopry.app
 
 **`HostSettings.swift`**
 
@@ -589,7 +589,7 @@ config.directWireless = CommandLine.arguments.contains("--direct-wireless")
   Section {
       Toggle("Direct wireless connection", isOn: $settings.config.directWireless)
   } footer: {
-      Footnote("Lets your iPhone and iPad connect when they’re near this Mac, even without a shared Wi‑Fi network, the way AirDrop does. While it’s on, this Mac’s Wi‑Fi keeps stepping away from your network, so streaming over Wi‑Fi can stutter. Anyone nearby with Sill can find and connect to this Mac.")
+      Footnote("Lets your iPhone and iPad connect when they’re near this Mac, even without a shared Wi‑Fi network, the way AirDrop does. While it’s on, this Mac’s Wi‑Fi keeps stepping away from your network, so streaming over Wi‑Fi can stutter. Anyone nearby with Skopry can find and connect to this Mac.")
   }
   ```
 
@@ -602,7 +602,7 @@ config.directWireless = CommandLine.arguments.contains("--direct-wireless")
   `setVirtualDisplay`'s comment, and for the same reason: a device can change it while the menu is
   open.
 - `MenuBuilder` puts an item at the **top of the second group**, before `var loginNote` (:82). That
-  group is about how Sill runs on this Mac, not about the picture:
+  group is about how Skopry runs on this Mac, not about the picture:
 
   ```swift
   menu.append(MenuEntry(kind: .item, title: "Direct Wireless Connection",
@@ -697,7 +697,7 @@ enum DiscoveryPolicy {
 - **New private state:**
   - `networkBrowser`, `nearbyBrowser`, `networkResults`, `nearbyResults`;
   - `searchingSince` (uptime), `askedNearby`, and `discoveryRecheck: DispatchWorkItem?`;
-  - the memory, UserDefaults `"Sill.directWirelessMacs"` (`[String]`, most recent first).
+  - the memory, UserDefaults `"Skopry.directWirelessMacs"` (`[String]`, most recent first).
 - **`startBrowsing()` (:169):**
   - `searchingSince = now`.
   - Start the network browser with `NWParameters()`. Its `includePeerToPeer` is left at its default,
@@ -727,7 +727,7 @@ enum DiscoveryPolicy {
     `%llw…`.
   - On main, next to `connected = true`: `connectedDirectly = direct; askedNearby = false; updateDiscovery()`.
     This stops the nearby browser; the network browser keeps running.
-  - `-SillConnect` and everything else use the default, false.
+  - `-SkopryConnect` and everything else use the default, false.
 - **`tearDown` (:302)** also sets:
   - `connectedDirectly = false`;
   - `searchingSince = now`;
@@ -750,7 +750,7 @@ enum DiscoveryPolicy {
     before the state.
   - The memory is a discovery hint only. The panel never reads it, so the ledger's rule 7 ("never
     persist a Mac's settings") holds.
-  - Launch arguments seed it for one run: `-Sill.directWirelessMacs '("Mac mini")'`, or `'()'` to
+  - Launch arguments seed it for one run: `-Skopry.directWirelessMacs '("Mac mini")'`, or `'()'` to
     clear it.
 - **DEBUG `mockDiscovery` flag,** set by MockCatalog's connect cases. While it is set,
   `searchNearby()` and `connect(to mac:)` only update the published state and status, and never
@@ -779,7 +779,7 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
 #### 6.3 The Settings panel row (`HostSettingsPanel.swift`)
 
 - **Closing footer (:184).** It becomes only "Applies to every device streaming from \(mac). The
-  stream restarts for a moment." Its SillHost sentence moves to the very end, as its own footnote.
+  stream restarts for a moment." Its SkopryHost sentence moves to the very end, as its own footnote.
 - **The new group, after the closing footer.** It comes after the footer because this setting
   never restarts the stream. It is also the least-changed row with the longest footer, so it goes
   last on the 259 pt outer display. It shows only when `shown.directWireless != nil`:
@@ -797,7 +797,7 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
       }
       Footnote(text: directFooter)   // §7
   }
-  if !state.persistent { Footnote(text: "SillHost keeps these until it quits.") }
+  if !state.persistent { Footnote(text: "SkopryHost keeps these until it quits.") }
   ```
 
 - **The toggle is never disabled.** Turning it off from a directly connected device is allowed:
@@ -836,9 +836,9 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
   - `nodirect`: `directWireless: nil`, an older host, with no row.
 - `mockAnswer` needs nothing: `applied(to:)` carries the field.
 
-**`-SillConnectCase looking|hint|nearby`**
+**`-SkopryConnectCase looking|hint|nearby`**
 
-- `LayoutHarness.Spec.connectCase`. When it is set (and not `-SillLive`), the fake screen shows
+- `LayoutHarness.Spec.connectCase`. When it is set (and not `-SkopryLive`), the fake screen shows
   `ConnectScreen` on `MockCatalog.connectClient(case)`. That mock is not connected, never browses,
   and has `mockDiscovery` set.
 - The cases:
@@ -857,7 +857,7 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
 | Where | Text |
 |---|---|
 | Mac Settings › General, toggle | Direct wireless connection |
-| Its footer | Lets your iPhone and iPad connect when they’re near this Mac, even without a shared Wi‑Fi network, the way AirDrop does. While it’s on, this Mac’s Wi‑Fi keeps stepping away from your network, so streaming over Wi‑Fi can stutter. Anyone nearby with Sill can find and connect to this Mac. |
+| Its footer | Lets your iPhone and iPad connect when they’re near this Mac, even without a shared Wi‑Fi network, the way AirDrop does. While it’s on, this Mac’s Wi‑Fi keeps stepping away from your network, so streaming over Wi‑Fi can stutter. Anyone nearby with Skopry can find and connect to this Mac. |
 | Mac status menu | **Direct Wireless Connection** — subtitle "No shared network needed; Wi‑Fi streams can stutter" |
 | iPad panel row | Direct Wireless Connection |
 | Its footer (`directFooter`) | Lets devices reach ‹Mac› without a shared Wi‑Fi network, the way AirDrop does. While it’s on, streaming over Wi‑Fi can stutter. |
@@ -865,23 +865,23 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
 | Toggle accessibility hint when `connectedDirectly` | Turning this off can disconnect this iPad. |
 | Panel header line | Connected directly (spoken: “…, connected directly”) |
 | Closing footer | Applies to every device streaming from ‹Mac›. The stream restarts for a moment. |
-| Last footnote (`persistent == false`) | SillHost keeps these until it quits. |
+| Last footnote (`persistent == false`) | SkopryHost keeps these until it quits. |
 | Connect status, idle | Looking for Macs on this network / Looking for Macs on this network and nearby |
 | Connecting / reconnecting | Connecting to ‹Mac›… / Connecting to ‹Mac› directly… / Reconnecting to ‹Mac›… / Reconnecting to ‹Mac› directly… |
 | Direct row trailing text / hint | Direct / Connects without a shared Wi‑Fi network |
-| Hint sentence | Your Mac has to be on the same Wi‑Fi network as this iPad, or have Direct Wireless Connection turned on in Sill. |
+| Hint sentence | Your Mac has to be on the same Wi‑Fi network as this iPad, or have Direct Wireless Connection turned on in Skopry. |
 | Button / hint | Search Nearby / Also looks for a Mac with Direct Wireless Connection turned on, without a Wi‑Fi network. |
 | Log: startup, only when on | Direct wireless connection on: also advertised over peer-to-peer Wi-Fi (AWDL), which takes this Mac's Wi-Fi off its channel for up to ~100 ms twice a second. |
 | Log: a change | Settings: direct wireless off → on (from `changes(to:)`; "Settings from ‹device›: …" as today) |
 | Log: swap done | Direct wireless on: listening on port 52344 again, advertised again. |
 | Log: same port refused | Direct wireless on: port 52344 unavailable (‹error›); trying another port. |
-| Log: test registration | Test service registered as "Sill test 4242" (_silltest._tcp, peer-to-peer on); no device browses this type. |
+| Log: test registration | Test service registered as "Skopry test 4242" (_skoprytest._tcp, peer-to-peer on); no device browses this type. |
 
 ### 8. Edge cases
 
 | Case | Behaviour |
 |---|---|
-| Upgrade, key absent | Off (registered default): Sill stops asking for AWDL. |
+| Upgrade, key absent | Off (registered default): Skopry stops asking for AWDL. |
 | Toggle while streaming (Mac, menu or device) | No restart. The answer and broadcast come first, then the replacement on the same port. The Mac leaves browse results for ~2 s. Streaming devices are unaffected. |
 | Rapid toggles (double tap, the menu and a device racing) | `setTarget` settles the target. `wantedPeerToPeer` coalesces the requests: at most one extra replacement, and the registration is made once the value has held for 1.5 s. |
 | Mixed with a stream change | One restart for the stream and one replacement for the listener. |
@@ -901,61 +901,61 @@ Top to bottom, in the existing 380 pt column and fixed sizes:
 | iPad at 35a1238 with the new host | Finds the Mac on the LAN. Its own always-on peer-to-peer browse still costs its radio until updated. |
 | New iPad with the 35a1238 host | No row, the memory untouched, finds the host on the LAN. |
 | Mac on Ethernet with Wi‑Fi off | On does nothing (no awdl0), and is harmless. |
-| AirDrop, Sidecar, Universal Control | They can hold AWDL on regardless. Off means Sill doesn't ask for it. |
+| AirDrop, Sidecar, Universal Control | They can hold AWDL on regardless. Off means Skopry doesn't ask for it. |
 | The iOS simulator | Its browsers run in the Mac's mDNSResponder, so a nearby search there turns the **Mac's** AWDL on. Never measure latency with a simulator sitting on the connect screen. |
-| Security | On, anyone within radio range running Sill can find and connect to the Mac, with no pairing until M5. Default off shrinks today's exposure (the flag has been on since the first commit). The host-settings plan's §9 payload-length cap matters more with it on; flag it as its own task. |
+| Security | On, anyone within radio range running Skopry can find and connect to the Mac, with no pairing until M5. Default off shrinks today's exposure (the flag has been on since the first commit). The host-settings plan's §9 payload-length cap matters more with it on; flag it as its own task. |
 
 ### 9. Test gates
 
 The **H** gates are headless and need no permissions. The **S** gates are simulator gates on the
 iPad Pro 13-inch, UDID 40522E9E-8B13-4676-BC94-D94FDD048471. The **W** gates are Noah's, on the
-iPad mini and Sill.app, and are handed over.
+iPad mini and Skopry.app, and are handed over.
 
 Builds:
 
 - Mac: `cd $WT && swift build -c release 2>&1 | grep -E "error|warning:|Build complete"`.
 - iOS:
-  `xcodebuild -project $WT/iOSClient/Sill.xcodeproj -scheme Sill -destination 'generic/platform=iOS Simulator' -derivedDataPath $SP/dd-ios CODE_SIGNING_ALLOWED=NO build`,
+  `xcodebuild -project $WT/iOSClient/Skopry.xcodeproj -scheme Skopry -destination 'generic/platform=iOS Simulator' -derivedDataPath $SP/dd-ios CODE_SIGNING_ALLOWED=NO build`,
   plus `-configuration Release` for the Release check.
 
 Throughout, `AWDL0` is awdl0's interface index, read at run time.
 
 | # | Check | Pass when |
 |---|---|---|
-| H0 | **Preflight, before any edit.** `mkdir -p $SP/base && git -C $WT archive 35a1238 \| tar -x -C $SP/base`, then build it. Take the base logs: `SillHost --synthetic` idle 35 s (`base-idle.log`), and with `Scripts/sillclient.py PORT 5 desktop` (`base-client.log`). Take base previews: `defaults delete SillMenuBar; $SP/base/.build/release/SillMenuBar -SillRenderPreviews $SP/prev-base`, with md5s. Copy this plan to `$WT/docs/direct-wireless-plan.md` (untracked until step 6). Copy `hostlib.py` and `ledgercheck/` from `$SP/../ipad-settings-build/`. | The files exist |
+| H0 | **Preflight, before any edit.** `mkdir -p $SP/base && git -C $WT archive 35a1238 \| tar -x -C $SP/base`, then build it. Take the base logs: `SkopryHost --synthetic` idle 35 s (`base-idle.log`), and with `Scripts/skopryclient.py PORT 5 desktop` (`base-client.log`). Take base previews: `defaults delete SkopryMenuBar; $SP/base/.build/release/SkopryMenuBar -SkopryRenderPreviews $SP/prev-base`, with md5s. Copy this plan to `$WT/docs/direct-wireless-plan.md` (untracked until step 6). Copy `hostlib.py` and `ledgercheck/` from `$SP/../ipad-settings-build/`. | The files exist |
 | H1 | Builds | Mac: only the known CaptureProbe warning. iOS Debug and Release: only the known StreamClient ImplicitStrongCapture warning. |
-| H2 | **CLI byte for byte.** H0's two runs on the new build. Normalise: drop `[1s]` lines, mask digits, sort. | The diffs against base are empty. "Advertising _sill._tcp on the local network." is present. sillclient's first kind 16 shows `dw=0`. |
-| H3 | **Off by default, the registration.** `SILL_TEST_SERVICE_TYPE=_silltest._tcp .build/release/SillHost --synthetic`. Run `dns-sd -t 3 -includeAWDL -B _silltest._tcp local` twice, 3 s apart. | The test line says `peer-to-peer off`. "Sill test ‹pid›" is listed on other interfaces, **never** on `AWDL0`. |
+| H2 | **CLI byte for byte.** H0's two runs on the new build. Normalise: drop `[1s]` lines, mask digits, sort. | The diffs against base are empty. "Advertising _skopry._tcp on the local network." is present. skopryclient's first kind 16 shows `dw=0`. |
+| H3 | **Off by default, the registration.** `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp .build/release/SkopryHost --synthetic`. Run `dns-sd -t 3 -includeAWDL -B _skoprytest._tcp local` twice, 3 s apart. | The test line says `peer-to-peer off`. "Skopry test ‹pid›" is listed on other interfaces, **never** on `AWDL0`. |
 | H4 | **On at launch.** The same with `--direct-wireless`. | The startup line appears, and the test line says `peer-to-peer on`. There is a row on `AWDL0` within ~2 s, and the first kind 16 says `dw=1`. After `kill`, a continuous browse shows `Rmv` on `AWDL0`, and a fresh browse 5 s later has no row: no orphan. |
-| H5 | **Live on and off with a streaming client.** H3's host, plus a continuous `dns-sd -includeAWDL -B _silltest._tcp local` for 30 s, plus `sillclient.py PORT 20 desktop --stats --set=directWireless=1@4 --set=directWireless=0@12 --expect=directWireless=0`. | Each change gives "Settings from sillclient: …", "Settings: direct wireless …", and exactly one "Direct wireless on\|off: listening on port P again." about 1.5 s later. `lsof -nP -iTCP -sTCP:LISTEN -a -p PID` shows the same P at 2, 8 and 16 s. The client gets frames every second, no EOF, and parameter sets only at the start. The answers carry `answering=1` with dw=1 and `answering=2` with dw=0. The browse shows `Add` on `AWDL0` about 1.5–3 s after the 4 s change and `Rmv` within ~2 s of the 12 s one. After exit, a fresh browse shows no `AWDL0` row. |
+| H5 | **Live on and off with a streaming client.** H3's host, plus a continuous `dns-sd -includeAWDL -B _skoprytest._tcp local` for 30 s, plus `skopryclient.py PORT 20 desktop --stats --set=directWireless=1@4 --set=directWireless=0@12 --expect=directWireless=0`. | Each change gives "Settings from skopryclient: …", "Settings: direct wireless …", and exactly one "Direct wireless on\|off: listening on port P again." about 1.5 s later. `lsof -nP -iTCP -sTCP:LISTEN -a -p PID` shows the same P at 2, 8 and 16 s. The client gets frames every second, no EOF, and parameter sets only at the start. The answers carry `answering=1` with dw=1 and `answering=2` with dw=0. The browse shows `Add` on `AWDL0` about 1.5–3 s after the 4 s change and `Rmv` within ~2 s of the 12 s one. After exit, a fresh browse shows no `AWDL0` row. |
 | H6 | **Connecting during a swap.** Beside H5's client, a Python loop opens a connection to P every 5 ms from 3.9 to 4.3 s, reads 1 s, and closes. | At most 3 are refused. Every accepted one receives a kind 2 window list. H5's client is unaffected. |
 | H7 | **Bursts and mixes.** `--set=directWireless=1@4 … =0@4.1 … =1@4.2 … =0@4.3 … =1@4.4 --expect=directWireless=1`. Then `--set=directWireless=1,bitrate=25000000@4`. | Five answers in token order, and at most two "listening … again" lines. The final registration is on `AWDL0`, and there's no orphan 10 s after exit. The mix gives one restart (one new parameter set) and one swap line. |
-| H8 | **Fallbacks.** `SILL_TEST_SWAP_FAIL=port` with H5. Then `SILL_TEST_SWAP_FAIL=all` on the CLI with `--set=directWireless=1@4`. Then the same on the bare app. | `port`: "port P unavailable … trying another port", then "listening on port Q again" with Q ≠ P in lsof, and the client keeps streaming. `all` on the CLI: "Listener failed: …" and exit status 1. On the app: "Status: Not Visible on the Network — …"; the app keeps running and so does the client's stream. |
-| H9 | **The app.** `defaults delete SillMenuBar`, then `SILL_TEST_SERVICE_TYPE=_silltest._tcp .build/release/SillMenuBar --synthetic -SillLogFile $SP/app.log -SillSetAfter '3 directWireless=1; 9 directWireless=0' -SillQuitAfter 14`. Then a run with `sillclient --set=directWireless=1@3 --expect=directWireless=1,persistent=1`. Then a relaunch. | The first run: one "Settings:" and one swap line per change, and `defaults read SillMenuBar directWireless` ends at 0. "Status: Test Pattern Mode — … port N" is printed once, with N unchanged. The sillclient run saves 1. The relaunch: the first kind 16 says dw=1, the startup line appears, and there's an `AWDL0` row from the start. Then `defaults delete SillMenuBar`. |
-| H10 | **Compatibility.** (a) sillclient without the key. (b) `--raw17={"token":1,"directWireless":true}@3`. (c) Against `$SP/base/.build/release/SillHost --synthetic`: `--set=directWireless=1@3`. (d) A scratch `swiftc` decode check: the 35a1238 `HostSettings.swift` (from `git show`) decodes a new state and change; the new types decode a base state and change. | (a) Unchanged. (b) Accepted, dw=1. (c) The answer lacks the key (`dw=-`) and the host logs nothing about it. (d) All decode, with nil for the missing field. |
-| H11 | **Previews.** `defaults delete SillMenuBar; .build/release/SillMenuBar -SillRenderPreviews $SP/prev-new` | Only `pane-general-{light,dark}.png` and `menu.txt` differ from base. `menu.txt` differs by exactly one unchecked "Direct Wireless Connection — No shared network needed; Wi‑Fi streams can stutter" line per sample. Look at both General panes. |
+| H8 | **Fallbacks.** `SKOPRY_TEST_SWAP_FAIL=port` with H5. Then `SKOPRY_TEST_SWAP_FAIL=all` on the CLI with `--set=directWireless=1@4`. Then the same on the bare app. | `port`: "port P unavailable … trying another port", then "listening on port Q again" with Q ≠ P in lsof, and the client keeps streaming. `all` on the CLI: "Listener failed: …" and exit status 1. On the app: "Status: Not Visible on the Network — …"; the app keeps running and so does the client's stream. |
+| H9 | **The app.** `defaults delete SkopryMenuBar`, then `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp .build/release/SkopryMenuBar --synthetic -SkopryLogFile $SP/app.log -SkoprySetAfter '3 directWireless=1; 9 directWireless=0' -SkopryQuitAfter 14`. Then a run with `skopryclient --set=directWireless=1@3 --expect=directWireless=1,persistent=1`. Then a relaunch. | The first run: one "Settings:" and one swap line per change, and `defaults read SkopryMenuBar directWireless` ends at 0. "Status: Test Pattern Mode — … port N" is printed once, with N unchanged. The skopryclient run saves 1. The relaunch: the first kind 16 says dw=1, the startup line appears, and there's an `AWDL0` row from the start. Then `defaults delete SkopryMenuBar`. |
+| H10 | **Compatibility.** (a) skopryclient without the key. (b) `--raw17={"token":1,"directWireless":true}@3`. (c) Against `$SP/base/.build/release/SkopryHost --synthetic`: `--set=directWireless=1@3`. (d) A scratch `swiftc` decode check: the 35a1238 `HostSettings.swift` (from `git show`) decodes a new state and change; the new types decode a base state and change. | (a) Unchanged. (b) Accepted, dw=1. (c) The answer lacks the key (`dw=-`) and the host logs nothing about it. (d) All decode, with nil for the missing field. |
+| H11 | **Previews.** `defaults delete SkopryMenuBar; .build/release/SkopryMenuBar -SkopryRenderPreviews $SP/prev-new` | Only `pane-general-{light,dark}.png` and `menu.txt` differ from base. `menu.txt` differs by exactly one unchecked "Direct Wireless Connection — No shared network needed; Wi‑Fi streams can stutter" line per sample. Look at both General panes. |
 | H12 | **Ledger.** Extend `$SP/ledgercheck/main.swift`: the host's acceptance copy, and every `StreamSettings` construction gets the sixth field. Add these scenarios: a state without the key decodes as nil; `pick(directWireless: true)` against it returns nil (rule 9); on → off → on never shows off after the first answer; refusal and timeout for the field; `directWireless` in the random model's alphabet. Run with `swiftc -O $WT/Sources/StreamProtocol/HostSettings.swift $WT/iOSClient/HostSettingsLedger.swift $SP/ledgercheck/main.swift -o $SP/ledgercheck/ledgercheck && $SP/ledgercheck/ledgercheck 5000` | All pass, and both mutants are still caught |
 | H13 | **Discovery policy.** `swiftc -O $WT/iOSClient/DiscoveryPolicy.swift $SP/policycheck/main.swift -o $SP/policycheck/check && $SP/policycheck/check`. Adapt the draft in `$SP/policycheck/` to this trimmed policy. | Every scenario passes. `decide`: home default never browses and never hints; home with memory and the Mac listed by 3 s never browses; a remembered Mac missing browses from exactly 3.0 s; first use hints at 3 s and never browses by itself; Search Nearby browses at once (the hint stays, the button goes); sticky; connected means never; two remembered Macs with one missing browses; `recheckAt` is the 3 s mark only before it. `rows`: a network name is never direct; nearby [awdl0] is direct; nearby [en0] is left out; nearby [] is left out; order. `remember`: true fronts, false removes, nil keeps, cap 16, empty name. `isPeerToPeer`: awdl0 and llw0 yes; en0 and utun3 no. |
-| H14 | **Hard rules** | `git -C $WT diff 35a1238 -- Sources/SillHost` adds no `assumeIsolated` or `updateConfiguration`. `StreamServer(advertise: !synthetic)` is present byte for byte. `HostConfig.standard` has `virtualDisplay: false` and `directWireless: false`. `grep -rn "includePeerToPeer = true" Sources iOSClient` finds only the nearby browser; the listener (`makeListener`) and the connection take the flag as a variable. `git diff --stat 35a1238` lists none of the three protected docs. |
+| H14 | **Hard rules** | `git -C $WT diff 35a1238 -- Sources/SkopryHost` adds no `assumeIsolated` or `updateConfiguration`. `StreamServer(advertise: !synthetic)` is present byte for byte. `HostConfig.standard` has `virtualDisplay: false` and `directWireless: false`. `grep -rn "includePeerToPeer = true" Sources iOSClient` finds only the nearby browser; the listener (`makeListener`) and the connection take the flag as a variable. `git diff --stat 35a1238` lists none of the three protected docs. |
 | H15 | **Host-settings regression** (spot run with the `ipad-settings-build` tooling) | A burst of three stream changes gives one restart. `virtualDisplay` on the `--virtual-display --synthetic` host gives no restart. Two clients changing different fields both stick. A reconnect gets a fresh kind 16. The menu's Virtual Display item still sets what it showed. |
-| S1 | **Photo sheet.** Panel cases `default`, `direct`, `directlink`, `nodirect` and `cli` (`-SillSettings 1 -SillSettingsCase …`), with the middle swiped up where the new group sits below the fold. Connect cases `looking`, `hint` and `nearby` (`-SillConnectCase …`). Each at 1000x710, 710x500, 710x1000 and 500x710. Also `directlink` and `hint` at 500x710 with `xcrun simctl ui 40522E9E-8B13-4676-BC94-D94FDD048471 content_size accessibility-extra-large` (reset afterwards). Rotate quarter-turned shots back with `sips -r 270`. | Nothing clipped, and the header and foot pinned. The row and both footnotes read fully. "Connected directly" fits the header. "Direct" is never truncated beside a long name. The hint wraps and the button is ≥ 44 pt. Send Noah the sheet (SendUserFile). |
+| S1 | **Photo sheet.** Panel cases `default`, `direct`, `directlink`, `nodirect` and `cli` (`-SkoprySettings 1 -SkoprySettingsCase …`), with the middle swiped up where the new group sits below the fold. Connect cases `looking`, `hint` and `nearby` (`-SkopryConnectCase …`). Each at 1000x710, 710x500, 710x1000 and 500x710. Also `directlink` and `hint` at 500x710 with `xcrun simctl ui 40522E9E-8B13-4676-BC94-D94FDD048471 content_size accessibility-extra-large` (reset afterwards). Rotate quarter-turned shots back with `sips -r 270`. | Nothing clipped, and the header and foot pinned. The row and both footnotes read fully. "Connected directly" fits the header. "Direct" is never truncated beside a long name. The hint wraps and the button is ≥ 44 pt. Send Noah the sheet (SendUserFile). |
 | S2 | **Harness taps** (inspect, then tap) | Panel `direct`: the switch moves at once and settles after 0.35 s. `nodirect`: no row. Connect `hint`: Search Nearby → the button goes and the status reads "…and nearby", with no browser started (mock). |
-| S3 | **Live by address.** `SILL_TEST_SERVICE_TYPE=_silltest._tcp .build/release/SillHost --synthetic`, and the simulator with `-SillLayout 710x1000 -SillLive 1 -SillConnect 127.0.0.1:PORT -SillSettings 1`. Toggle from the simulator, then `sillclient --set=directWireless=0@5` from the Mac side. Repeat against the bare `SillMenuBar --synthetic`. | The host's three lines appear and the stream continues (screenshots before and after). The lsof port is unchanged. The panel follows the Mac-side change. The app saves it in `SillMenuBar`. Afterwards run `xcrun simctl spawn 40522E9E-8B13-4676-BC94-D94FDD048471 defaults delete me.saffer.sill Sill.directWirelessMacs` and `defaults delete SillMenuBar`. |
-| S4 | **The browse policy, live.** Launch the normal app (not the harness) with `xcrun simctl launch --console-pty …` from Python, with a timeout, three times: with no memory, with `-Sill.directWirelessMacs '("Nowhere Mac")'`, and with `'()'`. **Never tap a row: Noah's Mac is listed.** | No memory: no "nearby search on", and Noah's Mac is a plain row. With the seed: "discovery: nearby search on" about 3 s after launch, and optionally the kernel's `ValidSvc` mode +1 over 20 s. `'()'`: back to none. |
+| S3 | **Live by address.** `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp .build/release/SkopryHost --synthetic`, and the simulator with `-SkopryLayout 710x1000 -SkopryLive 1 -SkopryConnect 127.0.0.1:PORT -SkoprySettings 1`. Toggle from the simulator, then `skopryclient --set=directWireless=0@5` from the Mac side. Repeat against the bare `SkopryMenuBar --synthetic`. | The host's three lines appear and the stream continues (screenshots before and after). The lsof port is unchanged. The panel follows the Mac-side change. The app saves it in `SkopryMenuBar`. Afterwards run `xcrun simctl spawn 40522E9E-8B13-4676-BC94-D94FDD048471 defaults delete app.skopry Skopry.directWirelessMacs` and `defaults delete SkopryMenuBar`. |
+| S4 | **The browse policy, live.** Launch the normal app (not the harness) with `xcrun simctl launch --console-pty …` from Python, with a timeout, three times: with no memory, with `-Skopry.directWirelessMacs '("Nowhere Mac")'`, and with `'()'`. **Never tap a row: Noah's Mac is listed.** | No memory: no "nearby search on", and Noah's Mac is a plain row. With the seed: "discovery: nearby search on" about 3 s after launch, and optionally the kernel's `ValidSvc` mode +1 over 20 s. `'()'`: back to none. |
 
 **Noah's checks (handed over; they need the two installs).**
 
 | # | Check |
 |---|---|
-| W1 | **The payoff, off by default.** Install both builds. Run `/usr/bin/log stream --style compact --predicate 'process == "kernel" AND (eventMessage CONTAINS "abling AWDL" OR eventMessage CONTAINS "ValidSvc")'`. Expect "Disabling AWDL due to no services and no active sockets" soon after the old Sill quits (unless AirDrop, Sidecar or Universal Control hold it), and `BonJourTrig 0` while streaming. Five minutes on a still window with trackpad strokes: the host's `client iPad: … rtt m/M` maxima stay near the LAN's, with no ~100 ms spikes. |
-| W2 | **A/B in one session.** Turn it on from the iPad panel while streaming. Expect no restart and one "listening on port N again" line (same N). The Mac's Settings toggle and the menu (on reopening) follow. `defaults read me.saffer.sill.mac directWireless` reads 1. "Enabling AWDL due to Mdns" appears and the rtt maxima rise. Two minutes later, turn it off from the status menu: the maxima fall back, and "Disabling AWDL…" follows within seconds. |
+| W1 | **The payoff, off by default.** Install both builds. Run `/usr/bin/log stream --style compact --predicate 'process == "kernel" AND (eventMessage CONTAINS "abling AWDL" OR eventMessage CONTAINS "ValidSvc")'`. Expect "Disabling AWDL due to no services and no active sockets" soon after the old Skopry quits (unless AirDrop, Sidecar or Universal Control hold it), and `BonJourTrig 0` while streaming. Five minutes on a still window with trackpad strokes: the host's `client iPad: … rtt m/M` maxima stay near the LAN's, with no ~100 ms spikes. |
+| W2 | **A/B in one session.** Turn it on from the iPad panel while streaming. Expect no restart and one "listening on port N again" line (same N). The Mac's Settings toggle and the menu (on reopening) follow. `defaults read app.skopry.mac directWireless` reads 1. "Enabling AWDL due to Mdns" appears and the rtt maxima rise. Two minutes later, turn it off from the status menu: the maxima fall back, and "Disabling AWDL…" follows within seconds. |
 | W3 | **Direct, remembered.** With it on, put the iPad on another network (the iPhone's hotspot) and leave the Mac on home Wi‑Fi. Within about 3–5 s the connect screen shows the Mac with "Direct". Tap it: the host log shows "Client connected: [fe80::…%awdl0]…" and the panel header says "Connected directly". Note the frame age and rtt medians and maxima. |
 | W4 | **First use.** Delete and reinstall the iPad app, and use café conditions. After 3 s the hint and Search Nearby appear. Tap it, and the Mac appears as Direct; connect. Relaunch in café conditions: it searches nearby by itself after 3 s. |
 | W5 | **Off while connected directly (from the Mac).** Does the stream continue while the socket is active, and for how long? After disconnecting, the iPad no longer finds the Mac, as designed. Fix the footer's "can disconnect" wording to match what happened. |
 | W6 | **Home → café while streaming, with it on.** Take the iPad off the home Wi‑Fi. It reconnects directly within about 5 s without a tap ("Reconnecting to ‹Mac› directly…"). |
-| W7 | **Relaunch Sill.app with it on.** `dns-sd -t 3 -includeAWDL -B _sill._tcp local` shows one instance on awdl0's index, with no "(2)". The iPad reconnects. |
-| W8 | **The CLI.** `swift run -c release SillHost --direct-wireless` prints the startup line, and the iPad connects directly (W3's setup). A toggle from the iPad lasts until quit. Without the flag, no AWDL (W1's log). |
-| W9 | **Mixed builds and VoiceOver.** The PR #4 iPad build against the new host, and the new iPad build against PR #4's Sill.app (no row): both connect over the LAN. VoiceOver on the connect screen ("Mac mini, Direct", the hint, Search Nearby) and on the panel row. |
+| W7 | **Relaunch Skopry.app with it on.** `dns-sd -t 3 -includeAWDL -B _skopry._tcp local` shows one instance on awdl0's index, with no "(2)". The iPad reconnects. |
+| W8 | **The CLI.** `swift run -c release SkopryHost --direct-wireless` prints the startup line, and the iPad connects directly (W3's setup). A toggle from the iPad lasts until quit. Without the flag, no AWDL (W1's log). |
+| W9 | **Mixed builds and VoiceOver.** The PR #4 iPad build against the new host, and the new iPad build against PR #4's Skopry.app (no row): both connect over the LAN. VoiceOver on the connect screen ("Mac mini, Direct", the hint, Search Nearby) and on the panel row. |
 
 ### 10. Implementation order (one commit per step, each passing its gates before the next)
 
@@ -966,7 +966,7 @@ Throughout, `AWDL0` is awdl0's interface index, read at run time.
      - `HostConfig` and `DeviceSettings`;
      - `StreamServer` with `listener` as a `var`, `makeListener`, `wire`, `setPeerToPeer` (before
        start only), `start()` on the queue, the lock-protected `port`, and
-       `SILL_TEST_SERVICE_TYPE`;
+       `SKOPRY_TEST_SERVICE_TYPE`;
      - the coordinator's `setPeerToPeer` after construction, the startup line, and `adopt`
        forwarding.
    - The CLI flag.
@@ -975,24 +975,24 @@ Throughout, `AWDL0` is awdl0's interface index, read at run time.
      - the browser and the connection lose `includePeerToPeer`;
      - the ledger field and rule 9;
      - `MockCatalog`'s `StreamSettings` init.
-   - `sillclient.py`:
+   - `skopryclient.py`:
      - `SET_KEYS` and `BOOL_KEYS` gain `directWireless`, so `--expect` takes it too;
      - `describe` prints `dw=1|0|-`;
      - the docstring.
    - The commit message says that a change after launch lands at the next launch until step 2.
    - Gates: H1, H2, H3, H4, H10, H12, H14.
 2. **"Host: Direct Wireless applies live by replacing the listener"**
-   - `beginSwap`, `bindReplacement`, `settled`, `replacementFailed`, `SILL_TEST_SWAP_FAIL`.
+   - `beginSwap`, `bindReplacement`, `settled`, `replacementFailed`, `SKOPRY_TEST_SWAP_FAIL`.
    - Gates: H2 again, H5, H6, H7, H8, H9's first run, H15.
-3. **"Sill.app: Direct wireless connection in Settings › General and the status menu"**
+3. **"Skopry.app: Direct wireless connection in Settings › General and the status menu"**
    - Gates: H1, H9 (all), H11, H15's menu item.
 4. **"iOS: the connect screen looks nearby when Direct Wireless calls for it"**
    - `DiscoveryPolicy.swift` and its pbxproj entries.
    - StreamClient's discovery, memory, `connect(peerToPeer:)`, `connectedDirectly` and reconnect.
-   - `ConnectScreen`, and `-SillConnectCase` with its mock.
+   - `ConnectScreen`, and `-SkopryConnectCase` with its mock.
    - Gates: H1 (iOS Debug and Release), H13, the connect half of S1 and S2, S4.
 5. **"iOS: the Direct Wireless Connection row in the Settings panel"**
-   - The row and footers, the moved SillHost sentence, the header line, the three mock cases.
+   - The row and footers, the moved SkopryHost sentence, the header line, the three mock cases.
    - Gates: H1 (iOS Debug and Release), H12 again, the panel half of S1 and S2, S3.
 6. **"docs: Direct Wireless Connection"**
    - `docs/direct-wireless-plan.md` (this file).
@@ -1005,13 +1005,13 @@ Throughout, `AWDL0` is awdl0's interface index, read at run time.
      - Build and run:
        - `--direct-wireless`;
        - `directWireless` in the defaults keys list;
-       - the two `SILL_TEST_*` variables;
+       - the two `SKOPRY_TEST_*` variables;
        - the dns-sd and `/usr/bin/log` recipes, with the prefix-syntax warning;
-       - `-SillConnectCase`, the new `-SillSettingsCase` values, and `-Sill.directWirelessMacs`;
+       - `-SkopryConnectCase`, the new `-SkoprySettingsCase` values, and `-Skopry.directWirelessMacs`;
      - "Untested, for Noah": W1–W9.
    - **README:**
-     - a Direct Wireless Connection paragraph in the Sill.app section: what it is for, its cost,
-       off by default, `defaults delete me.saffer.sill.mac directWireless`;
+     - a Direct Wireless Connection paragraph in the Skopry.app section: what it is for, its cost,
+       off by default, `defaults delete app.skopry.mac directWireless`;
      - `--direct-wireless` in the command-line section;
      - "Run on a real device on the same Wi‑Fi (or turn on Direct Wireless Connection)".
 7. **Review and hand-over**
@@ -1050,7 +1050,7 @@ answer.
 1. **Can a device turn Direct Wireless Connection on?**
    - **Default: yes**, full parity with the Mac, as decided.
    - The alternative: devices may only turn it off, and turning it on is Mac-only. A device's "on"
-     would be refused with "Turn it on in Sill’s Settings on ‹Mac›".
+     would be refused with "Turn it on in Skopry’s Settings on ‹Mac›".
    - This is the first device-writable setting that widens who can reach the Mac. The host-settings
      plan's §9 said devices set stream quality, never network exposure.
 2. **How the iPad looks nearby.**
@@ -1065,7 +1065,7 @@ answer.
      situational toggle (on in a café, off at home), and the menu is one click.
    - The alternative is the Settings window only, like Prioritize Speed.
 4. **The security sentence in the Mac's footer.**
-   - **Default:** it ends with "Anyone nearby with Sill can find and connect to this Mac."
+   - **Default:** it ends with "Anyone nearby with Skopry can find and connect to this Mac."
    - The alternative drops it until pairing (M5) lands.
 
 ---
@@ -1083,7 +1083,7 @@ Implemented in the order of §10, one commit per step. Where the code departs fr
   launch, it says so in one line and runs the other way; `setPeerToPeer` before `start()` only
   records the value, as planned.
 - **The test type is validated** (`_name._tcp`, name 1–15 letters, digits or hyphens, never
-  `_sill._tcp`); anything else is ignored with one line. **`SILL_TEST_SWAP_FAIL` is honoured only
+  `_skopry._tcp`); anything else is ignored with one line. **`SKOPRY_TEST_SWAP_FAIL` is honoured only
   by a host that does not advertise**, like the test type (review): a stray variable can never
   break a real host's listener.
 - **`startBrowsing()` starts the network browser once.** SwiftUI can run `onAppear` again, and a
@@ -1113,7 +1113,7 @@ These supersede the parts of §6–§9 they name.
 - **An automatic reconnect takes a Direct row only after 3 s.** The row must have stayed Direct,
   with no network row of that name, for `networkFirst` (`DiscoveryPolicy.directSince` and
   `reconnectRow`); a network row is still taken at once. The reason: a Mac coming back to the
-  shared network (Sill relaunched, the Mac awake) registers there and over AWDL together, and while
+  shared network (Skopry relaunched, the Mac awake) registers there and over AWDL together, and while
   the nearby browser runs (a remembered Mac missing for 3 s turns it on) it can report awdl0 before
   the network browser reports the Wi‑Fi record. The old reconnect took that Direct row, and the
   whole home session ran over AWDL. A tap on a Direct row is not held back. Cost: a direct reconnect
@@ -1122,7 +1122,7 @@ These supersede the parts of §6–§9 they name.
   endpoint), not the window list's `macName`, which §6.1 and §11 named. `decide` compares the memory
   with the browsers' instance names, and Bonjour renames a clashing registration ("Mac (2)") while the
   window list still says "Mac", so that Mac looked missing at every launch and the nearby search ran
-  at home. A connection by address (`-SillConnect`) teaches nothing.
+  at home. A connection by address (`-SkopryConnect`) teaches nothing.
 - **Search Nearby turns into a muted "Also looking nearby"** of the button's 44 pt, whatever the
   status line says, and VoiceOver announces it. Before, the only feedback was the idle status's
   "…and nearby", which a disconnect's message ("Mac mini disconnected…") or "Browse failed" never
@@ -1131,10 +1131,10 @@ These supersede the parts of §6–§9 they name.
   '…and nearby'" and S2's expectation change accordingly. The tap moves nothing: the title stays at
   293.0 pt at 1000×710.
 - **Local Network access denied** (the network browser waits with `PolicyDenied`, TN3179): the
-  status reads "To find your Mac, allow Local Network for Sill in Settings.", with no hint and no
+  status reads "To find your Mac, allow Local Network for Skopry in Settings.", with no hint and no
   nearby search, which would be refused as well (`DiscoveryPolicy.Input.localNetworkDenied`). When
   the browser is ready again, the network gets its 3 s afresh. The harness case is
-  `-SillConnectCase denied`. The simulator does not enforce Local Network access, so only a device
+  `-SkopryConnectCase denied`. The simulator does not enforce Local Network access, so only a device
   shows the real path (W4).
 - **The panel's warning** (the footer's "turning this off can disconnect it" and the switch's
   accessibility hint) shows only while the switch shows on. §7 tied it to `connectedDirectly` alone.
@@ -1144,9 +1144,9 @@ These supersede the parts of §6–§9 they name.
   the stream; its Direct Wireless paragraph says turning it off can disconnect a directly connected
   device. In CLAUDE.md, the connect screen's title no longer jumps *sideways*: the column is still
   centred vertically, so the hint moves it up 44 pt.
-- **Not changed:** the trackpad-stutter paragraph's present-tense "Sill turns AWDL on itself" stays.
+- **Not changed:** the trackpad-stutter paragraph's present-tense "Skopry turns AWDL on itself" stays.
   It sits in a dated "Learned" paragraph and is still true with the setting on; only the device-side
-  clause was added. Sill.app's Local Network alert text (`Packaging/Info.plist`, "on the same
+  clause was added. Skopry.app's Local Network alert text (`Packaging/Info.plist`, "on the same
   network") was outside the findings and is unchanged.
 
 Checks for these fixes: H1 (a clean Mac build and iOS Debug and Release, each with only its known
@@ -1159,15 +1159,15 @@ real policy: 13 states, including the finding's disconnect-then-tap sequence. H1
 the connect cases (looking, hint, nearby, denied) at the four sizes; Search Nearby tapped at the four
 sizes (the line in its place, status unchanged, title unmoved); the `directlink` switch tapped off
 (the warning goes, "Connected directly" stays) and on again (it returns); the normal app connected by
-address to `SillHost --synthetic --direct-wireless` wrote no memory; unconnected with no memory, it
+address to `SkopryHost --synthetic --direct-wireless` wrote no memory; unconnected with no memory, it
 started no nearby search and showed the real Mac as a plain row.
 
 ### Fixes after Noah's first sessions (2026-09-24, branch `direct-wireless-fixes`)
 
 These supersede the parts of §3.2, §6, §7, §8 and the review fixes they name. Line numbers without a
-commit are at a9cc248 (the merge of PR #5), the tree Sill.app build 40 ran.
+commit are at a9cc248 (the merge of PR #5), the tree Skopry.app build 40 ran.
 
-**What the sessions showed** (Sill.app build 40, the iPad mini on the home Wi‑Fi, 40 Mbps; Sill.log
+**What the sessions showed** (Skopry.app build 40, the iPad mini on the home Wi‑Fi, 40 Mbps; Skopry.log
 and the kernel's "…abling AWDL" lines):
 
 - 15:34:20 on from the iPad: the swap at 15:34:21.9, "Enabling AWDL due to Mdns" at 15:34:22, and the
@@ -1227,7 +1227,7 @@ and the kernel's "…abling AWDL" lines):
    burst that ends where it started (off, then on again within the 1.5 s) disconnects nobody.
    `ClientLink` (new, Foundation only) decides from the endpoint's text: the scope decides when it names
    an interface; without one, the path's interfaces, only when every one is peer-to-peer. "Client
-   connected" is unchanged for every client. TEST ONLY `SILL_TEST_PEER_TO_PEER_INTERFACE=en0` (honoured
+   connected" is unchanged for every client. TEST ONLY `SKOPRY_TEST_PEER_TO_PEER_INTERFACE=en0` (honoured
    only by the hosts that do not advertise, like the other two) counts a client scoped to that interface
    as peer-to-peer, so a link-local test client on en0 stands in for awdl0. `HostStatus` has no
    per-device route, so nothing there changed.
@@ -1267,21 +1267,21 @@ listing it again. **Control Center's Wi‑Fi switch keeps AWDL alive**: it disco
 leaves the radio on for AirDrop, so a direct session survives it. The real test for "no shared network"
 is Settings › Wi‑Fi off, or another network.
 
-**Checks** (headless, simulator, no permissions; Noah's running Sill.app untouched):
+**Checks** (headless, simulator, no permissions; Noah's running Skopry.app untouched):
 
 - Builds: the package clean (only the old CaptureProbe warning), iOS Debug and Release with only the old
   ImplicitStrongCapture warning.
 - CLI byte for byte against 22209db (masked and sorted; idle 35 s, and a 5 s client): identical, first
   kind 16 `dw=0`.
-- `ClientLink` on its own: 40 checks (the three endpoints from Sill.log verbatim, bracketed, numeric and
+- `ClientLink` on its own: 40 checks (the three endpoints from Skopry.log verbatim, bracketed, numeric and
   empty scopes, IPv4, loopback, the scope deciding over the path, the stand-in rule); five mutants
   caught.
-- Gap A end to end with the stand-in: `SILL_TEST_PEER_TO_PEER_INTERFACE=en0 SillHost --synthetic
+- Gap A end to end with the stand-in: `SKOPRY_TEST_PEER_TO_PEER_INTERFACE=en0 SkopryHost --synthetic
   --direct-wireless`, a client on the Mac's own en0 link-local address and one on 127.0.0.1 that sets it
   off at 3 s: "…listening on port P again." then the disconnect line for the en0 client (by name), its
   EOF 1.5 s after the change, and the loopback client streaming to the end. Without the variable, the
   same en0 client (a real `%en0` endpoint) stays. Off then on within 0.3 s: one "on: listening…" line,
-  nobody disconnected. The bare app with `SILL_TEST_SWAP_FAIL=all`: "Listener failed", the disconnect
+  nobody disconnected. The bare app with `SKOPRY_TEST_SWAP_FAIL=all`: "Listener failed", the disconnect
   line, the app running on.
 - `DiscoveryPolicy` check at 98: the constants; `reconnectRow` with and without a recent network row;
   `sightings`; `moveToNetwork`; a model of StreamClient's glue stepped every 50 ms: the network row
@@ -1289,14 +1289,14 @@ is Settings › Wi‑Fi off, or another network.
   7.0 s and never Direct; absent for good, Direct at exactly 10.0 s; connected directly, the network row
   from 5 s moves at exactly 7.0 s, a blink at 6–6.3 s moves it at 8.3 s, a failed move retries at 17.0 s,
   another Mac or "Studio (2)" never moves it; the café takes Direct 6 s after its row appeared; the home
-  race (Sill relaunched, awdl0 first) takes the network row at 0.8, 2.9 and 5.9 s, and at 6.1 s takes
+  race (Skopry relaunched, awdl0 first) takes the network row at 0.8, 2.9 and 5.9 s, and at 6.1 s takes
   Direct at 6.0 and moves at 8.1; a replay of 15:43 goes Direct at 10 s and back to the network at 22 s.
   Seven mutants of the new code caught.
-- Simulator (iPad Pro 13-inch) against `SillHost --synthetic` with `-SillConnect … -SillMoveTest 1`: the
+- Simulator (iPad Pro 13-inch) against `SkopryHost --synthetic` with `-SkopryConnect … -SkopryMoveTest 1`: the
   host logs a second "Client connected" and "Client left" for the first, 1 → 2 → 1 clients with frames
   every second, one "Streaming" line in all (no Desktop restart); screenshots before and after show the
   test pattern moving; after the move the panel shows the Mac's state and a Prioritize Encoding Speed tap
-  is answered ("Settings from iPad Pro 13-inch (M5)…: speed off → on"). `-SillMoveTest refused`: two tries
+  is answered ("Settings from iPad Pro 13-inch (M5)…: speed off → on"). `-SkopryMoveTest refused`: two tries
   given up after 5 s each, 10 s apart, the session streaming on one connection throughout. The
   `directlink` panel at 500×710 reads the new footer in full.
 
@@ -1314,7 +1314,7 @@ off on both ends; `StreamServer(advertise: !synthetic)`; the CLI's default outpu
   streaming directly): within a few seconds of the network listing the Mac, the host logs a second
   "Client connected" on `%en0` and "Client left" for the `%awdl0` one, the picture never stops, and the
   panel loses "Connected directly".
-- *The blink.* At home with it on and the iPad streaming, quit Sill.app and open it again a few times,
+- *The blink.* At home with it on and the iPad streaming, quit Skopry.app and open it again a few times,
   sometimes at once and sometimes after 15 s (its registration leaves and comes back on both routes at
   once, as in a swap, and the iPad reconnects by itself): the host logs the iPad on `%en0`. Only if the
   network takes over 6 s to list the Mac again may it come back on `%awdl0`, and then it moves to `%en0`
@@ -1370,10 +1370,10 @@ changed" 3 they name.
   the move only needs to know that both connections reach the same running host, and nothing is stored. A
   reconnect still goes by the name (the host may have relaunched); pairing (M5) is the fix for that.
 
-Also: `-SillMoveTest other:PORT` lists another port of the same address as the Mac's network row (another
+Also: `-SkopryMoveTest other:PORT` lists another port of the same address as the Mac's network row (another
 synthetic host, refused; or the same host's own port behind a delay proxy, moved).
 
-**Checks** (headless and on the simulator, no permissions; Noah's running Sill.app untouched):
+**Checks** (headless and on the simulator, no permissions; Noah's running Skopry.app untouched):
 
 - Builds: the package from a fresh copy with only the old CaptureProbe warning; iOS Debug and Release with
   only the old ImplicitStrongCapture warning.
@@ -1393,7 +1393,7 @@ synthetic host, refused; or the same host's own port behind a delay proxy, moved
   Studio is tried once at 7.0 s and never again to 40 s; after its row blinks at 20–20.3 s, tried at 22.3 s
   and refused again; when this Mac takes the name at 20.3 s, moved at 22.3 s; hosts without IDs move at
   7.0 s by name; an ID against none is refused). Five mutants caught.
-- Simulator (iPad Pro 13-inch, Debug) against `SillHost --synthetic`: `-SillMoveTest 1` moves with the
+- Simulator (iPad Pro 13-inch, Debug) against `SkopryHost --synthetic`: `-SkopryMoveTest 1` moves with the
   fence down in 2 ms holding the viewport, the host streaming throughout (one "Streaming" line) and five
   device reports arriving over the new connection; in the harness with the panel open, the panel shows the
   Mac's state after the move. `other:PORT` against a second synthetic host: one try, "move to the network

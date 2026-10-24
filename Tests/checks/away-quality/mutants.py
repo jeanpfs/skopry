@@ -1,9 +1,9 @@
-"""Mutants of the host's away-from-home rules (Sources/SillHost/HostConfig.swift, DeviceSettings.swift,
+"""Mutants of the host's away-from-home rules (Sources/SkopryHost/HostConfig.swift, DeviceSettings.swift,
 AwayPolicy.swift): each changes one file in one place, is compiled with the check by build.sh and
 must make it fail. usage: mutants.py ROOT"""
 import os, subprocess, sys, tempfile
 ROOT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-H = "Sources/SillHost/"
+H = "Sources/SkopryHost/"
 MUTANTS = [
     ("AQ1 standard away at Balanced", H + "HostConfig.swift", "awayBitrate: 4_000_000, awayCaptureScale: 1,", "awayBitrate: 15_000_000, awayCaptureScale: 1,"),
     ("AQ2 standard away at Retina", H + "HostConfig.swift", "awayBitrate: 4_000_000, awayCaptureScale: 1,", "awayBitrate: 4_000_000, awayCaptureScale: 2,"),

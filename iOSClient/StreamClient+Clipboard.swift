@@ -31,7 +31,7 @@ struct ClipboardReceipt: Equatable {
 // - The Mac's text: written with `.localOnly` (Universal Clipboard does not carry it back to the Mac)
 //   and a 10-minute expiration, while the switch is on; its change count becomes the handled one, so
 //   the chip never offers the Mac's own text back.
-// - This device's text: Sill never reads the clipboard by itself (iOS would ask "Allow Paste?"). It
+// - This device's text: Skopry never reads the clipboard by itself (iOS would ask "Allow Paste?"). It
 //   reads only `changeCount` and `hasStrings`, which never ask, to offer the chip; the text is read
 //   by the system's Paste control (UIPasteControl, SwiftUI's PasteButton) when the person taps it,
 //   and counts as sent only once the Mac has read it (a ping after it comes back: the receipt).
@@ -42,7 +42,7 @@ struct ClipboardReceipt: Equatable {
 extension StreamClient {
     /// This device's switch, Share Clipboard (the Settings panel's This iPad group): on unless turned
     /// off. The device's own preference, never sent; read at each decision.
-    static let clipboardKey = "Sill.shareClipboard"
+    static let clipboardKey = "Skopry.shareClipboard"
     static var clipboardOn: Bool {
         // `bool(forKey:)`, not `as? Bool`: a launch argument's "0" is a string, which it reads as
         // @AppStorage does, so the switch and the panel always agree.
@@ -50,9 +50,9 @@ extension StreamClient {
         return defaults.object(forKey: clipboardKey) == nil || defaults.bool(forKey: clipboardKey)
     }
 
-    /// The clipboard's change count Sill last handled (sent, written from the Mac, the chip dismissed
+    /// The clipboard's change count Skopry last handled (sent, written from the Mac, the chip dismissed
     /// or timed out), kept across launches so a relaunch does not offer old text again.
-    static let clipboardHandledKey = "Sill.clipboardHandled"
+    static let clipboardHandledKey = "Skopry.clipboardHandled"
     var clipboardHandled: Int? {
         get { UserDefaults.standard.object(forKey: Self.clipboardHandledKey) as? Int }
         set { UserDefaults.standard.set(newValue, forKey: Self.clipboardHandledKey) }
@@ -60,7 +60,7 @@ extension StreamClient {
 
     private var uptime: TimeInterval { ProcessInfo.processInfo.systemUptime }
 
-    /// Sill becoming active (and a scene of it) is when the chip looks; Sill no longer active, and
+    /// Skopry becoming active (and a scene of it) is when the chip looks; Skopry no longer active, and
     /// VoiceOver turning on or off, stop or start the chip's time (`updateClipboardChipClock`). From init.
     func observeClipboardActivation() {
         let center = NotificationCenter.default
@@ -82,7 +82,7 @@ extension StreamClient {
     // MARK: The subscription
 
     /// Each window list's `clipboard`: the subscription follows it, and a session that starts soon
-    /// after Sill became active gets the chip's look then.
+    /// after Skopry became active gets the chip's look then.
     func hostClipboardChanged(_ value: Int?) {
         let took = ClipboardPolicy.hostTakes(hostClipboard)
         if hostClipboard != value { hostClipboard = value }
@@ -162,7 +162,7 @@ extension StreamClient {
 
     // MARK: The chip
 
-    /// Sill became active: the chip's time runs again if it shows, and the chip looks now, or at the
+    /// Skopry became active: the chip's time runs again if it shows, and the chip looks now, or at the
     /// session's start soon after (`hostClipboardChanged`).
     func clipboardBecameActive() {
         clipboardAppActive = true
@@ -171,13 +171,13 @@ extension StreamClient {
         if let last = clipboardActivatedAt, uptime - last < 0.5 { return }
         clipboardActivatedAt = uptime
         guard ClipboardPolicy.hostTakes(hostClipboard) else { return }
-        lookAtClipboard(why: "Sill became active")
+        lookAtClipboard(why: "Skopry became active")
     }
 
     /// Offers the chip when ClipboardPolicy says; reads only the change count and whether there is text.
     func lookAtClipboard(why: String) {
         #if DEBUG
-        // The harness's mock Mac: the chip only by `-SillClipboardChip 1`, whatever the simulator's
+        // The harness's mock Mac: the chip only by `-SkopryClipboardChip 1`, whatever the simulator's
         // clipboard holds, so its photos never depend on it.
         if mockDiscovery { return }
         #endif
@@ -214,7 +214,7 @@ extension StreamClient {
         updateClipboardChipClock()
     }
 
-    /// The chip's `chipLifetime`, counted only while ClipboardPolicy.chipCounts says (on screen, Sill
+    /// The chip's `chipLifetime`, counted only while ClipboardPolicy.chipCounts says (on screen, Skopry
     /// active, VoiceOver off), from what it has spent so far; at its end the copy is dealt with.
     func updateClipboardChipClock() {
         let now = uptime

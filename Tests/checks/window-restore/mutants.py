@@ -1,12 +1,12 @@
-"""Mutants of Sources/SillHost/WindowRestore.swift (docs/restore-window-frames-plan.md, issue #57): each
+"""Mutants of Sources/SkopryHost/WindowRestore.swift (docs/restore-window-frames-plan.md, issue #57): each
 changes it in one place, is compiled with the check by build.sh and must make it fail. A mutant that does
 not compile is not caught (it would prove nothing). usage: mutants.py ROOT"""
 import os, subprocess, sys, tempfile
 ROOT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(ROOT, "Sources/SillHost/WindowRestore.swift")
+F = os.path.join(ROOT, "Sources/SkopryHost/WindowRestore.swift")
 MUTANTS = [
     # fitted: the first fit and the later ones.
-    ("W1 the first fit records where Sill left it", "return Record(original: before, set: after, asked: asked, moved: false)",
+    ("W1 the first fit records where Skopry left it", "return Record(original: before, set: after, asked: asked, moved: false)",
      "return Record(original: after, set: after, asked: asked, moved: false)"),
     ("W2 the first fit counts as a move", "return Record(original: before, set: after, asked: asked, moved: false)",
      "return Record(original: before, set: after, asked: asked, moved: true)"),
@@ -32,7 +32,7 @@ MUTANTS = [
     ("E8 a resized window judged from the size asked alone",
      "return shifted(from: r.set, to: now) && shifted(from: CGRect(origin: r.set.origin, size: r.asked), to: now)",
      "return shifted(from: CGRect(origin: r.set.origin, size: r.asked), to: now)"),
-    ("E9 a window at Sill's size judged by its edges", "        if same(now.size, r.set.size) || same(now.size, r.asked) { return !same(now.origin, r.set.origin) }\n", ""),
+    ("E9 a window at Skopry's size judged by its edges", "        if same(now.size, r.set.size) || same(now.size, r.asked) { return !same(now.origin, r.set.origin) }\n", ""),
     ("E10 a window at the size asked taken as resized", "if same(now.size, r.set.size) || same(now.size, r.asked) { return !same(now.origin, r.set.origin) }",
      "if same(now.size, r.set.size) { return !same(now.origin, r.set.origin) }"),
     ("W7 the read-back not kept at a re-fit", "        r.set = after\n", ""),
@@ -54,7 +54,7 @@ MUTANTS = [
     ("W19 a move since the last fit ignored", "if !r.moved, same(current.origin, r.set.origin) { return .restore(r.original, whole: true) }",
      "if !r.moved { return .restore(r.original, whole: true) }"),
     ("W20 a moved window sent back to its old place", "var target = CGRect(origin: current.origin, size: r.original.size)", "var target = r.original"),
-    ("W21 a moved window keeps Sill's size", "var target = CGRect(origin: current.origin, size: r.original.size)", "var target = current"),
+    ("W21 a moved window keeps Skopry's size", "var target = CGRect(origin: current.origin, size: r.original.size)", "var target = current"),
     ("W22 a moved window not kept on its display", "        if let area { target.origin = keep(target, in: area) }\n", ""),
     ("W23 a moved target already reached written anyway", "return same(target, current) ? .home : .restore(target, whole: false)", "return .restore(target, whole: false)"),
     ("W24 a move restored as whole", "return same(target, current) ? .home : .restore(target, whole: false)", "return same(target, current) ? .home : .restore(target, whole: true)"),

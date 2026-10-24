@@ -1,5 +1,5 @@
 // TEST ONLY: the menu gates' app (docs/menu-bar-plan.md §5). A controlled AppKit menu bar for a
-// synthetic host started with SILL_TEST_MENU_PID, so the host's reads and presses can be checked
+// synthetic host started with SKOPRY_TEST_MENU_PID, so the host's reads and presses can be checked
 // without touching a real app.
 //
 // Build:  swiftc -O Scripts/menufixture.swift -o $T/menufixture -framework AppKit

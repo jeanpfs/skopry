@@ -1,8 +1,8 @@
 import Foundation
 import CoreGraphics
 
-// Checks WindowRestore (Sources/SillHost/WindowRestore.swift; docs/restore-window-frames-plan.md,
-// issue #57): a window Sill sized for a device goes back when it stops streaming. First the rule at
+// Checks WindowRestore (Sources/SkopryHost/WindowRestore.swift; docs/restore-window-frames-plan.md,
+// issue #57): a window Skopry sized for a device goes back when it stops streaming. First the rule at
 // its edges: `keep`, `fitted`, `decide` for every outcome, `homeForStage`, the ledger and the lines;
 // then the two sequences that read and move a window, `fit` (WindowSizer.resize's) and `stop`
 // (each window `restoreFits` puts back), with `stageHome` and `Ledger.restore`, against a stand-in
@@ -46,14 +46,14 @@ eq(WindowRestore.keep(R(2000, 100, 300, 200), in: R(1512, 0, 1920, 1080)), P(200
 
 let O = R(100, 100, 1200, 800)        // the window as the person had it
 let Sz = S(800, 500)                  // what the device's panel asks for
-let Sf = R(100, 100, 800, 500)        // where Sill left it
+let Sf = R(100, 100, 800, 500)        // where Skopry left it
 let first = WindowRestore.fitted(nil, before: O, after: Sf, asked: Sz)
 eq(first, WindowRestore.Record(original: O, set: Sf, asked: Sz, moved: false), "fitted: the first records where it was")
 let refit = WindowRestore.fitted(first, before: Sf, after: R(100, 100, 500, 800), asked: S(500, 800))
 eq(refit, WindowRestore.Record(original: O, set: R(100, 100, 500, 800), asked: S(500, 800), moved: false),
    "fitted: a rotation keeps the original, takes the new frame and size asked")
 eq(WindowRestore.fitted(first, before: R(102, 98, 800, 500), after: R(102, 98, 640, 400), asked: S(640, 400)).moved, false,
-   "fitted: 2 pt from where Sill left it is not a move")
+   "fitted: 2 pt from where Skopry left it is not a move")
 eq(WindowRestore.fitted(first, before: R(102.5, 100, 800, 500), after: R(102.5, 100, 640, 400), asked: S(640, 400)).moved, true,
    "fitted: 2.5 pt across is a move")
 eq(WindowRestore.fitted(first, before: R(100, 103, 800, 500), after: R(100, 103, 640, 400), asked: S(640, 400)).moved, true,
@@ -66,7 +66,7 @@ eq(WindowRestore.fitted(first, before: R(100, 100, 1000, 700), after: Sf, asked:
    WindowRestore.Record(original: O, set: Sf, asked: Sz, moved: false),
    "fitted: a resize on the Mac that a re-fit undid is forgotten (no move)")
 // A resize from another edge or corner moves the top-left corner and keeps the opposite edges: no move.
-// Sill left it at (100,100,800×500): right edge 900, bottom 600.
+// Skopry left it at (100,100,800×500): right edge 900, bottom 600.
 for (what, before) in [("the left edge", R(-20, 100, 920, 500)), ("the top edge", R(100, 40, 800, 560)),
                        ("the top-left corner", R(-20, 40, 920, 560)), ("the top-right corner", R(100, 40, 1000, 560)),
                        ("the bottom-left corner", R(-20, 100, 920, 700)), ("the left edge inwards", R(400, 100, 500, 500))] {
@@ -83,7 +83,7 @@ eq(WindowRestore.fitted(first, before: R(97, 100, 803, 500), after: Sf, asked: S
 eq(WindowRestore.fitted(first, before: R(97, 100, 804, 500), after: Sf, asked: Sz).moved, false,
    "fitted: the left edge 3 pt out and the right 1 pt out: a resize")
 eq(WindowRestore.fitted(first, before: R(97, 100, 801.5, 500), after: Sf, asked: Sz).moved, true,
-   "fitted: 3 pt left at Sill's size (within 2 pt): a move")
+   "fitted: 3 pt left at Skopry's size (within 2 pt): a move")
 eq(WindowRestore.fitted(first, before: R(97, 100, 800, 500), after: Sf, asked: Sz).moved, true, "fitted: 3 pt left, its size kept: a move")
 eq(WindowRestore.fitted(first, before: R(97, 100, 799, 500), after: Sf, asked: Sz).moved, true, "fitted: 3 pt left and 1 pt narrower: a move")
 eq(WindowRestore.fitted(first, before: R(150, 100, 900, 500), after: Sf, asked: Sz).moved, true, "fitted: moved right and widened: a move")
@@ -97,12 +97,12 @@ eq(WindowRestore.shifted(from: Sf, to: R(103, 100, 800, 500)), true, "shifted: 3
 eq(WindowRestore.shifted(from: Sf, to: R(102, 102, 800, 500)), false, "shifted: 2 pt each way is none")
 eq(WindowRestore.shifted(from: Sf, to: R(90, 100, 830, 500)), false, "shifted: the edges apart is none")
 eq(WindowRestore.shifted(from: Sf, to: R(110, 110, 780, 480)), false, "shifted: the edges together is none")
-// An app that applies a size after answering read back its old size (1200×800) for Sill's 800×500: it
-// is moved at either of Sill's sizes, and a resize from an edge is judged from where Sill really left it.
+// An app that applies a size after answering read back its old size (1200×800) for Skopry's 800×500: it
+// is moved at either of Skopry's sizes, and a resize from an edge is judged from where Skopry really left it.
 let late = WindowRestore.fitted(nil, before: O, after: O, asked: Sz)
 eq(WindowRestore.movedSince(late, R(150, 130, 800, 500)), true, "movedSince: a late app moved at the size asked")
 eq(WindowRestore.movedSince(late, R(150, 130, 1200, 800)), true, "movedSince: a late app moved at the size read back")
-eq(WindowRestore.movedSince(late, R(100, 100, 800, 500)), false, "movedSince: a late app where Sill left it")
+eq(WindowRestore.movedSince(late, R(100, 100, 800, 500)), false, "movedSince: a late app where Skopry left it")
 eq(WindowRestore.movedSince(late, R(-20, 100, 920, 500)), false, "movedSince: a late app's left edge dragged out from the size asked")
 eq(WindowRestore.movedSince(late, R(160, 40, 740, 560)), false, "movedSince: a late app's top-left corner dragged, the size asked")
 eq(WindowRestore.movedSince(late, R(600, 500, 850, 520)), true, "movedSince: a late app moved and resized")
@@ -119,8 +119,8 @@ eq(decide(rec, Sf, fullScreen: true), .leave(.fullScreen), "decide: full screen 
 eq(decide(rec, O, fullScreen: true), .leave(.fullScreen), "decide: full screen, even at the original frame")
 eq(decide(rec, O), .home, "decide: at the original frame is home")
 eq(decide(rec, R(102, 98, 1198, 802)), .home, "decide: within 2 pt of the original is home")
-eq(decide(rec, Sf), .restore(O, whole: true), "decide: where Sill left it goes back whole")
-eq(decide(rec, R(102, 102, 798, 502)), .restore(O, whole: true), "decide: within 2 pt of where Sill left it goes back whole")
+eq(decide(rec, Sf), .restore(O, whole: true), "decide: where Skopry left it goes back whole")
+eq(decide(rec, R(102, 102, 798, 502)), .restore(O, whole: true), "decide: within 2 pt of where Skopry left it goes back whole")
 eq(decide(rec, R(103, 100, 800, 500)), .restore(R(103, 100, 1200, 800), whole: false),
    "decide: moved 3 pt keeps its place and gets its size back")
 eq(decide(rec, R(900, 300, 800, 500)), .restore(R(312, 145, 1200, 800), whole: false),
@@ -129,16 +129,16 @@ eq(decide(rec, R(900, 300, 800, 500), area: nil), .restore(R(900, 300, 1200, 800
    "decide: no area, no nudge")
 eq(decide(rec, R(1600, 200, 800, 500), area: R(1512, 0, 1920, 1080)), .restore(R(1600, 200, 1200, 800), whole: false),
    "decide: moved to the second display keeps to it")
-eq(decide(rec, R(100, 100, 803, 500)), .leave(.resized), "decide: 3 pt wider than Sill left it was resized on the Mac")
+eq(decide(rec, R(100, 100, 803, 500)), .leave(.resized), "decide: 3 pt wider than Skopry left it was resized on the Mac")
 eq(decide(rec, R(100, 100, 800, 497)), .leave(.resized), "decide: 3 pt shorter was resized on the Mac")
 eq(decide(rec, R(100, 100, 1000, 700)), .leave(.resized), "decide: resized on the Mac is left alone")
 eq(decide(rec, R(300, 300, 1200, 800)), .leave(.resized), "decide: its own size by hand elsewhere is the person's")
 // An app that applies a size after answering the write read back its old frame: at the asked size it
-// is Sill's all the same.
+// is Skopry's all the same.
 let lagging = WindowRestore.fitted(nil, before: O, after: O, asked: Sz)
 eq(decide(lagging, Sf), .restore(O, whole: true), "decide: a late app at the asked size goes back whole")
 eq(decide(lagging, R(400, 300, 800, 500)), .restore(R(312, 145, 1200, 800), whole: false), "decide: a late app, moved")
-eq(decide(lagging, O), .settle(O), "decide: a late app stopped before it showed Sill's size: its frame written again")
+eq(decide(lagging, O), .settle(O), "decide: a late app stopped before it showed Skopry's size: its frame written again")
 eq(decide(lagging, R(101, 99, 1199, 801)), .settle(O), "decide: settled within 2 pt of the original too")
 eq(decide(WindowRestore.fitted(nil, before: O, after: O, asked: S(1202, 798)), O), .home,
    "decide: asked within 2 pt of its own size: home, nothing to settle")
@@ -147,22 +147,22 @@ eq(decide(WindowRestore.fitted(nil, before: O, after: R(100, 100, 1203, 800), as
 eq(decide(WindowRestore.fitted(lagging, before: Sf, after: Sf, asked: S(640, 400)), O), .home,
    "decide: back at its own frame after a fit that showed: the person's (home)")
 eq(decide(lagging, R(100, 100, 803, 500)), .leave(.resized), "decide: a late app off both the read-back and the asked size")
-// An app with a minimum took more than asked: what it read back is Sill's.
+// An app with a minimum took more than asked: what it read back is Skopry's.
 let clamped = WindowRestore.fitted(nil, before: O, after: R(100, 100, 900, 600), asked: Sz)
 eq(decide(clamped, R(100, 100, 900, 600)), .restore(O, whole: true), "decide: a minimum read back goes back whole")
-eq(decide(clamped, R(100, 100, 800, 500)), .restore(O, whole: true), "decide: the asked size of a clamped app is still Sill's")
-// Moved at a later fit: whole no longer, even where Sill last left it.
+eq(decide(clamped, R(100, 100, 800, 500)), .restore(O, whole: true), "decide: the asked size of a clamped app is still Skopry's")
+// Moved at a later fit: whole no longer, even where Skopry last left it.
 let noted = WindowRestore.Record(original: O, set: Sf, asked: Sz, moved: true)
-eq(decide(noted, Sf), .restore(R(100, 100, 1200, 800), whole: false), "decide: a noted move keeps its place where Sill left it")
+eq(decide(noted, Sf), .restore(R(100, 100, 1200, 800), whole: false), "decide: a noted move keeps its place where Skopry left it")
 eq(decide(noted, R(200, 200, 800, 500)), .restore(R(200, 145, 1200, 800), whole: false), "decide: a noted move, moved again")
 // A size the app refused (it read back its own): a move is all that is left, and the person's.
 let refused = WindowRestore.fitted(nil, before: O, after: O, asked: S(1200, 800))
 eq(decide(refused, R(150, 120, 1200, 800)), .home, "decide: its own size where it was moved is home")
 eq(decide(refused, R(0, 0, 1200, 800)), .restore(R(0, 25, 1200, 800), whole: false),
    "decide: its own size under the menu bar comes down (the area)")
-// Sill nudged it and the app kept its size: back to the original place.
+// Skopry nudged it and the app kept its size: back to the original place.
 let nudged = WindowRestore.fitted(nil, before: R(900, 100, 600, 400), after: R(712, 100, 600, 400), asked: S(800, 500))
-eq(decide(nudged, R(712, 100, 600, 400)), .restore(R(900, 100, 600, 400), whole: true), "decide: a nudge Sill made is undone")
+eq(decide(nudged, R(712, 100, 600, 400)), .restore(R(900, 100, 600, 400), whole: true), "decide: a nudge Skopry made is undone")
 
 // MARK: homeForStage
 
@@ -400,7 +400,7 @@ do {
     eq(WindowRestore.keepsStreaming(nil as Int?, looks: 3, wasFullScreen: true, on: &a), true, "keepsStreaming: through the third look")
     eq(WindowRestore.keepsStreaming(nil as Int?, looks: 4, wasFullScreen: true, on: &a), false, "keepsStreaming: not a fourth")
     eq(WindowRestore.keepsStreaming(nil as Int?, looks: 1, wasFullScreen: false, on: &a), false, "keepsStreaming: never full screen: it stops")
-    eq(a.calls, [], "keepsStreaming: a window Sill did not fit is not asked")
+    eq(a.calls, [], "keepsStreaming: a window Skopry did not fit is not asked")
     a = One(at: Sf, full: true, listed: false)
     eq(WindowRestore.keepsStreaming(1, looks: 1, wasFullScreen: false, on: &a), true, "keepsStreaming: fitted, Accessibility says full screen")
     eq(a.calls, ["frame", "fullScreen"], "keepsStreaming: a frame, then full screen")
@@ -589,7 +589,7 @@ struct Mac: WindowRestore.Access {
 
 enum Source: Equatable { case none, desktop, window(CGWindowID) }
 
-/// What the person at the Mac expects of one window through a spell of Sill's fits.
+/// What the person at the Mac expects of one window through a spell of Skopry's fits.
 struct Spell {
     var original: CGRect
     var moved = false
@@ -625,7 +625,7 @@ struct Model {
     // The oracle.
     var spells: [CGWindowID: Spell] = [:]
     var expectHome: [CGWindowID: [CGRect]] = [:]    // a staged window's way home
-    var personFrame: [CGWindowID: CGRect] = [:]     // a window Sill never touched: where the person left it
+    var personFrame: [CGWindowID: CGRect] = [:]     // a window Skopry never touched: where the person left it
     var log: [String] = []
     var seen: [String: Int] = [:]
 
@@ -826,7 +826,7 @@ struct Model {
         guard var w = mac.wins[id], !w.closed, !w.fullScreen, w.transition == 0, staged?.id != id else { return }
         let a = Mac.visible[rng.int(2)]
         var p = P(a.minX + rng.range(0, Int(max(0, a.width - 200))), a.minY + rng.range(0, Int(max(0, a.height - 150))))
-        // Never within a few points of where Sill left it: there a move and none are the same.
+        // Never within a few points of where Skopry left it: there a move and none are the same.
         if let set = ledger.record(id)?.set, abs(p.x - set.minX) <= 4, abs(p.y - set.minY) <= 4 { p.x += 40 }
         if abs(p.x - w.frame.minX) <= 4, abs(p.y - w.frame.minY) <= 4 { p.y += 40 }
         w.frame.origin = p
@@ -839,7 +839,7 @@ struct Model {
     mutating func personResize(_ id: CGWindowID) {
         guard var w = mac.wins[id], !w.closed, !w.fullScreen, w.transition == 0, staged?.id != id else { return }
         var s = Mac.takes(w.app, S(rng.range(300, 1400), rng.range(200, 900)))
-        // A resize the rule can see: off what Sill left and asked for by more than its tolerance.
+        // A resize the rule can see: off what Skopry left and asked for by more than its tolerance.
         if let r = ledger.record(id) {
             for _ in 0..<4 where WindowRestore.same(s, r.set.size) || WindowRestore.same(s, r.asked) || WindowRestore.same(s, w.frame.size) {
                 s = Mac.takes(w.app, S(s.width + 50, s.height + 30))
@@ -904,7 +904,7 @@ struct Model {
             let fitted: CGWindowID? = ledger.record(id) != nil ? id : nil
             let evidence = listedFullScreen == id || (fitted != nil && mac.isFullScreen(id))
             let keeps = WindowRestore.keepsStreaming(fitted, looks: missingLooks, wasFullScreen: listedFullScreen == id, on: &mac)
-            // Gone is Accessibility's to say, so only for a window Sill fitted; another closed window's
+            // Gone is Accessibility's to say, so only for a window Skopry fitted; another closed window's
             // capture stops (StreamCoordinator's capture.onStopped), which this model leaves out.
             check(keeps == (missingLooks <= WindowRestore.fullScreenGrace && (fitted != nil ? !w.closed && evidence : listedFullScreen == id)),
                   "model seed \(seed): window \(id) off the list (closed \(w.closed), look \(missingLooks), evidence \(evidence)) kept streaming: \(keeps); \(log.suffix(6))")
@@ -978,7 +978,7 @@ struct Model {
         releaseStage()
         check(ledger.isEmpty, "model seed \(seed): records left after Quit")
         check(staged == nil, "model seed \(seed): a window left staged after Quit")
-        // A window Sill never touched is where the person left it.
+        // A window Skopry never touched is where the person left it.
         for (id, w) in mac.wins where !w.closed && !mac.touched.contains(id) && !w.fullScreen {
             check(w.frame == personFrame[id], "model seed \(seed): window \(id), never sized, moved from \(personFrame[id]!) to \(w.frame)")
         }

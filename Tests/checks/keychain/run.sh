@@ -1,7 +1,7 @@
 #!/bin/bash
-# IdentityStorePlan (Sources/SillMenuBar), which identity store the menu-bar host uses at launch
-# (docs/keychain-plan.md §4): the data-protection keychain only for an entitled real Sill.app and
-# never the legacy one beside it, the legacy login keychain for an unentitled real Sill.app, and no
+# IdentityStorePlan (Sources/SkopryMenuBar), which identity store the menu-bar host uses at launch
+# (docs/keychain-plan.md §4): the data-protection keychain only for an entitled real Skopry.app and
+# never the legacy one beside it, the legacy login keychain for an unentitled real Skopry.app, and no
 # keychain at all for a test host. Compiled on its own with swiftc (Foundation only).
 #   Tests/checks/keychain/run.sh             compile and run the check
 #   Tests/checks/keychain/run.sh --mutants   one-line mutants of IdentityStorePlan.swift; each must fail it

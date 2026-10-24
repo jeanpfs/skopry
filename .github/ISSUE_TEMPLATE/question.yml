@@ -1,10 +1,10 @@
 name: Question
-description: Ask something about Sill that the support page doesn't answer.
+description: Ask something about Skopry that the support page doesn't answer.
 labels: ["question"]
 body:
   - type: markdown
     attributes:
-      value: The [support page](https://getsill.app/support) may already have the answer.
+      value: The [support page](https://skopry.app/support) may already have the answer.
   - type: textarea
     id: question
     attributes:

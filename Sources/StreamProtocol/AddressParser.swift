@@ -3,7 +3,7 @@ import Foundation
 import Darwin
 #endif
 
-/// One address a person typed, pasted or scanned, as Sill dials it: a host (an IPv4 or IPv6
+/// One address a person typed, pasted or scanned, as Skopry dials it: a host (an IPv4 or IPv6
 /// address, or a DNS name) and an optional port.
 public struct ParsedAddress: Hashable, Sendable {
     public enum Kind: String, Sendable { case ipv4, ipv6, name }
@@ -26,8 +26,8 @@ public struct ParsedAddress: Hashable, Sendable {
     }
 }
 
-/// The strict parser for every address Sill takes from a person or a link (the Add a Mac card, a
-/// pairing link's `a`, the Mac's address name, DEBUG -SillConnect). Strict because the system is
+/// The strict parser for every address Skopry takes from a person or a link (the Add a Mac card, a
+/// pairing link's `a`, the Mac's address name, DEBUG -SkopryConnect). Strict because the system is
 /// lenient in ways that dial the wrong machine: `NWEndpoint.Host` silently reads "1.2.3" as
 /// 1.2.0.3, "100.1" as 100.0.0.1 and "0x64.0x65.1.2" as 100.101.1.2, and a pasted " 100.1.1.1"
 /// with a space inside would become a DNS name. Pure: Foundation and `inet_pton`/`inet_aton`.
@@ -50,7 +50,7 @@ public enum AddressParser {
         case name
         /// A port outside 1–65535, or not decimal digits.
         case port
-        /// A `sill://` link: the caller hands the whole text to `PairLink.parse`.
+        /// A `skopry://` link: the caller hands the whole text to `PairLink.parse`.
         case pairingLink
     }
 
@@ -58,7 +58,7 @@ public enum AddressParser {
     public static func parse(_ raw: String) -> Result<ParsedAddress, Failure> {
         let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if s.isEmpty { return .failure(.empty) }
-        if s.lowercased().hasPrefix("sill:") { return .failure(.pairingLink) }
+        if s.lowercased().hasPrefix("skopry:") { return .failure(.pairingLink) }
         if s.unicodeScalars.contains(where: { $0.properties.isWhitespace || $0.value < 0x20 || $0.value == 0x7F }) {
             return .failure(.malformed)
         }

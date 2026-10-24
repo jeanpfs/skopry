@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Each mutant changes Sources/SillHost/EncoderSlowState.swift in one place (in a copy under
+# Each mutant changes Sources/SkopryHost/EncoderSlowState.swift in one place (in a copy under
 # .build/checks/encoder-slowstate/, never the file itself); the slow-state check (main.swift here)
 # must fail on every one. Encoder-free: a mutant binary that links VideoToolbox is refused, not run.
 # usage: Tests/checks/encoder-slowstate/mutants.py [path to EncoderSlowState.swift]
@@ -7,7 +7,7 @@
 import subprocess, sys, os
 here = os.path.dirname(os.path.abspath(__file__))
 root = os.path.abspath(os.path.join(here, '..', '..', '..'))
-src_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, 'Sources', 'SillHost', 'EncoderSlowState.swift')
+src_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, 'Sources', 'SkopryHost', 'EncoderSlowState.swift')
 out = os.path.join(root, '.build', 'checks', 'encoder-slowstate')
 src = open(src_path).read()
 mutants = [

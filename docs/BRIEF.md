@@ -2,7 +2,7 @@
 
 Last updated 2026-09-22. Owner: Noah.
 
-This is the brief as of 2026-09-22; the README says what Sill does today.
+This is the brief as of 2026-09-22; the README says what Skopry does today.
 
 ## The idea
 
@@ -70,9 +70,9 @@ never span the Duo crease in half-folded posture.
 
 ## Name
 
-Sill. A window sill: the ledge a window sits on. Chosen 2026-09-22 over
+Skopry. A window skopry: the ledge a window sits on. Chosen 2026-09-22 over
 Casement, Folio, Nomos; checked the App Store for collisions (only a small
-unrelated "Sill." social app).
+unrelated "Skopry." social app).
 
 ## Scope
 

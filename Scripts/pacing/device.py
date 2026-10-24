@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The pacing harness's device: what the iPad's StreamClient does on a remote session, minus the
-pixels. TLS 1.3 with a client certificate and ALPN sill/1 (or plain TCP with --plain) to
+pixels. TLS 1.3 with a client certificate and ALPN skopry/1 (or plain TCP with --plain) to
 127.0.0.1:PORT.
 - reads every message;
 - pings every 0.25 s (8-byte monotonic stamp, echoed by the host as a pong);
@@ -50,7 +50,7 @@ def context():
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     ctx.load_cert_chain(CERT, KEY)
-    ctx.set_alpn_protocols(["sill/1"])
+    ctx.set_alpn_protocols(["skopry/1"])
     return ctx
 
 def msg(kind, payload=b""):
@@ -63,7 +63,7 @@ def medmax(xs):
 
 async def session(ctx, deadline):
     reader, writer = await asyncio.open_connection("127.0.0.1", PORT, ssl=None if PLAIN else ctx,
-                                                   server_hostname=None if PLAIN else "sill")
+                                                   server_hostname=None if PLAIN else "skopry")
     say("connected")
     st = {"last": time.monotonic(), "worst": None, "frames": 0, "ages": [], "rtts": [], "bytes": 0,
           "keys": 0, "open": True, "why": None}

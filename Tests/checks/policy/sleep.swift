@@ -34,7 +34,7 @@ func afterSleepPolicy() {
           && rebuild(10, 3, 14) == (true, nil) && rebuild(10, 6, 39) == (false, 40) && rebuild(10, 9, 40) == (true, nil))
     check("rebuildBrowser: never in the background, however long since", rebuild(10, 1, fg: false, 11) == (false, nil)
           && rebuild(10, 1, fg: false, 9999) == (false, nil))
-    // `-SillBrowserFail 3`: each of the first three browsers fails half a second after it starts; the
+    // `-SkopryBrowserFail 3`: each of the first three browsers fails half a second after it starts; the
     // rebuilds follow the glue (StreamClient.browserFailed, rebuildIfDue).
     var made = [0.0], failures = 0, started = 0.0
     for _ in 0..<3 {
@@ -44,7 +44,7 @@ func afterSleepPolicy() {
         while !rebuild(failedAt, failures, t).0 { t = rebuild(failedAt, failures, t).1! }
         made.append(t); started = t
     }
-    check("rebuildBrowser (-SillBrowserFail 3): made at 0, 1.5, 4 and 8.5 s", made == [0, 1.5, 4, 8.5])
+    check("rebuildBrowser (-SkopryBrowserFail 3): made at 0, 1.5, 4 and 8.5 s", made == [0, 1.5, 4, 8.5])
 
     // What a browser made again shows while it settles.
     typealias R = (name: String, from: String)
@@ -133,7 +133,7 @@ func afterSleepPolicy() {
           && redial(3, 10, fg: false, 1000) == (false, nil))
 
     let mini = "Mac mini"
-    let quiet = "Mac mini isn\u{2019}t answering. It may be asleep. Sill keeps trying, or tap it to try now."
+    let quiet = "Mac mini isn\u{2019}t answering. It may be asleep. Skopry keeps trying, or tap it to try now."
     let stopped = "Stopped trying to reach Mac mini. Tap it to try again."
     check("reconnectLine: the first three dials say Reconnecting, as before",
           (0...2).allSatisfy { P.reconnectLine(mac: mini, failed: $0, direct: false) == "Reconnecting to Mac mini\u{2026}" })
@@ -192,7 +192,7 @@ func afterSleepPolicy() {
     // The Mac wakes 100 s in (opened by someone at it): the next dial, at 125 s, connects.
     check("reconnect model: a Mac that wakes 100 s in is reached at the next dial (125 s)",
           reconnect(until: 600, answersFrom: 100).connectedAt == 125)
-    // Its row goes and comes back at 50 s (Sill relaunched on the Mac, its record renewed): dialled at once.
+    // Its row goes and comes back at 50 s (Skopry relaunched on the Mac, its record renewed): dialled at once.
     let relisted = reconnect(until: 600, answersFrom: 50, listing: { $0 < 49 ? 0 : ($0 < 50 ? nil : 50) })
     check("reconnect model: a row listed afresh is dialled at once", relisted.dials.last == 50 && relisted.connectedAt == 50)
     // In the background from 40 to 300 s: no dial there, the count starts again on the return.

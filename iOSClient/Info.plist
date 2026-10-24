@@ -6,9 +6,9 @@
 	     on those panels, so ask. iPads ignore this key. -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<!-- Export compliance: Sill uses no encryption but Apple's own, so uploads, TestFlight builds
+	<!-- Export compliance: Skopry uses no encryption but Apple's own, so uploads, TestFlight builds
 	     included, skip the encryption questions. Look again before adding cipher code or a crypto
-	     library of Sill's own (docs/app-store-metadata.md section 6). -->
+	     library of Skopry's own (docs/app-store-metadata.md section 6). -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSLocalNetworkUsageDescription</key>
@@ -17,21 +17,21 @@
 	     (docs/home-pairing-plan.md §7.9). A key added here goes there too. -->
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_sill._tcp</string>
+		<string>_skopry._tcp</string>
 	</array>
 	<!-- Add a Mac: the embedded scanner reads the pairing code the Mac shows. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Sill scans the code on your Mac to pair with it.</string>
-	<!-- sill://pair links from the Camera or Messages. Never acted on without a confirmation, since
+	<string>Skopry scans the code on your Mac to pair with it.</string>
+	<!-- skopry://pair links from the Camera or Messages. Never acted on without a confirmation, since
 	     another app could claim the scheme too; the in-app scanner is the main path. -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>me.saffer.sill.pair</string>
+			<string>app.skopry.pair</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>sill</string>
+				<string>skopry</string>
 			</array>
 		</dict>
 	</array>

@@ -3,8 +3,8 @@
 SELF="$(cd "$(dirname "$0")" && pwd)"
 WT="$1"; OUT="$2"; T=$(mktemp -d)
 cp "$WT/Sources/StreamProtocol/"*.swift "$T/"
-sed '/^import StreamProtocol$/d' "${3:-$WT/Sources/SillHost/AddressList.swift}" > "$T/AddressList.swift"
-sed '/^import StreamProtocol$/d' "${4:-$WT/Sources/SillHost/PairingWindow.swift}" > "$T/PairingWindow.swift"
-cp "$WT/Sources/SillHost/OriginPolicy.swift" "$T/"
+sed '/^import StreamProtocol$/d' "${3:-$WT/Sources/SkopryHost/AddressList.swift}" > "$T/AddressList.swift"
+sed '/^import StreamProtocol$/d' "${4:-$WT/Sources/SkopryHost/PairingWindow.swift}" > "$T/PairingWindow.swift"
+cp "$WT/Sources/SkopryHost/OriginPolicy.swift" "$T/"
 cp "$SELF/main.swift" "$T/main.swift"
 swiftc -O "$T/"*.swift -o "$OUT" 2>&1 | grep -E "error" ; rm -rf "$T"

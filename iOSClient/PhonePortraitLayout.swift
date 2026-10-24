@@ -74,7 +74,7 @@ struct PhonePortraitLayout: Equatable {
 
     /// Larger Picture: the key row's bottom at least this far above the software keyboard's top.
     static let keyboardClearance: CGFloat = 10
-    /// The software keyboard as Sill's input view shows it on an iPhone held upright (autocorrection
+    /// The software keyboard as Skopry's input view shows it on an iPhone held upright (autocorrection
     /// is off, so it has no suggestions bar), measured on the iOS 27 simulators
     /// (docs/larger-picture-plan.md, Results): 233 pt on an iPhone with a Home button (the SE); with
     /// Face ID, by the stream screen's width, 320 from 414 pt (the 11 and 11 Pro Max, the Plus and

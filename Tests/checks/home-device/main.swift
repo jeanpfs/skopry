@@ -14,7 +14,7 @@ let methods: [P.Method?] = [nil, .wired, .wifi, .direct]
 // MARK: §7.3, every combination against the table
 
 func wordOracle(_ door: P.HomeDoor, saved: Bool, revoked: Bool, homeTLS: Bool, debug: Bool, method: P.Method?, cable: Bool) -> W {
-    if door == .plain { return debug && !homeTLS ? .method(method) : .updateSill }        // the last two rows
+    if door == .plain { return debug && !homeTLS ? .method(method) : .updateSkopry }        // the last two rows
     if saved && !revoked { return .method(method) }                                      // a saved Mac on a TLS door
     if !saved && door == .open { return .openDoor }                                      // unsaved, p=0: Not paired (the review)
     return method == .wired && cable ? .pairsOverCable : .notPaired                      // unsaved or revoked, p=1 (or revoked, p=0)
@@ -60,17 +60,17 @@ for m in methods { for c in [false, true] { for tls in [false, true] {
 check("§7.3: an unsaved open door's row never reads like a paired Mac's, in its word or its VoiceOver label", neverLikePaired)
 check("§7.3: no p, DEBUG, not homeTLS: its method (a plain door, as today)", word(.plain, debug: true, .wired) == .method(.wired)
       && word(.plain, saved: true, debug: true, .wifi) == .method(.wifi) && word(.plain, debug: true, nil).word == nil)
-check("§7.3: no p, Release: Update Sill, saved or not", word(.plain, .wifi) == .updateSill && word(.plain, saved: true, .wifi) == .updateSill
-      && word(.plain, .wifi).word == "Update Sill")
-check("§7.3: no p and homeTLS: Update Sill, in DEBUG too (no downgrade)", word(.plain, saved: true, homeTLS: true, debug: true, .wifi) == .updateSill
-      && word(.plain, saved: true, revoked: true, homeTLS: true, debug: true, .wired, cable: true) == .updateSill)
-check("§7.3: every homeTLS combination without p reads Update Sill", (0..<16).allSatisfy { bits in
+check("§7.3: no p, Release: Update Skopry, saved or not", word(.plain, .wifi) == .updateSkopry && word(.plain, saved: true, .wifi) == .updateSkopry
+      && word(.plain, .wifi).word == "Update Skopry")
+check("§7.3: no p and homeTLS: Update Skopry, in DEBUG too (no downgrade)", word(.plain, saved: true, homeTLS: true, debug: true, .wifi) == .updateSkopry
+      && word(.plain, saved: true, revoked: true, homeTLS: true, debug: true, .wired, cable: true) == .updateSkopry)
+check("§7.3: every homeTLS combination without p reads Update Skopry", (0..<16).allSatisfy { bits in
     methods.allSatisfy { m in P.rowWord(door: .plain, saved: bits & 1 != 0, revoked: bits & 2 != 0, homeTLS: true, debug: bits & 4 != 0,
-                                        method: m, cable: bits & 8 != 0) == .updateSill } })
+                                        method: m, cable: bits & 8 != 0) == .updateSkopry } })
 
 // Words, labels and hints (VoiceOver, S7).
-check("words: Not paired, Wired, Update Sill, and the method's own (Wi-Fi with a non-breaking hyphen)",
-      W.notPaired.word == "Not paired" && W.pairsOverCable.word == "Wired" && W.updateSill.word == "Update Sill"
+check("words: Not paired, Wired, Update Skopry, and the method's own (Wi-Fi with a non-breaking hyphen)",
+      W.notPaired.word == "Not paired" && W.pairsOverCable.word == "Wired" && W.updateSkopry.word == "Update Skopry"
       && W.method(.wifi).word == "Wi\u{2011}Fi" && W.method(.direct).word == "Direct" && W.method(nil).word == nil)
 check("label: \"Mac mini, not paired\"", W.notPaired.label(name: mini) == "Mac mini, not paired")
 check("an open door's row: \"Not paired\", \"Mac mini, not paired\", hint \"Connects without pairing: Mac mini lets any device in.\"",
@@ -80,24 +80,24 @@ check("an open door's row: \"Not paired\", \"Mac mini, not paired\", hint \"Conn
 check("label: \"Mac mini, Wired\" over the cable", W.pairsOverCable.label(name: mini) == "Mac mini, Wired")
 check("label: as today for a method (\"Mac mini, Wi‑Fi\"), and the name alone without one",
       W.method(.wifi).label(name: mini) == "Mac mini, Wi\u{2011}Fi" && W.method(nil).label(name: mini) == "Mac mini")
-check("label: \"Mac mini, Update Sill\"", W.updateSill.label(name: mini) == "Mac mini, Update Sill")
+check("label: \"Mac mini, Update Skopry\"", W.updateSkopry.label(name: mini) == "Mac mini, Update Skopry")
 check("hint: Not paired: \"Pairs with a code Mac mini shows, then connects.\"",
       W.notPaired.hint(name: mini, device: "iPad", direct: false) == "Pairs with a code Mac mini shows, then connects.")
 check("hint: over the cable: \"Pairs over the USB cable, then connects.\"",
       W.pairsOverCable.hint(name: mini, device: "iPad", direct: false) == "Pairs over the USB cable, then connects.")
-check("hint: Update Sill: \"Mac mini’s Sill is too old for this iPad.\" (a typographic apostrophe; the device's kind)",
-      W.updateSill.hint(name: mini, device: "iPad", direct: false) == "Mac mini\u{2019}s Sill is too old for this iPad."
-      && W.updateSill.hint(name: mini, device: "iPhone", direct: false) == "Mac mini\u{2019}s Sill is too old for this iPhone.")
+check("hint: Update Skopry: \"Mac mini’s Skopry is too old for this iPad.\" (a typographic apostrophe; the device's kind)",
+      W.updateSkopry.hint(name: mini, device: "iPad", direct: false) == "Mac mini\u{2019}s Skopry is too old for this iPad."
+      && W.updateSkopry.hint(name: mini, device: "iPhone", direct: false) == "Mac mini\u{2019}s Skopry is too old for this iPhone.")
 check("hint: a method row keeps today's (Direct: \"Connects without a shared Wi‑Fi network\", else none)",
       W.method(.direct).hint(name: mini, device: "iPad", direct: true) == "Connects without a shared Wi\u{2011}Fi network"
       && W.method(.wifi).hint(name: mini, device: "iPad", direct: false) == "")
-check("status: \"Mac mini runs an older Sill. Update Sill on the Mac to connect.\"",
-      P.updateSillStatus(mac: mini) == "Mac mini runs an older Sill. Update Sill on the Mac to connect.")
+check("status: \"Mac mini runs an older Skopry. Update Skopry on the Mac to connect.\"",
+      P.updateSkopryStatus(mac: mini) == "Mac mini runs an older Skopry. Update Skopry on the Mac to connect.")
 
 // MARK: §7.4, every combination against the table
 
 func dialOracle(_ door: P.HomeDoor, saved: Bool, revoked: Bool, homeTLS: Bool, debug: Bool, tap: Bool) -> H {
-    if door == .plain { return debug && !homeTLS ? .plain : .updateSill }
+    if door == .plain { return debug && !homeTLS ? .plain : .updateSkopry }
     if saved && !revoked { return .pinned }
     if saved && revoked { return tap ? .ask(pinned: true) : .waitForTap }
     if door == .open { return .anyKey }
@@ -114,13 +114,13 @@ check("homeDial: \(hdOK) of \(hd) combinations match §7.4", hd == hdOK)
 func dial(_ d: P.HomeDoor, saved: Bool = false, revoked: Bool = false, homeTLS: Bool = false, debug: Bool = false, tap: Bool = true) -> H {
     P.homeDial(door: d, saved: saved, revoked: revoked, homeTLS: homeTLS, debug: debug, tap: tap)
 }
-check("§7.4: saved, not revoked, TLS door: sill/1 pinned (p=1 and p=0)", dial(.pairingRequired, saved: true) == .pinned && dial(.open, saved: true) == .pinned)
+check("§7.4: saved, not revoked, TLS door: skopry/1 pinned (p=1 and p=0)", dial(.pairingRequired, saved: true) == .pinned && dial(.open, saved: true) == .pinned)
 check("§7.4: saved and revoked: the ask, pinned to the saved key (p=1 and p=0)", dial(.pairingRequired, saved: true, revoked: true) == .ask(pinned: true)
       && dial(.open, saved: true, revoked: true) == .ask(pinned: true))
 check("§7.4: unsaved with p=1: the ask, any key", dial(.pairingRequired) == .ask(pinned: false))
-check("§7.4: unsaved, p=0: sill/1 with any Mac key", dial(.open) == .anyKey)
+check("§7.4: unsaved, p=0: skopry/1 with any Mac key", dial(.open) == .anyKey)
 check("§7.4: no p, DEBUG, not homeTLS: plain, as today", dial(.plain, debug: true) == .plain && dial(.plain, saved: true, debug: true) == .plain)
-check("§7.4: no p otherwise: nothing dialed (Release; homeTLS in DEBUG)", dial(.plain) == .updateSill && dial(.plain, saved: true, homeTLS: true, debug: true) == .updateSill)
+check("§7.4: no p otherwise: nothing dialed (Release; homeTLS in DEBUG)", dial(.plain) == .updateSkopry && dial(.plain, saved: true, homeTLS: true, debug: true) == .updateSkopry)
 check("§7.4: the automatic reconnect follows the table but never asks",
       dial(.pairingRequired, tap: false) == .waitForTap && dial(.pairingRequired, saved: true, revoked: true, tap: false) == .waitForTap
       && dial(.pairingRequired, saved: true, tap: false) == .pinned && dial(.open, tap: false) == .anyKey && dial(.plain, debug: true, tap: false) == .plain)
@@ -150,12 +150,12 @@ for d in doors { for bits in 0..<32 { for m in methods {
     switch w {
     case .notPaired, .pairsOverCable: ok = asks
     case .openDoor: ok = t == .anyKey
-    case .updateSill: ok = t == .updateSill
+    case .updateSkopry: ok = t == .updateSkopry
     case .method: ok = t == .pinned || t == .plain
     }
     agree += ok ? 1 : 0
 } } }
-check("the word says what a tap does in \(agree) of \(total) combinations (Not paired and Wired-to-pair ask, an open door's Not paired connects with any key, Update Sill dials nothing, a method connects pinned or, in DEBUG, plain)", agree == total)
+check("the word says what a tap does in \(agree) of \(total) combinations (Not paired and Wired-to-pair ask, an open door's Not paired connects with any key, Update Skopry dials nothing, a method connects pinned or, in DEBUG, plain)", agree == total)
 
 // MARK: Which saved Mac a row is (the security review, 2026-09-27)
 
@@ -180,8 +180,8 @@ func lookAlike(_ d: P.HomeDoor, homeTLS: Bool, debug: Bool) -> H {
 check("a look-alike on an open door (p=0): pinned to the saved key, not any key", lookAlike(.open, homeTLS: true, debug: false) == .pinned
       && lookAlike(.open, homeTLS: false, debug: true) == .pinned)
 check("a look-alike on a door that requires pairing: pinned (the reconnect's rule)", lookAlike(.pairingRequired, homeTLS: true, debug: false) == .pinned)
-check("a look-alike with no p, the saved Mac seen over TLS: nothing dialed (Update Sill), in DEBUG too",
-      lookAlike(.plain, homeTLS: true, debug: true) == .updateSill && lookAlike(.plain, homeTLS: true, debug: false) == .updateSill)
+check("a look-alike with no p, the saved Mac seen over TLS: nothing dialed (Update Skopry), in DEBUG too",
+      lookAlike(.plain, homeTLS: true, debug: true) == .updateSkopry && lookAlike(.plain, homeTLS: true, debug: false) == .updateSkopry)
 check("a look-alike's row reads as the saved Mac's does (a tap is the saved Mac's dial), and its word is not an open door's",
       P.rowWord(door: .open, saved: true, revoked: false, homeTLS: true, debug: false, method: .wifi, cable: false) == .method(.wifi))
 
@@ -265,7 +265,7 @@ func trustOracle(_ d: H, _ pin: Data?) -> T? {
     case .pinned: return pin.map { T.saved(pin: $0) }
     case .anyKey: return .open(seen: nil)
     case .plain: return .plain
-    case .ask, .updateSill, .waitForTap: return nil
+    case .ask, .updateSkopry, .waitForTap: return nil
     }
 }
 var st = 0, stOK = 0, tlsNeverPlain2 = true, releaseNeverPlain2 = true, asksNoSession = true
@@ -391,19 +391,19 @@ check("copy: Pairing with Mac mini…, …over the cable…", C.pairing(mac: min
       && C.pairing(mac: mini, cable: true) == "Pairing with Mac mini over the cable\u{2026}")
 check("copy: Paired with Mac mini over the cable.", C.pairedOverCable(mac: mini) == "Paired with Mac mini over the cable.")
 check("copy: Mac mini is showing a code. Point this iPad at it.", C.showing(mac: mini, device: "iPad") == "Mac mini is showing a code. Point this iPad at it.")
-check("copy: openOnMac", C.openOnMac(mac: mini) == "Mac mini didn\u{2019}t show a code. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap Mac mini again.")
+check("copy: openOnMac", C.openOnMac(mac: mini) == "Mac mini didn\u{2019}t show a code. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap Mac mini again.")
 check("copy: locked", C.locked(mac: mini) == "Unlock Mac mini, then tap it again.")
 check("copy: removed", C.removed(mac: mini, device: "iPad") == "Mac mini removed this iPad. Tap it to pair again."
       && C.removed(mac: mini, device: "iPhone") == "Mac mini removed this iPhone. Tap it to pair again.")
 check("copy: pairingRequired", C.pairingRequired(mac: mini, device: "iPad") == "Mac mini now asks devices to pair. Tap it to pair this iPad.")
-check("copy: the home card's errors", C.stopped(mac: mini) == "Mac mini stopped pairing after too many wrong codes. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap Mac mini again."
+check("copy: the home card's errors", C.stopped(mac: mini) == "Mac mini stopped pairing after too many wrong codes. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap Mac mini again."
       && C.expired(mac: mini) == "That code expired. Tap Mac mini for a new one."
-      && C.closed(mac: mini) == "That code no longer works. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap Mac mini again."
+      && C.closed(mac: mini) == "That code no longer works. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap Mac mini again."
       && C.proofFailed(mac: mini) == "Pairing didn\u{2019}t finish: Mac mini couldn\u{2019}t show it knows the code. Tap it to try again.")
 
 // A refused proof at home (the security review, 2026-09-27): kind 20's reason → the card's words.
 // After a stop, and after a code closed (the Mac's Cancel, or used by another device), the Mac keeps
-// this device quiet, so a tap alone gets no new code: the words send the person to the Sill menu
+// this device quiet, so a tap alone gets no new code: the words send the person to the Skopry menu
 // first. After an expiry a tap gets one (AskLimits: an expired window quiets nobody).
 typealias R = DiscoveryPolicy.HomeRefusal
 check("refusal: code → a wrong code, with the tries left (never below 0)", P.homeRefusal(reason: "code", triesLeft: 4) == .wrongCode(triesLeft: 4)
@@ -420,11 +420,11 @@ func refusalWords(_ r: R) -> String {
     case .closed: return C.closed(mac: mini)
     }
 }
-check("refusal: stopped and closed send the person to the Sill menu before a tap",
-      [R.stopped, .closed].allSatisfy { refusalWords($0).contains("choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap Mac mini again") })
+check("refusal: stopped and closed send the person to the Skopry menu before a tap",
+      [R.stopped, .closed].allSatisfy { refusalWords($0).contains("choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap Mac mini again") })
 check("refusal: expired, and only expired, says a tap alone gets a new code",
       refusalWords(.expired).hasSuffix("Tap Mac mini for a new one.") && ![R.stopped, .closed].contains { refusalWords($0).contains("for a new") })
-check("copy: no answer", C.noAnswer(mac: mini) == "Mac mini didn\u{2019}t answer. Check that Sill is open on it, then tap it again.")
+check("copy: no answer", C.noAnswer(mac: mini) == "Mac mini didn\u{2019}t answer. Check that Skopry is open on it, then tap it again.")
 
 // MARK: Step 5: the Settings panel's Away from home (§7.6) and the words of the home card and the
 // overlay at home (§7.7)
@@ -433,7 +433,7 @@ typealias Away = DiscoveryPolicy.AwayFromHome
 func away(saved: Bool = false, remote: Bool = false, remoteAccess: Bool = false, tls: Bool = false) -> Away {
     P.awayFromHome(saved: saved, remoteSession: remote, remoteAccess: remoteAccess, tlsAtHome: tls)
 }
-check("away: a saved Mac at home over TLS, Remote Access on: Paired, and how Sill reaches it from afar",
+check("away: a saved Mac at home over TLS, Remote Access on: Paired, and how Skopry reaches it from afar",
       away(saved: true, remoteAccess: true, tls: true) == .paired(.reaches))
 check("away: a saved Mac at home over TLS, Remote Access off: Paired, and how to turn Remote Access on",
       away(saved: true, remoteAccess: false, tls: true) == .paired(.turnOnRemoteAccess))
@@ -483,7 +483,7 @@ check("overlay: a code is said to show only when the Mac answered shown",
 check("overlay: \"Mac mini is showing a code now.\" for shown", P.overlayLine(.shown, mac: mini, device: "iPad") == "Mac mini is showing a code now.")
 check("overlay: no code by itself (openOnMac, refused, a second busy, an ok it does not take): the Mac's menu",
       [P.AskAnswer.openOnMac, .refused, .busy(2), .invalid, .pairedOverCable].allSatisfy {
-          P.overlayLine($0, mac: mini, device: "iPad") == "Mac mini didn\u{2019}t show a code by itself. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu."
+          P.overlayLine($0, mac: mini, device: "iPad") == "Mac mini didn\u{2019}t show a code by itself. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu."
       })
 check("overlay: locked: \"Unlock Mac mini, then choose Pair This iPad… again.\"",
       P.overlayLine(.locked, mac: mini, device: "iPad") == "Unlock Mac mini, then choose Pair This iPad\u{2026} again.")
@@ -507,8 +507,8 @@ for d in doors { for bits in 0..<16 {
     endsAll += 1
     if (end != nil) != (dial == .waitForTap) { endsExactlyWhenWaiting = false }
     if let end, end != (b(0) ? .removed : .pairingRequired) { endsExactlyWhenWaiting = false }
-    // A row the reconnect dials, or one too old (Update Sill, which it keeps looking past), never ends it.
-    if P.sessionTrust(dial, savedPin: Data([1])) != nil || dial == .updateSill, end != nil { endsExactlyWhenWaiting = false }
+    // A row the reconnect dials, or one too old (Update Skopry, which it keeps looking past), never ends it.
+    if P.sessionTrust(dial, savedPin: Data([1])) != nil || dial == .updateSkopry, end != nil { endsExactlyWhenWaiting = false }
 } }
 check("reconnectEnd: over all \(endsAll) reconnects, it ends exactly at a row that waits for a tap, with the words of why", endsExactlyWhenWaiting)
 check("reconnectEnd's words: the goodbye's own", C.pairingRequired(mac: mini, device: "iPad") == "Mac mini now asks devices to pair. Tap it to pair this iPad."
@@ -537,7 +537,7 @@ for t in [P.HomeTrust.plain, .saved(pin: kM), .saved(pin: kX), .open(seen: nil),
 }
 check("removed revokes at home exactly when the session is pinned to the saved Mac's key, over every trust", revokesAsPinned)
 
-// MARK: A Mac set up again with a new key (Noah, 2026-09-27: Sill for Mac 0.4.0 made the Mac a new
+// MARK: A Mac set up again with a new key (Noah, 2026-09-27: Skopry for Mac 0.4.0 made the Mac a new
 // key and recognition key; its row read the saved Mac's "Wi-Fi" by its name and a tap dialed the old
 // key for ever)
 
@@ -590,8 +590,8 @@ check("a Mac marked newKey: a tap asks with any key (its old key cannot answer),
       [false, true].allSatisfy { rev in [P.HomeDoor.pairingRequired, .open].allSatisfy {
           P.homeDial(door: $0, saved: true, revoked: rev, homeTLS: true, debug: false, tap: true, newKey: true) == .ask(pinned: false)
           && P.homeDial(door: $0, saved: true, revoked: rev, homeTLS: true, debug: true, tap: false, newKey: true) == .waitForTap } })
-check("a Mac marked newKey without p, seen over TLS: nothing dialed (Update Sill)",
-      P.homeDial(door: .plain, saved: true, revoked: false, homeTLS: true, debug: true, tap: true, newKey: true) == .updateSill)
+check("a Mac marked newKey without p, seen over TLS: nothing dialed (Update Skopry)",
+      P.homeDial(door: .plain, saved: true, revoked: false, homeTLS: true, debug: true, tap: true, newKey: true) == .updateSkopry)
 check("reconnectEnd: a Mac marked newKey ends the reconnect with its words",
       P.reconnectEnd(P.homeDial(door: .pairingRequired, saved: true, revoked: false, homeTLS: true, debug: false, tap: false, newKey: true), saved: true, newKey: true) == .newKey
       && C.newKey(mac: noah, device: "iPad") == "Noah’s MacBook Pro has a new key since this iPad paired. Tap it to pair again.")

@@ -2,7 +2,7 @@
 
 Branch `clipboard` from main at 985a733, worktree `/Users/noah/Downloads/winstream-clipboard`.
 Issue #64 asks for the clipboard both ways. The triage of 2026-10-13
-(`~/Downloads/sill-handoff/triage/2026-10-13-open-items.md`, Enhancements) recommends it next, text
+(`~/Downloads/skopry-handoff/triage/2026-10-13-open-items.md`, Enhancements) recommends it next, text
 first, with two decisions for Noah: whether it is on by default, and a switch on the Mac. The open
 pull request #66 (a Mac client) carries a clipboard of its own on kind 32 with the shape `{text,
 image}`; this change takes the same number and shape so that #66 can rebase onto it, and writes its
@@ -57,7 +57,7 @@ own code (#66's host sends password managers' copies and gives the Mac's owner n
 
 ### Rules (pure: `Sources/StreamProtocol/ClipboardPolicy.swift`, checked by `Tests/checks/clipboard`)
 
-One file for both ends, in StreamProtocol because both compile it (the host as SillHostCore's
+One file for both ends, in StreamProtocol because both compile it (the host as SkopryHostCore's
 dependency, the device through the local package).
 
 - **What a device's kind 32 means to the host** (`fromDevice`): `stop: true` stops; text (not
@@ -73,7 +73,7 @@ dependency, the device through the local package).
   Universal Clipboard (`com.apple.is-remote-clipboard`: reading it would fetch it from that device,
   and macOS shows that it is pasting from it, for every copy made there; those devices have it
   already); never what this host wrote itself (its change count, or its own marker
-  `me.saffer.sill.clipboard` naming its launch); only a change with text, not empty, at most 256 KB,
+  `app.skopry.clipboard` naming its launch); only a change with text, not empty, at most 256 KB,
   whose JSON fits. A marker's types are read before any data, so neither a password manager's text
   nor another device's is ever read.
 - **The rate** (`hostReceives`, after the review): what a device's message asks is decided first; a
@@ -95,19 +95,19 @@ dependency, the device through the local package).
 - **A Paste's receipt** (`receiptLength`, `receiptWait`, after the review): "Sent" only once a ping sent
   after the text comes back, its payload 16 random bytes; none within max(4 s, 4 × the worst round trip),
   "Didn’t reach ‹Mac›. Try Paste again." and the copy not dealt with.
-- **The chip's time** (`chipCounts`, after the review): its 20 s run only while it is on screen, Sill is
+- **The chip's time** (`chipCounts`, after the review): its 20 s run only while it is on screen, Skopry is
   active and VoiceOver is off.
 - **The chip** (`offersChip`): connected, the Mac says 1 or more, the switch on, the device's clipboard
-  has text (`hasStrings`), and its change count is not the one Sill last handled (sent, wrote from the
-  Mac, or dismissed). When Sill becomes active, or when a session's first list says 1 or more within
-  15 s after Sill became active (`looksAtSessionStart`: an app switch long enough for the Mac to evict
+  has text (`hasStrings`), and its change count is not the one Skopry last handled (sent, wrote from the
+  Mac, or dismissed). When Skopry becomes active, or when a session's first list says 1 or more within
+  15 s after Skopry became active (`looksAtSessionStart`: an app switch long enough for the Mac to evict
   the suspended device brings a reconnect first). Shown for 20 s at most (`chipLifetime`).
 - **The words** (`Copy`): the chip's title, subtitle and spoken label, the confirmation, the too-long
   line, the Settings group's switch, row and footnotes, and the host's two log lines.
 
-### Host (`Sources/SillHost/HostClipboard.swift`, main actor)
+### Host (`Sources/SkopryHost/HostClipboard.swift`, main actor)
 
-- **Setting.** `HostConfig.shareClipboard`, on in `standard`. Sill.app: Settings › General, "Share
+- **Setting.** `HostConfig.shareClipboard`, on in `standard`. Skopry.app: Settings › General, "Share
   clipboard with devices", saved as `shareClipboard` like the other settings (`HostSettings`), with a
   one-line footnote. The CLI: on, as the app; `--no-clipboard` turns it off for the run. The Mac's
   alone, like Remote Access: absent from `StreamSettings`, `HostSettingsChange`,
@@ -133,35 +133,35 @@ dependency, the device through the local package).
 - **macOS's paste privacy** (after the review). The look reads NSPasteboard.general only while
   `MacClipboard.access()` says macOS allows every read (`accessBehavior` `.alwaysAllow`, or a macOS
   before 15.4); otherwise it reads nothing, not even the change count, and when reads are allowed again
-  the count is taken as seen. One line when macOS's answer changes ("Clipboard: macOS asks before Sill
+  the count is taken as seen. One line when macOS's answer changes ("Clipboard: macOS asks before Skopry
   reads the clipboard, so what is copied on this Mac stays here. …"). A device's text is still written
   (the count from `prepareForNewContents`). Settings › General (`ClipboardSection`): under the switch,
   while macOS asks or denies, the reason, what to do and "Allow in System Settings…", which opens
   Privacy & Security › Paste from Other Apps (`Privacy_Pasteboard`); while macOS has not asked about
-  Sill yet, Sill is not listed there (NSPasteboard.h), so the button first makes one read on that click
+  Skopry yet, Skopry is not listed there (NSPasteboard.h), so the button first makes one read on that click
   (`MacClipboard.askOnce`, off the main thread, the text dropped) for macOS to ask. `PermissionsModel`
   reads the state with the permissions.
 - **Test hosts.** A synthetic host never reads or writes this Mac's clipboard, as it never reads the
-  real pointer: it uses a pasteboard of its own, `me.saffer.sill.test.<pid>`, or the one
-  `SILL_TEST_PASTEBOARD=<name>` names (TEST ONLY), said once at its first subscription.
-  `SILL_TEST_CLIPBOARD_LOG=1` (TEST ONLY) prints each decision with the text's size, never the text.
-  `SILL_TEST_CLIPBOARD_ACCESS` (TEST ONLY) gives its pasteboard macOS's answer: a word, or a file
+  real pointer: it uses a pasteboard of its own, `app.skopry.test.<pid>`, or the one
+  `SKOPRY_TEST_PASTEBOARD=<name>` names (TEST ONLY), said once at its first subscription.
+  `SKOPRY_TEST_CLIPBOARD_LOG=1` (TEST ONLY) prints each decision with the text's size, never the text.
+  `SKOPRY_TEST_CLIPBOARD_ACCESS` (TEST ONLY) gives its pasteboard macOS's answer: a word, or a file
   holding one, read at each look.
 
 ### Device
 
 - **Settings panel, This iPad group** (first, before the gestures): "Share Clipboard"
-  (`Sill.shareClipboard`, on by default, stored on the device), shown only while the Mac says 1 or
+  (`Skopry.shareClipboard`, on by default, stored on the device), shown only while the Mac says 1 or
   more; under it, while on, the row "Paste on ‹Mac›" with the system Paste button; a footnote.
 - **Mac to device.** A kind 32's text is written to `UIPasteboard.general` with `.localOnly` (Universal
   Clipboard does not carry it back to the Mac) and a 10-minute expiration; its change count becomes
   the handled one, so the chip never offers the Mac's own text back.
-- **Device to Mac.** Sill never reads the pasteboard by itself. The chip "Paste on ‹Mac›" (subtitle:
+- **Device to Mac.** Skopry never reads the pasteboard by itself. The chip "Paste on ‹Mac›" (subtitle:
   then press ⌘V there) with the system Paste button and a dismiss button appears near the bar: under
   the bar at the stream panel's top trailing corner sideways (its bottom corner while the link's line
   shows at the top), at the picture's bottom trailing corner, just above the window bar or row 1, held
   upright. It hides while the Settings panel, the Apps list, the pairing overlay, the tour, a
-  thumbnail's lights or the Aa ruler is open; its 20 s run only while it shows with Sill active, and
+  thumbnail's lights or the Aa ruler is open; its 20 s run only while it shows with Skopry active, and
   not at all under VoiceOver; VoiceOver is told when it first shows ("Paste on ‹Mac› is available,
   near the bar.").
   A tap on Paste sends the text as kind 32, then a ping with a random 16-byte payload through the same
@@ -171,10 +171,10 @@ dependency, the device through the local package).
   ("Too long to send…"). The same Paste is in the Settings group whenever it shows.
 - **Subscription.** An empty kind 32 at the session's first window list that says 1 or more (and on a
   move's new connection), with the switch on; `{"stop": true}` when the switch goes off.
-- `-SillClipboardChip 1` and `-SillClipboardNote sent|long|notsent` (DEBUG) put the chip and the note
+- `-SkopryClipboardChip 1` and `-SkopryClipboardNote sent|long|notsent` (DEBUG) put the chip and the note
   on the harness's mock; the mock Mac says `clipboard` 1 in every settings case but `legacy`.
-  `-SillSettingsScript '<t> paste TEXT'` sends TEXT as the Paste control hands it over, and
-  `-SillSettingsCloseAt <s>` closes the panel `-SillSettings 1` opened (live, DEBUG).
+  `-SkoprySettingsScript '<t> paste TEXT'` sends TEXT as the Paste control hands it over, and
+  `-SkoprySettingsCloseAt <s>` closes the panel `-SkoprySettings 1` opened (live, DEBUG).
 
 ## Open questions, with the default taken
 
@@ -192,7 +192,7 @@ dependency, the device through the local package).
 4. **Which markers.** The two the task names, plus the three older ones clipboard managers skip.
 5. **⌘V.** Not sent for the person: the text goes to the Mac's clipboard and they paste where they
    want (a paste sent with it could land in the wrong window).
-6. **Universal Clipboard.** Both of Sill's writes are local (`.currentHostOnly`, `.localOnly`), so neither
+6. **Universal Clipboard.** Both of Skopry's writes are local (`.currentHostOnly`, `.localOnly`), so neither
    bounces. What reaches the Mac through Universal Clipboard is not sent on (found while building:
    reading it would fetch it from the other device for every copy made there). A Mac copy that also
    reaches the iPad through Universal Clipboard can bring the chip once (the device cannot read its
@@ -200,17 +200,17 @@ dependency, the device through the local package).
 7. **Text over 256 KB.** A Mac copy stays on the Mac, silently (one TEST ONLY line); the device says
    "too long" when Paste is tapped.
 8. **The chip's lifetime.** 20 s, the dismiss button or a tap; each counts as handled for that change
-   count, which is kept across launches (`Sill.clipboardHandled`), so a relaunch does not offer old
+   count, which is kept across launches (`Skopry.clipboardHandled`), so a relaunch does not offer old
    text again.
-9. **Split View and windows beside Sill.** Copying in an app beside Sill does not make Sill become
-   active, so the chip waits for Sill's next activation; the Settings group's Paste works any time.
+9. **Split View and windows beside Skopry.** Copying in an app beside Skopry does not make Skopry become
+   active, so the chip waits for Skopry's next activation; the Settings group's Paste works any time.
 10. **Who can subscribe.** Any device the doors admit: the devices that can already see the Mac's
-    screen and type on it. With Require pairing off that is anyone on the network with Sill; the
+    screen and type on it. With Require pairing off that is anyone on the network with Skopry; the
     privacy page already says so for the screen.
 11. **Rich text, images, files.** Text only (generation 1). Rich text copies send their plain text.
 12. **macOS's paste privacy** (after the review). The default: read only while macOS allows every read,
     never in the background while it asks (its alert at every copy) or denies; Settings › General says
-    why and opens Paste from Other Apps, asking once first while macOS has not asked about Sill. The
+    why and opens Paste from Other Apps, asking once first while macOS has not asked about Skopry. The
     device is not told (no wire change): its footnote still says the Mac's copies are ready while the
     Mac keeps them. A later field in the window list could say so.
 13. **The receipt** (after the review). A ping after the text, no wire change and no answer from the
@@ -233,14 +233,14 @@ dependency, the device through the local package).
   a generic device (`CODE_SIGNING_ALLOWED=NO`): only the known warnings.
 - **H2** The CLI against origin/main, both from `git archive`, `--synthetic`, idle 35 s and a client
   picking the Desktop, masked and sorted: identical; a client that never subscribes adds no line.
-- **H3** Live on loopback (`SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1`,
-  `SILL_TEST_PASTEBOARD`, a scratch probe writing and reading that pasteboard): a subscriber gets a
+- **H3** Live on loopback (`SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1`,
+  `SKOPRY_TEST_PASTEBOARD`, a scratch probe writing and reading that pasteboard): a subscriber gets a
   copy; a concealed one and a transient one are not sent; `--copy` sets the host's pasteboard (read
   back) and is not echoed; two clients each get the other's copy; `--no-clipboard`: no `clipboard` in
   the list, a subscription and a copy ignored; `stop`; the rate cap; oversize text.
 - **S1** A private simulator against the same host: photos of the This iPad group (on, off, with the
   note) and of the chip in each layout; the device's switch; the Mac's text arriving (`simctl pbpaste`);
-  the chip after a copy in the simulator (`simctl pbcopy`, then Sill leaving and coming back); Paste on
+  the chip after a copy in the simulator (`simctl pbcopy`, then Skopry leaving and coming back); Paste on
   the Mac through the chip by a real tap, the host's pasteboard read back; VoiceOver's labels.
 
 ## Results
@@ -279,7 +279,7 @@ What differs from the plan above, each found while building or testing:
   one after the other differed by one 30 s heartbeat, which timing gives either); a client picking
   the Desktop for 15 s that never subscribes: every line identical in order but the `[1s]` stats lines,
   whose counters vary between runs of either build, and no line about the clipboard.
-- **H3** live on loopback (`SILL_TEST_PASTEBOARD`, a probe writing and reading that pasteboard with
+- **H3** live on loopback (`SKOPRY_TEST_PASTEBOARD`, a probe writing and reading that pasteboard with
   `NSPasteboard(name:)`), against the final build (and the slow-copy probe above): a subscriber gets a Mac copy, and not what was on the
   clipboard before it subscribed; a ConcealedType, TransientType, AutoGeneratedType, 1Password and old
   transient copy, an image, 300 KB, empty text and a Universal Clipboard copy are none sent
@@ -291,19 +291,19 @@ What differs from the plan above, each found while building or testing:
   `clip.recv` 4 and `clip.sent` 5 in all, as sent. `--no-clipboard`: no `clipboard` in the list, a
   subscription and a copy ignored, the pasteboard unchanged, no line. The bare app (a renamed copy,
   so its defaults domain was its own, deleted after; `-requirePairing NO`, a TLS client with `--pin=none`):
-  `-SillSetAfter '5 shareClipboard=0; 9 shareClipboard=1'` gave "Settings: share clipboard on → off"
+  `-SkoprySetAfter '5 shareClipboard=0; 9 shareClipboard=1'` gave "Settings: share clipboard on → off"
   and "off → on", the list without and with `clipboard`, the copy made while off never looked at, a
   new subscription and a copy after, and `shareClipboard` saved.
 - **S1** a private iPad Pro 13-inch simulator (iOS 27.0; 27.1 has no iPad), deleted after. Run again
   against the final host: the Mac's text on the device, the chip, Paste through XCUITest's tap. Harness photos
   of the chip sideways, upright, on the cover both ways, in the book and laptop poses, beside the link's
-  line, at accessibility XL, in the phone's arrangement (`-SillIdiom phone`), the notes, and the
+  line, at accessibility XL, in the phone's arrangement (`-SkopryIdiom phone`), the notes, and the
   Settings group on, off, with the note, legacy and at accessibility XL; seven screens that should not
   change (sideways, upright, the cover both ways, the drawer, the Settings panel's top, the legacy
-  group) pixel for pixel main's build. Live against the synthetic host (`-SillConnect`,
-  `-SillNoAutoDesktop 1`, nothing streamed): "Clipboard: Sill clipboard iPad (iPad17,4 simulator)
+  group) pixel for pixel main's build. Live against the synthetic host (`-SkopryConnect`,
+  `-SkopryNoAutoDesktop 1`, nothing streamed): "Clipboard: Skopry clipboard iPad (iPad17,4 simulator)
   shares the clipboard."; a Mac copy read back on the device (`simctl pbpaste`: "Mac copy for the iPad
-  ✓"); a copy on the device (`simctl pbcopy`), Sill sent home and back by XCUITest (a scratch UI test
+  ✓"); a copy on the device (`simctl pbcopy`), Skopry sent home and back by XCUITest (a scratch UI test
   project): "the chip"; XCUITest's real tap on the chip's Paste (UIPasteControl) set the host's
   pasteboard to the 41-byte text with the marker, and the note "Sent to …"; Dismiss, then home and
   back: no chip for that copy; the device's switch off from the panel by XCUITest: "stopped sharing",
@@ -312,9 +312,9 @@ What differs from the plan above, each found while building or testing:
   the text you copied on this iPad to ‹Mac›’s clipboard. Then press Command-V there."), the
   system's button "Paste", "Dismiss", the switch "Share Clipboard". Two findings there, fixed: the
   harness's mock offered the chip from the simulator's own clipboard (now only by
-  `-SillClipboardChip 1`), and the chip's words lacked the static text trait. `simctl pbcopy` reads
-  stdin as Mac Roman without a UTF-8 locale (a ✓ became "‚úì" before Sill saw it): the tool's, not
-  Sill's.
+  `-SkopryClipboardChip 1`), and the chip's words lacked the static text trait. `simctl pbcopy` reads
+  stdin as Mac Roman without a UTF-8 locale (a ✓ became "‚úì" before Skopry saw it): the tool's, not
+  Skopry's.
 - This Mac's own clipboard was never read or written: every test used named pasteboards, the
   simulator's pasteboard (no Simulator.app running, so nothing synced), and a read of
   `NSPasteboard.general.changeCount` alone before and after (317 throughout).
@@ -334,7 +334,7 @@ against the code first, and all eight were taken, one commit per theme:
    fourth, one ignored line), and a stop right after them is taken. Check: the sequence, the rate's
    edges and model 1b (5,000 quick sessions through `hostReceives`: never subscribed at the host while
    the device's switch is off); five mutants, the review's ordering among them.
-2. **macOS's paste privacy (should-fix; 210ba4b).** Sill.app read NSPasteboard.general at every copy
+2. **macOS's paste privacy (should-fix; 210ba4b).** Skopry.app read NSPasteboard.general at every copy
    and never looked at `accessBehavior`; NSPasteboard.h (the macOS 27 SDK) says the general pasteboard
    asks at each programmatic read by default once that is on (`.default`, then `.ask`), lists an app
    in Privacy & Security › Paste from Other Apps only after its first alert, and returns nothing while
@@ -342,10 +342,10 @@ against the code first, and all eight were taken, one commit per theme:
    15.4 there is no such setting), reads nothing otherwise, and takes the count as seen when reads come
    back (`accessStep`); one line when the answer changes (`accessLine`). Settings › General's
    `ClipboardSection`: an orange line, what to do, and "Allow in System Settings…", which opens
-   `Privacy_Pasteboard` and, while macOS has not asked about Sill, first makes one read on that click
+   `Privacy_Pasteboard` and, while macOS has not asked about Skopry, first makes one read on that click
    so that macOS asks and lists it. On this Mac (macOS 27.0.1) apps read `.alwaysAllow` (the review read
    2 from an ad hoc app), so nothing changes today. Live on loopback with TEST ONLY
-   `SILL_TEST_CLIPBOARD_ACCESS` read from a file: denied, then asks, then allowed, then not asked, each
+   `SKOPRY_TEST_CLIPBOARD_ACCESS` read from a file: denied, then asks, then allowed, then not asked, each
    with its line; the copies made while denied and while asked never went, the one made after reads came
    back went at 9.03 s, and a device's text was written while not asked. Previews of the section in
    each state (`pane-clipboard-*`). Check: the mapping, the steps, the lines, the words, and model 2
@@ -355,29 +355,29 @@ against the code first, and all eight were taken, one commit per theme:
    (`"accepts":2`, say). #66's host sends an image to every subscriber; it follows this as it rebases.
 4. **"Sent" before the Mac had it (768f207).** A Paste said "Sent to ‹Mac›’s clipboard" and counted the
    copy as dealt with as it handed kind 32 over, while the connection could be dead without its end read
-   (Sill back from another app after the Mac evicted it, a network change, a Mac asleep). Now a ping
+   (Skopry back from another app after the Mac evicted it, a network change, a Mac asleep). Now a ping
    with 16 random bytes follows the text through the same door; its pong is the receipt ("Sent…", the
    haptic, the copy dealt with); none in max(4 s, 4 × the worst round trip) gives "Didn’t reach ‹Mac›.
    Try Paste again." and the chip again; a late receipt still counts. No wire change. Live on the
-   simulator: a Paste (`-SillSettingsScript '3 paste …'`) to the test host gave "its receipt awaited for
+   simulator: a Paste (`-SkoprySettingsScript '3 paste …'`) to the test host gave "its receipt awaited for
    4.0 s", then "the Mac has read it", and the host's pasteboard held the 32 bytes with the launch's
-   marker; through `sillrelay.py --blackhole-after 3`, a Paste at 3 s gave "no receipt in time: did not
+   marker; through `skopryrelay.py --blackhole-after 3`, a Paste at 3 s gave "no receipt in time: did not
    reach the Mac" and the chip again, and the host got nothing. Check: the length (never a ping's 8) and
    the wait; three mutants.
 5. **The chip unannounced, and running out unseen (2eb0fb2, a371cb6).** Its 20 s ran under the Settings
    panel, the Apps list, the tour (on a fresh install the tour covers the first session's chip a second
    in), a thumbnail's lights or the Aa ruler, and for someone using VoiceOver, and then counted the copy
-   as dealt with. Now `chipCounts`: only while it shows, Sill active and VoiceOver off; VoiceOver is
+   as dealt with. Now `chipCounts`: only while it shows, Skopry active and VoiceOver off; VoiceOver is
    told when it first shows ("Paste on ‹Mac› is available, near the bar."). Live on the simulator: the
    chip offered, the Settings panel over it 1.5 s in ("waits, 18.3 s left"), the panel closed at 12 s
-   ("runs, 18.3 s left"), then "time is up"; Sill sent to Settings.app 6 s in ("waits, 14.6 s left") and
-   back at 14 s ("runs, 14.6 s left"), then "time is up"; with `-SillVoiceOver 1` it stayed 30 s. Check:
+   ("runs, 18.3 s left"), then "time is up"; Skopry sent to Settings.app 6 s in ("waits, 14.6 s left") and
+   back at 14 s ("runs, 14.6 s left"), then "time is up"; with `-SkopryVoiceOver 1` it stayed 30 s. Check:
    the rule's eight cases; three mutants. A session that ends with the chip showing now forgets that it
    showed (a371cb6).
 6. **On by default replaces the device's clipboard (documented).** Noah's call: open question 1 says
    what it does to people who never use the feature, and Untested has the steps.
 7. **Copy (d5b22a7).** Settings › General's footnote now says only copies a password manager marks as
-   concealed stay, and that a device's text comes with Paste; support.html and privacy.html say "Sill
+   concealed stay, and that a device's text comes with Paste; support.html and privacy.html say "Skopry
    never reads your iPhone or iPad’s (device’s) clipboard by itself". A mutant puts the old words back.
 8. **The site's words before the release (f8355aa).** Kept with this pull request, as #79's and #75's
    are, inside `<!-- Clipboard: … -->` blocks (support.html's section, privacy.html's three items), and
@@ -400,48 +400,48 @@ Verified after the fixes (the code at a371cb6):
 - Harness photos on a private iPad Pro 13-inch (iOS 27.0, deleted after): the chip sideways and upright,
   a Paste's note, the Settings group and the stream: byte for byte the reviewed build's (7e6468a); the
   new note, "Didn’t reach Mac mini. Try Paste again.", sideways and upright.
-- Sill.app's previews from the final bare binary against the reviewed build's: 130 files byte for byte
+- Skopry.app's previews from the final bare binary against the reviewed build's: 130 files byte for byte
   but the General pane (its footnote), and 10 new (the clipboard section in each of macOS's answers, and
-  with the switch off). Copies are in `~/Downloads/sill-handoff/clipboard/photos/review/`.
+  with the switch off). Copies are in `~/Downloads/skopry-handoff/clipboard/photos/review/`.
 - Not rerun: the XCUITest tap on the system Paste control (the receipt was driven through
   `sendClipboard`, the code the control's tap reaches), the bare app's switch, the phone's arrangement
   and the Duo's poses (no layout changed). macOS's alert itself: nothing here reads the real clipboard.
 
 ## Untested, for Noah
 
-On the iPad mini and the iPhone 15 Pro with this branch's builds and this Sill.app:
+On the iPad mini and the iPhone 15 Pro with this branch's builds and this Skopry.app:
 1. At home: copy a sentence in TextEdit; it pastes in Notes on the iPad. Copy in Notes, switch back to
-   Sill: the chip "Paste on ‹Mac›" (above the window bar upright, under the bar sideways); tap
-   Paste, then ⌘V in TextEdit. Sill.log has "Clipboard: iPad (…) shares the clipboard." and no line
+   Skopry: the chip "Paste on ‹Mac›" (above the window bar upright, under the bar sideways); tap
+   Paste, then ⌘V in TextEdit. Skopry.log has "Clipboard: iPad (…) shares the clipboard." and no line
    per copy.
 2. Through Tailscale, away: the same.
 3. A password copied in 1Password, and one in Apple's Passwords app, never reaches the iPad (and
-   nothing in Sill.log); if the Passwords app's copy arrives, it does not mark it concealed: say so.
+   nothing in Skopry.log); if the Passwords app's copy arrives, it does not mark it concealed: say so.
 4. Universal Clipboard (the same Apple Account, Handoff on): copy on the Mac: the iPad has it, and the
-   chip may come once offering it back (known); copy on the iPhone: Sill does not pass it on.
+   chip may come once offering it back (known); copy on the iPhone: Skopry does not pass it on.
 5. Settings › General's switch while the iPad streams: the This iPad group loses its rows, copies stop;
    on again, they come back.
 6. VoiceOver on the iPad: when the chip shows, "Paste on ‹Mac› is available, near the bar."; the chip's
    words, Paste with its hint, Dismiss; it stays until Paste or Dismiss; "Sent to ‹Mac›’s clipboard"
    spoken once the Mac has it.
-7. Split View or a window beside Sill: a copy there brings no chip until Sill becomes active again
+7. Split View or a window beside Skopry: a copy there brings no chip until Skopry becomes active again
    (known); the Settings group's Paste works any time.
 8. On the iPhone: the chip above row 1, the success haptic once the Mac has the text.
-9. macOS's paste alert (the review's finding 2), with this Sill.app: `defaults write me.saffer.sill.mac
-   EnablePasteboardPrivacyDeveloperPreview -bool yes`, Quit Sill from its menu and open it again, connect
-   the iPad. Settings › General shows "macOS asks before Sill reads the clipboard, so what you copy here
-   stays on this Mac." under the switch; copy in TextEdit: no alert, nothing arrives, and Sill.log has
+9. macOS's paste alert (the review's finding 2), with this Skopry.app: `defaults write app.skopry.mac
+   EnablePasteboardPrivacyDeveloperPreview -bool yes`, Quit Skopry from its menu and open it again, connect
+   the iPad. Settings › General shows "macOS asks before Skopry reads the clipboard, so what you copy here
+   stays on this Mac." under the switch; copy in TextEdit: no alert, nothing arrives, and Skopry.log has
    the line once. Click Allow in System Settings…: macOS's alert (note its words and buttons), then
-   Privacy & Security › Paste from Other Apps with Sill listed; set Allow: the orange line goes (within a
-   second while Settings shows), a copy in TextEdit arrives on the iPad, and Sill.log says "macOS lets Sill
-   read the clipboard again". Set Deny: "macOS doesn’t let Sill read the clipboard…", copies stay, and a
-   Paste from the iPad still sets the Mac's clipboard. Then `defaults delete me.saffer.sill.mac
-   EnablePasteboardPrivacyDeveloperPreview` and open Sill again.
-10. The receipt (finding 4): copy in Notes, stay away from Sill about 10 s (the Mac lets the suspended
+   Privacy & Security › Paste from Other Apps with Skopry listed; set Allow: the orange line goes (within a
+   second while Settings shows), a copy in TextEdit arrives on the iPad, and Skopry.log says "macOS lets Skopry
+   read the clipboard again". Set Deny: "macOS doesn’t let Skopry read the clipboard…", copies stay, and a
+   Paste from the iPad still sets the Mac's clipboard. Then `defaults delete app.skopry.mac
+   EnablePasteboardPrivacyDeveloperPreview` and open Skopry again.
+10. The receipt (finding 4): copy in Notes, stay away from Skopry about 10 s (the Mac lets the suspended
     iPad go after 4 s), come back and tap Paste on the chip at once: either "Sent to ‹Mac›’s clipboard"
     and ⌘V on the Mac pastes it, or "Didn’t reach ‹Mac›. Try Paste again." and the chip comes back once
     the session is up again; never "Sent" while ⌘V pastes something else.
-11. On by default (finding 6, open question 1): copy a photo on the iPad, then with Sill connected copy
+11. On by default (finding 6, open question 1): copy a photo on the iPad, then with Skopry connected copy
     text on the Mac: the photo is gone from the iPad's clipboard; 10 minutes later the iPad's clipboard
     is empty. Say whether either should change.
 

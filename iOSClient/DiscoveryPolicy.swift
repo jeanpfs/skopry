@@ -45,9 +45,9 @@ enum DiscoveryPolicy {
     /// After the Mac said it quit (goodbye `quit`), a row listed since before the goodbye is left
     /// alone for this long (`reconnectRow`): it is the registration that is going. A receiver keeps
     /// a record about 1 s past its goodbye packet (RFC 6762 §10.1), so the row outlives the
-    /// connection, which closes at once (a stand-in for Sill.app's Quit, browsed on the Mac itself:
+    /// connection, which closes at once (a stand-in for Skopry.app's Quit, browsed on the Mac itself:
     /// the row went 1.05–1.22 s after the connection ended, 11 of 11). After this long such a row
-    /// counts as usual: a Sill relaunched within that second renews the record, so its row never
+    /// counts as usual: a Skopry relaunched within that second renews the record, so its row never
     /// leaves, and a goodbye packet can be lost.
     static let quitWait = 3.0
     /// A session over AWDL moves to the network once the network has listed the same Mac this long
@@ -167,7 +167,7 @@ enum DiscoveryPolicy {
     /// row (`rows`), so a network row is never Direct, whatever the nearby browser sees (its tap
     /// connects without peer-to-peer), and the nearby browser only ever makes Direct rows. The
     /// word names the kind of link, never the Wi-Fi network: reading the network's name (SSID)
-    /// needs the Access Wi-Fi Information entitlement and Location access, and Sill asks for
+    /// needs the Access Wi-Fi Information entitlement and Location access, and Skopry asks for
     /// neither.
     static func method(direct: Bool, interfaces: [Interface]) -> Method? {
         if direct { return .direct }
@@ -305,8 +305,8 @@ enum DiscoveryPolicy {
     /// After a goodbye `quit` (`quitAt`, the moment the session ended), a row listed since then or
     /// before (`networkSince`, `directSince`) is the Mac's old registration, which outlives the
     /// goodbye by about a second: it is not taken until `quitWait` has passed, so the words "‹Mac›
-    /// quit Sill…" stay instead of a dial to a Mac that is going. A row listed again since the quit
-    /// (Sill is back) is taken by the rules above.
+    /// quit Skopry…" stay instead of a dial to a Mac that is going. A row listed again since the quit
+    /// (Skopry is back) is taken by the rules above.
     static func reconnectRow<Row>(network: Row?, networkSince: Double? = nil, direct: Row?, directSince: Double?, networkLeftAt: Double?,
                                   quitAt: Double? = nil, now: Double) -> (take: Row?, recheckAt: Double?) {
         if let quitAt, now < quitAt + quitWait {
@@ -366,7 +366,7 @@ enum DiscoveryPolicy {
         /// The moves home started to each row while it stays listed.
         var tries: [String: Int] = [:]
         /// The rows found not to be this session's Mac: another key at the pin (-9808), another launch
-        /// of Sill, a kind 18 not the Mac's or older than the session's, a goodbye. Never dialed again
+        /// of Skopry, a kind 18 not the Mac's or older than the session's, a goodbye. Never dialed again
         /// while listed.
         var refused: Set<String> = []
 
@@ -419,10 +419,10 @@ enum DiscoveryPolicy {
     }
 
     /// How the move home dials the saved Mac's network row (since pairing at home,
-    /// docs/home-pairing-plan.md §7.2): TLS `sill/1` pinned to the saved Mac's key, the key the
+    /// docs/home-pairing-plan.md §7.2): TLS `skopry/1` pinned to the saved Mac's key, the key the
     /// session through the remote door is pinned to, and the trust a tap's dial of that row takes
     /// (`homeDial`'s `.pinned`). Nil, and no move, for a row a tap would not dial pinned: a plain
-    /// door (an older Sill, the CLI without --pairing: never a plain dial, which a Release build never
+    /// door (an older Skopry, the CLI without --pairing: never a plain dial, which a Release build never
     /// makes and a session over TLS never steps down to, DEBUG or not), a Mac that removed this device
     /// (`revoked`), or one to pair with again (`newKey`); or no pin. The session then stays remote.
     static func moveHomeTrust(door: HomeDoor, revoked: Bool, newKey: Bool, savedPin: Data?) -> HomeTrust? {
@@ -564,7 +564,7 @@ enum DiscoveryPolicy {
         var lastUp: Double?
         var lastDown: Double?
         /// The listing of the cable (its `wiredSince`) a move up found to reach another Mac, or
-        /// another launch of Sill: not tried again while it lasts, as `moveToNetwork`'s
+        /// another launch of Skopry: not tried again while it lasts, as `moveToNetwork`'s
         /// `refusedListing`. A new listing (the cable out and in again) is tried afresh.
         var refusedCable: Double? = nil
         /// Moves up to the listing of the cable now listed that did not complete, in a row (`upWait`).
@@ -591,7 +591,7 @@ enum DiscoveryPolicy {
             case .cableSettling: return "the cable appeared; waiting for it to settle"
             case .upTooSoon: return "the cable is up, but the last move to it was under 5 s ago"
             case .cableFailing: return "the cable is up, but the last move to it did not complete; the next waits longer"
-            case .cableRefused: return "the cable reaches another Mac, or another launch of Sill; not tried again until it is plugged in again"
+            case .cableRefused: return "the cable reaches another Mac, or another launch of Skopry; not tried again until it is plugged in again"
             case .noWifi: return "the cable went away, and the Mac is not on Wi\u{2011}Fi"
             case .downTooSoon: return "the cable went away, but the last move to Wi\u{2011}Fi was under 5 s ago"
             case .lost: return "Wi\u{2011}Fi's path is gone, and there is no cable"
@@ -752,7 +752,7 @@ enum DiscoveryPolicy {
     static func reconnectLine(mac: String, failed: Int, direct: Bool) -> String {
         if failed >= reconnectDials { return "Stopped trying to reach \(mac). Tap it to try again." }
         if failed >= reconnectQuietAfter {
-            return "\(mac) isn\u{2019}t answering. It may be asleep. Sill keeps trying, or tap it to try now."
+            return "\(mac) isn\u{2019}t answering. It may be asleep. Skopry keeps trying, or tap it to try now."
         }
         return direct ? "Reconnecting to \(mac) directly\u{2026}" : "Reconnecting to \(mac)\u{2026}"
     }
@@ -865,7 +865,7 @@ enum DiscoveryPolicy {
     /// is not listed, cannot be tapped until the saved one is forgotten.
     ///
     /// A row whose tag names no saved Mac is not one, by its name or otherwise (Noah, 2026-09-27:
-    /// Sill for Mac 0.4.0 made the Mac a new key and a new recognition key, its row read the saved
+    /// Skopry for Mac 0.4.0 made the Mac a new key and a new recognition key, its row read the saved
     /// Mac's "Wi‑Fi", and a tap dialed the old key for ever). It is a Mac this device has not
     /// paired with (a Mac set up again, whose tag no saved record resolves), and a tap asks
     /// (`rowDoor`).
@@ -917,9 +917,9 @@ enum DiscoveryPolicy {
         /// The same over the USB cable: a tap asks, and the Mac pairs this device by itself. Its
         /// word is "Wired".
         case pairsOverCable
-        /// No `p`: the Mac's Sill is from before pairing at home, and this build (a Release one, or
+        /// No `p`: the Mac's Skopry is from before pairing at home, and this build (a Release one, or
         /// one that has seen that Mac over TLS) dials no plain door. Nothing is dialed.
-        case updateSill
+        case updateSkopry
 
         /// The word at the end of the row.
         var word: String? {
@@ -927,7 +927,7 @@ enum DiscoveryPolicy {
             case .method(let m): return m?.word
             case .notPaired, .openDoor: return "Not paired"
             case .pairsOverCable: return Method.wired.word
-            case .updateSill: return "Update Sill"
+            case .updateSkopry: return "Update Skopry"
             }
         }
 
@@ -945,7 +945,7 @@ enum DiscoveryPolicy {
             case .notPaired: return "Pairs with a code \(name) shows, then connects."
             case .openDoor: return "Connects without pairing: \(name) lets any device in."
             case .pairsOverCable: return "Pairs over the USB cable, then connects."
-            case .updateSill: return "\(name)\u{2019}s Sill is too old for this \(device)."
+            case .updateSkopry: return "\(name)\u{2019}s Skopry is too old for this \(device)."
             }
         }
     }
@@ -962,7 +962,7 @@ enum DiscoveryPolicy {
         switch door {
         case .plain:
             // No downgrade: once a Mac was seen over TLS, a row of it without `p` is not dialed.
-            return debug && !homeTLS ? .method(method) : .updateSill
+            return debug && !homeTLS ? .method(method) : .updateSkopry
         case .pairingRequired, .open:
             if saved && !revoked && !newKey { return .method(method) }
             if !saved && door == .open { return .openDoor }
@@ -972,18 +972,18 @@ enum DiscoveryPolicy {
 
     /// What a connection to a Mac at home is (§7.4).
     enum HomeDial: Equatable {
-        /// `sill/1`, pinned to the saved Mac's key; connected at its first window list.
+        /// `skopry/1`, pinned to the saved Mac's key; connected at its first window list.
         case pinned
-        /// `sill/1` taking any Mac key: an unsaved Mac on an open door (`p=0`). Nothing is saved.
+        /// `skopry/1` taking any Mac key: an unsaved Mac on an open door (`p=0`). Nothing is saved.
         case anyKey
-        /// The ask (`sill-pair/1`, kind 19 "ask"): pinned to the saved key for a saved Mac that
+        /// The ask (`skopry-pair/1`, kind 19 "ask"): pinned to the saved key for a saved Mac that
         /// removed this device (only its trust in this device changed, so no look-alike can answer
         /// and a typed code goes only to the real Mac), else taking any key and remembering it.
         case ask(pinned: Bool)
         /// Plain TCP, as before pairing at home: a DEBUG build, a Mac never seen over TLS.
         case plain
-        /// Nothing dialed: the Mac's Sill is too old for this build (`updateSillStatus`).
-        case updateSill
+        /// Nothing dialed: the Mac's Skopry is too old for this build (`updateSkopryStatus`).
+        case updateSkopry
         /// Nothing dialed: an automatic reconnect never asks; an ask is a tap's.
         case waitForTap
     }
@@ -996,7 +996,7 @@ enum DiscoveryPolicy {
                          newKey: Bool = false) -> HomeDial {
         switch door {
         case .plain:
-            return debug && !homeTLS ? .plain : .updateSill
+            return debug && !homeTLS ? .plain : .updateSkopry
         case .pairingRequired, .open:
             if saved && newKey { return tap ? .ask(pinned: false) : .waitForTap }
             if saved { return revoked ? (tap ? .ask(pinned: true) : .waitForTap) : .pinned }
@@ -1007,7 +1007,7 @@ enum DiscoveryPolicy {
 
     /// How the automatic reconnect ends at a row that waits for a tap (§7.6): it never asks, so an
     /// unsaved Mac whose door requires pairing (Require pairing turned on while this device was away
-    /// or its end came without a goodbye, or a Mac whose Sill now pairs at home) and a saved one that
+    /// or its end came without a goodbye, or a Mac whose Skopry now pairs at home) and a saved one that
     /// removed this device would otherwise wait for a tap for ever under "…reconnects when it's
     /// back" (the security review, 2026-09-27). The reconnect ends there with the words the goodbye
     /// would have brought.
@@ -1027,9 +1027,9 @@ enum DiscoveryPolicy {
         return saved ? (newKey ? .newKey : .removed) : .pairingRequired
     }
 
-    /// The status line after a tap that dialed nothing because the Mac's Sill is too old.
-    static func updateSillStatus(mac: String) -> String {
-        "\(mac) runs an older Sill. Update Sill on the Mac to connect."
+    /// The status line after a tap that dialed nothing because the Mac's Skopry is too old.
+    static func updateSkopryStatus(mac: String) -> String {
+        "\(mac) runs an older Skopry. Update Skopry on the Mac to connect."
     }
 
     /// Whether this device's connection runs over the USB cable to the Mac, as this device sees it
@@ -1121,7 +1121,7 @@ enum DiscoveryPolicy {
     enum HomeTrust: Equatable {
         /// A plain door (`homeDial`'s `.plain`: a DEBUG build, a Mac never seen with `p`): no TLS.
         case plain
-        /// A saved Mac: every connection `sill/1`, pinned to its key.
+        /// A saved Mac: every connection `skopry/1`, pinned to its key.
         case saved(pin: Data)
         /// An unsaved Mac on an open door (`p=0`): the session's first connection takes any key,
         /// and every later one pins the key that one saw (`seen`).
@@ -1160,7 +1160,7 @@ enum DiscoveryPolicy {
         case .pinned: return savedPin.map { .saved(pin: $0) }
         case .anyKey: return .open(seen: nil)
         case .plain: return .plain
-        case .ask, .updateSill, .waitForTap: return nil
+        case .ask, .updateSkopry, .waitForTap: return nil
         }
     }
 
@@ -1287,7 +1287,7 @@ enum DiscoveryPolicy {
     /// What the home card says for a proof the Mac refused (kind 20's `reason`, §7.7). The words
     /// follow what the Mac does next (AskLimits, PairingWindow.closedReason): a window the Mac's
     /// user cancelled, or one five wrong codes stopped, keeps this device quiet for 10 minutes, so a
-    /// tap alone would get no new code, and those words send the person to the Sill menu on the Mac
+    /// tap alone would get no new code, and those words send the person to the Skopry menu on the Mac
     /// first ("stopped"; "closed", which is also a code another device used, where the menu's way
     /// works as well). A window that ran out quiets nobody, so "tap it for a new one" holds
     /// ("expired"). Anything else ("busy" a second time, or a reason this build does not know that
@@ -1376,7 +1376,7 @@ enum DiscoveryPolicy {
         enum PairedReach: Equatable {
             /// This session came through the remote door: "Connected through Tailscale."
             case connected
-            /// "Away from home, Sill reaches Mac mini through Tailscale (…)."
+            /// "Away from home, Skopry reaches Mac mini through Tailscale (…)."
             case reaches
             /// Remote Access is off on the Mac: how to turn it on (a Mac paired at home).
             case turnOnRemoteAccess
@@ -1426,13 +1426,13 @@ enum DiscoveryPolicy {
         static func overlayAsking(mac: String) -> String { "Asking \(mac) for a code\u{2026}" }
         static func overlayShowing(mac: String) -> String { "\(mac) is showing a code now." }
         static func overlayOpenOnMac(mac: String) -> String {
-            "\(mac) didn\u{2019}t show a code by itself. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu."
+            "\(mac) didn\u{2019}t show a code by itself. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu."
         }
         static func overlayLocked(mac: String, device: String) -> String {
             "Unlock \(mac), then choose Pair This \(device)\u{2026} again."
         }
         static func openOnMac(mac: String) -> String {
-            "\(mac) didn\u{2019}t show a code. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap \(mac) again."
+            "\(mac) didn\u{2019}t show a code. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap \(mac) again."
         }
         static func locked(mac: String) -> String { "Unlock \(mac), then tap it again." }
         static func removed(mac: String, device: String) -> String { "\(mac) removed this \(device). Tap it to pair again." }
@@ -1447,16 +1447,16 @@ enum DiscoveryPolicy {
         /// or a closed code the Mac keeps this device quiet (a cancel on the Mac, a stop), so the
         /// words send the person to its menu first; after an expiry a tap is enough.
         static func stopped(mac: String) -> String {
-            "\(mac) stopped pairing after too many wrong codes. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap \(mac) again."
+            "\(mac) stopped pairing after too many wrong codes. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap \(mac) again."
         }
         static func expired(mac: String) -> String { "That code expired. Tap \(mac) for a new one." }
         static func closed(mac: String) -> String {
-            "That code no longer works. On the Mac, choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap \(mac) again."
+            "That code no longer works. On the Mac, choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap \(mac) again."
         }
         static func proofFailed(mac: String) -> String {
             "Pairing didn\u{2019}t finish: \(mac) couldn\u{2019}t show it knows the code. Tap it to try again."
         }
-        /// Nothing answered the ask or a proof at the row (it went, or Sill quit meanwhile).
-        static func noAnswer(mac: String) -> String { "\(mac) didn\u{2019}t answer. Check that Sill is open on it, then tap it again." }
+        /// Nothing answered the ask or a proof at the row (it went, or Skopry quit meanwhile).
+        static func noAnswer(mac: String) -> String { "\(mac) didn\u{2019}t answer. Check that Skopry is open on it, then tap it again." }
     }
 }

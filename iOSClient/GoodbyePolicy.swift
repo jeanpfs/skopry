@@ -22,7 +22,7 @@ enum GoodbyePolicy {
         var reconnect: Bool
         /// That reconnect may dial the saved Mac through the remote door (only a saved Mac).
         var remoteAllowed: Bool
-        /// "Update Sill in the App Store" under the status line ("update" only).
+        /// "Update Skopry in the App Store" under the status line ("update" only).
         var storeLink = false
         /// The Mac's own words: a goodbye this build shows as the host wrote it. Looked at before a
         /// remote dial's failure rules (RemoteDialPolicy), which know only the older reasons.
@@ -48,13 +48,13 @@ enum GoodbyePolicy {
     /// "iPhone", `saved` whether the Mac is a saved one (its remote door may be dialled).
     static func outcome(_ goodbye: Goodbye?, mac: String, device: String, saved: Bool) -> Outcome {
         guard let goodbye else {
-            return Outcome(text: saved ? "\(mac) disconnected. Sill will reconnect when it can reach it."
+            return Outcome(text: saved ? "\(mac) disconnected. Skopry will reconnect when it can reach it."
                                        : "\(mac) disconnected. It will reconnect when the Mac is back.",
                            reconnect: true, remoteAllowed: saved, isNotice: false)
         }
         switch goodbye.reason {
         case Goodbye.quit:
-            return Outcome(text: "\(mac) quit Sill. This \(device) reconnects when it’s back.",
+            return Outcome(text: "\(mac) quit Skopry. This \(device) reconnects when it’s back.",
                            reconnect: true, remoteAllowed: saved, isNotice: false)
         case Goodbye.removed:
             return Outcome(text: "\(mac) removed this \(device). To use it again, pair it again.",
@@ -72,13 +72,13 @@ enum GoodbyePolicy {
                            reconnect: false, remoteAllowed: false, isNotice: false)
         case Goodbye.update:
             // The host always sends its message; these words are for one that does not.
-            var own = "Update Sill on this \(device) to keep using \(mac)."
-            if let floor = goodbye.minimumVersion.flatMap({ SillVersion($0) }) { own += " It needs version \(floor) or later." }
+            var own = "Update Skopry on this \(device) to keep using \(mac)."
+            if let floor = goodbye.minimumVersion.flatMap({ SkopryVersion($0) }) { own += " It needs version \(floor) or later." }
             return Outcome(text: message(goodbye) ?? own, reconnect: goodbye.reconnect == true, remoteAllowed: saved,
                            storeLink: true, isNotice: true)
         default:
             let reconnect = goodbye.reconnect == true
-            let own = reconnect ? "\(mac) closed the connection. Sill will reconnect when it can."
+            let own = reconnect ? "\(mac) closed the connection. Skopry will reconnect when it can."
                                 : "\(mac) closed the connection. Tap it to try again."
             return Outcome(text: message(goodbye) ?? own, reconnect: reconnect, remoteAllowed: saved, isNotice: true)
         }

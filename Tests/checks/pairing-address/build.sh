@@ -7,9 +7,9 @@ set -e
 SELF="$(cd "$(dirname "$0")" && pwd)"
 WT="$1"; OUT="$2"; T=$(mktemp -d)
 cp "$WT/Sources/StreamProtocol/"*.swift "$T/"
-sed '/^import StreamProtocol$/d' "$WT/Sources/SillHost/AddressList.swift" > "$T/AddressList.swift"
-cp "$WT/Sources/SillHost/OriginPolicy.swift" "$T/"
-sed '/^import StreamProtocol$/d' "${3:-$WT/Sources/SillMenuBar/PairingWindowAddress.swift}" > "$T/PairingWindowAddress.swift"
+sed '/^import StreamProtocol$/d' "$WT/Sources/SkopryHost/AddressList.swift" > "$T/AddressList.swift"
+cp "$WT/Sources/SkopryHost/OriginPolicy.swift" "$T/"
+sed '/^import StreamProtocol$/d' "${3:-$WT/Sources/SkopryMenuBar/PairingWindowAddress.swift}" > "$T/PairingWindowAddress.swift"
 cp "$SELF/main.swift" "$T/main.swift"
 swiftc -O "$T/"*.swift -o "$OUT" 2>&1 | grep -E "error|warning: .*(PairingWindowAddress|main)\.swift" || true
 rm -rf "$T"

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Scripts/dmg-layout's .DS_Store and alias writer (DSStore.swift, FinderAlias.swift, DMGLayout.swift)
-# on its own: the window Scripts/make-dmg.sh gives Sill.dmg, read back byte by byte against Finder's
+# on its own: the window Scripts/make-dmg.sh gives Skopry.dmg, read back byte by byte against Finder's
 # own layout of the file, the background's alias field by field, the encoder and the decoder, the
 # volume icon's flag, and that make-dmg.sh and design/DMGBackground.svg still give that window. No
 # disk image is made (make-dmg.sh checks the real one as it makes it).

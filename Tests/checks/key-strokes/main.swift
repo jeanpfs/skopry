@@ -1,7 +1,7 @@
 import Foundation
 
 // The Mac's modifier keys after a device's keys (CLAUDE.md, "The stuck command after Spotlight"):
-// KeyStrokes (Sources/SillHost), the keyboard events InputInjector posts for a device's keys, put
+// KeyStrokes (Sources/SkopryHost), the keyboard events InputInjector posts for a device's keys, put
 // through a model of InputInjector's glue and of the Mac's HID state table.
 //
 // The model KeyStrokes is written against (inferred: nothing may be posted while this is built): the
@@ -20,8 +20,8 @@ import Foundation
 // on a Mac as the model says none ever is. And input with nowhere to land (DroppedInput) is dropped
 // but for the up of a key or a button the Mac has down, so neither stays down there.
 //
-// Compiled with Sources/StreamProtocol and Sources/SillHost/KeyStrokes.swift as one module
-// (-package-name sill), as build.sh does.
+// Compiled with Sources/StreamProtocol and Sources/SkopryHost/KeyStrokes.swift as one module
+// (-package-name skopry), as build.sh does.
 
 var failures = 0, checks = 0
 func check(_ ok: Bool, _ what: @autoclosure () -> String, line: Int = #line) {
@@ -1021,7 +1021,7 @@ print("random: \(runs) sessions, \(events) events posted; checks reported in \(r
 // key's flags exactly as the device sent them), which a device must keep working with (CLAUDE.md,
 // "Compatibility floor"): on both, nothing is left held.
 
-/// A Mac from before this fix (Sill.app 0.3.x, SillHost before 2026-09-27): each key event carries
+/// A Mac from before this fix (Skopry.app 0.3.x, SkopryHost before 2026-09-27): each key event carries
 /// exactly the device's modifiers; text goes out with none; a device leaving lets go of nothing.
 struct OldMac {
     var table: UInt64 = 0

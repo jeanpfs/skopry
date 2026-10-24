@@ -1,5 +1,5 @@
 #!/bin/bash
-# CableLink (Sources/SillHost), what counts as the USB cable to an iPhone or iPad: this Mac's own IOKit
+# CableLink (Sources/SkopryHost), what counts as the USB cable to an iPhone or iPad: this Mac's own IOKit
 # readings with an iPad mini on the cable, the device ID, the test stand-in (docs/home-pairing-plan.md
 # §4.3).
 # Compiled with the files in module.txt as one module (../module.py drops their `import StreamProtocol`).

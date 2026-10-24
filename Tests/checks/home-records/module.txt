@@ -1,7 +1,7 @@
 # Compiled as one module by ../module.py, each file's `import StreamProtocol` dropped, with main.swift.
 Sources/StreamProtocol/*.swift
-Sources/SillHost/OriginPolicy.swift
-Sources/SillHost/CableLink.swift
-Sources/SillHost/HostIdentity.swift
+Sources/SkopryHost/OriginPolicy.swift
+Sources/SkopryHost/CableLink.swift
+Sources/SkopryHost/HostIdentity.swift
 iOSClient/SavedMacs.swift
-flags: -package-name sill
+flags: -package-name skopry

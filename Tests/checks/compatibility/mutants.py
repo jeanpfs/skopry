@@ -1,4 +1,4 @@
-"""H3 (docs/update-notice-plan.md) mutants of SillVersion and the payloads: each copies
+"""H3 (docs/update-notice-plan.md) mutants of SkopryVersion and the payloads: each copies
 Sources/StreamProtocol, applies one mutation, compiles it with the check and expects it to fail.
 usage: mutants.py WORKTREE"""
 import os, shutil, subprocess, sys, tempfile

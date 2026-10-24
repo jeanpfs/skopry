@@ -1,6 +1,6 @@
 #!/bin/bash
 # The records pairing at home adds to: PairedDevice's `cableDevice` and "cable" (the Mac's trust list,
-# Sources/SillHost/HostIdentity.swift) and SavedMac's `homeTLS` and `revoked` (the device's saved Macs,
+# Sources/SkopryHost/HostIdentity.swift) and SavedMac's `homeTLS` and `revoked` (the device's saved Macs,
 # iOSClient/SavedMacs.swift). Older records decode, lists encode byte for byte as before, and an
 # older reader reads the new records (docs/home-pairing-plan.md §3.4).
 # Compiled with the files in module.txt as one module (../module.py drops their `import StreamProtocol`).

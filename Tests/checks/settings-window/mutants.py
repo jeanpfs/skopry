@@ -2,7 +2,7 @@
 place, is compiled with the check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillMenuBar/SettingsWindowFit.swift")
+F = os.path.join(WT, "Sources/SkopryMenuBar/SettingsWindowFit.swift")
 MUTANTS = [
     # The margin and the least a pane gets.
     ("no margin", "static let margin: CGFloat = 12", "static let margin: CGFloat = 0"),
@@ -16,18 +16,18 @@ MUTANTS = [
     ("the least height ignored", "max(minimumContent, (visible.height", "min(.greatestFiniteMagnitude, (visible.height"),
     # The screen.
     ("the virtual display taken when the window is on it",
-     "if let i = windowOn, screens.indices.contains(i), !screens[i].sillVirtual { return i }",
+     "if let i = windowOn, screens.indices.contains(i), !screens[i].skopryVirtual { return i }",
      "if let i = windowOn, screens.indices.contains(i) { return i }"),
     ("the window's own screen ignored",
-     "if let i = windowOn, screens.indices.contains(i), !screens[i].sillVirtual { return i }",
-     "if let i = windowOn, screens.indices.contains(i), !screens[i].sillVirtual { _ = i }"),
+     "if let i = windowOn, screens.indices.contains(i), !screens[i].skopryVirtual { return i }",
+     "if let i = windowOn, screens.indices.contains(i), !screens[i].skopryVirtual { _ = i }"),
     ("an index no screen has taken (crashes)",
-     "if let i = windowOn, screens.indices.contains(i), !screens[i].sillVirtual { return i }",
-     "if let i = windowOn, i >= 0, !screens[i].sillVirtual { return i }"),
+     "if let i = windowOn, screens.indices.contains(i), !screens[i].skopryVirtual { return i }",
+     "if let i = windowOn, i >= 0, !screens[i].skopryVirtual { return i }"),
     ("the fallback may be the virtual display",
-     "return screens.firstIndex { !$0.sillVirtual }", "return screens.indices.first"),
+     "return screens.firstIndex { !$0.skopryVirtual }", "return screens.indices.first"),
     ("the fallback is the last real screen",
-     "return screens.firstIndex { !$0.sillVirtual }", "return screens.lastIndex { !$0.sillVirtual }"),
+     "return screens.firstIndex { !$0.skopryVirtual }", "return screens.lastIndex { !$0.skopryVirtual }"),
     # The test height.
     ("the test height at the bottom", "CGRect(x: real.minX, y: real.maxY - h,", "CGRect(x: real.minX, y: real.minY,"),
     ("a test height taller than the screen taken", "guard let h = testHeight, h > 0, h < real.height else",

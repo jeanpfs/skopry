@@ -93,7 +93,7 @@ enum RemoteDialPolicy {
     }
 
     /// The saved Macs whose key a dial of `old` at `candidate` takes in its place (Noah, 2026-09-28:
-    /// Sill for Mac 0.4.0 made the Mac a new key, the device paired it again, and the old record
+    /// Skopry for Mac 0.4.0 made the Mac a new key, the device paired it again, and the old record
     /// stayed as a dead "‹Mac›" Remote row beside the working "‹Mac› (2)"). Only when the key that
     /// answers is one of these, and the handshake completes with it (TLS 1.3's CertificateVerify:
     /// the Mac holds that key), is `old` superseded (`SavedMacs.superseding`). Never on the name
@@ -162,8 +162,8 @@ enum RemoteDialPolicy {
         case dns(Int32)
         /// The 10 s connect timeout.
         case timeout
-        /// A wrong application protocol, or a message no Sill sends (oversized, not decodable).
-        case notSill
+        /// A wrong application protocol, or a message no Skopry sends (oversized, not decodable).
+        case notSkopry
         /// Kind 22 before the first window list.
         case goodbye(String)
         /// Ready, but no window list within `firstListDeadline`.
@@ -172,12 +172,12 @@ enum RemoteDialPolicy {
 
     /// Why a dial failed, for the status line (§7.8), most telling first in `priority`.
     enum Failure: String, CaseIterable, Equatable {
-        case wrongMac, revoked, remoteOff, busy, refused, vpnOff, nameNotFound, localNetwork, notSill, noAnswer
+        case wrongMac, revoked, remoteOff, busy, refused, vpnOff, nameNotFound, localNetwork, notSkopry, noAnswer
     }
 
     /// Wrong Mac first (the pin failed: acting on anything else would be wrong), then the Mac's own
     /// answers, then what this device can fix, then silence.
-    static let priority: [Failure] = [.wrongMac, .revoked, .remoteOff, .busy, .refused, .vpnOff, .nameNotFound, .localNetwork, .notSill, .noAnswer]
+    static let priority: [Failure] = [.wrongMac, .revoked, .remoteOff, .busy, .refused, .vpnOff, .nameNotFound, .localNetwork, .notSkopry, .noAnswer]
 
     static func worst(_ failures: [Failure]) -> Failure? {
         priority.first { failures.contains($0) }
@@ -211,8 +211,8 @@ enum RemoteDialPolicy {
             return candidate.kind == MacAddress.lan ? .localNetwork : .noAnswer
         case .dns:
             return .nameNotFound
-        case .tls, .tlsAfterReady, .notSill:
-            return .notSill
+        case .tls, .tlsAfterReady, .notSkopry:
+            return .notSkopry
         case .timeout, .noWindowList, .posix(ETIMEDOUT), .posix(ENETUNREACH), .posix(EHOSTUNREACH),
              .posix(ENETDOWN), .posix(EHOSTDOWN), .posix(EADDRNOTAVAIL):
             return vpnAddress && usedTunnel == false ? .vpnOff : .noAnswer

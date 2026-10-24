@@ -1,4 +1,4 @@
-// H10 (docs/remote-bundle-plan.md §6 and §11): Sources/SillHost/LinkJudge.swift on its own, compiled
+// H10 (docs/remote-bundle-plan.md §6 and §11): Sources/SkopryHost/LinkJudge.swift on its own, compiled
 // with StreamProtocol's HostSettings.swift (QualityPreset) as one module by build.sh:
 //
 //   Tests/checks/link-judge/build.sh . .build/checks/link-judge/check && .build/checks/link-judge/check

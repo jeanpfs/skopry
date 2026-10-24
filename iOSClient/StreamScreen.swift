@@ -81,11 +81,11 @@ enum DuoLayout {
 
     /// Whether `.outerPortrait` draws the phone's arrangement: on an iPhone, yes; on an iPad (a
     /// window narrower than 600 pt held upright), no: the compact halves, as before. DEBUG:
-    /// `-SillIdiom pad` (or `phone`) draws the other device's, so the harness can photograph an
+    /// `-SkopryIdiom pad` (or `phone`) draws the other device's, so the harness can photograph an
     /// iPad window's on an iPhone simulator (ContentView's contract).
     static var phoneArrangement: Bool {
         #if DEBUG
-        switch UserDefaults.standard.string(forKey: "SillIdiom") {
+        switch UserDefaults.standard.string(forKey: "SkopryIdiom") {
         case "pad"?: return false
         case "phone"?: return true
         default: break
@@ -131,7 +131,7 @@ struct StreamScreen: View {
     /// hold lets go meanwhile (`keyboardTakers`).
     @State private var menusOpen = false
     /// Pair This iPad… (the panel's Away from home group): the pairing overlay covers the stream.
-    /// Up here, like the panel, so a rotation keeps it. An outside sill://pair link shows the same
+    /// Up here, like the panel, so a rotation keeps it. An outside skopry://pair link shows the same
     /// overlay with its confirmation.
     @State private var pairingOverlay = false
     /// The DEBUG harness's stand-in for the camera (the simulator has none); nil on a device.
@@ -183,7 +183,7 @@ struct StreamScreen: View {
     #if DEBUG
     /// The console says once when a decision starts to wait.
     @State private var tourWaitLogged: Double? = nil
-    /// `-SillTourPress skip@S` skips once.
+    /// `-SkopryTourPress skip@S` skips once.
     @State private var tourSkipPressed = false
     #endif
 
@@ -200,7 +200,7 @@ struct StreamScreen: View {
         _textScale = State(initialValue: textScale)
         _settingsOpen = State(initialValue: settingsOpen)
         // The panel open over the keyboard, as in a session: it took the keyboard down, and closing
-        // it puts it back (`-SillSettings 1 -SillKeyboard 1`).
+        // it puts it back (`-SkoprySettings 1 -SkopryKeyboard 1`).
         _keyboardBeforeSettings = State(initialValue: settingsOpen && keyboardShown)
         // And it holds the Larger Picture it opened with, as `setSettings` does.
         _largerPictureHeld = State(initialValue: settingsOpen
@@ -500,12 +500,12 @@ struct StreamScreen: View {
     }
 
     /// The harness's arguments that act once the stream screen shows (ContentView's contract), once
-    /// per launch. `-SillKeyboard 1` brings the software keyboard up for real in a live session (the
-    /// mock only lights the button, from its init); `-SillKeyboardToggle <s>[,<s>…]` toggles it at
+    /// per launch. `-SkopryKeyboard 1` brings the software keyboard up for real in a live session (the
+    /// mock only lights the button, from its init); `-SkopryKeyboardToggle <s>[,<s>…]` toggles it at
     /// those seconds as the Keyboard button does, a stand-in for a tap. In a live session (the
-    /// normal app with `-SillConnect`, or `-SillLive 1`) `-SillDrawer 1`, `-SillSettings 1` and
-    /// `-SillScaleOpen 1` (with `-SillScale`) open theirs 1.5 s in, once the Desktop has started
-    /// (`-SillSettingsCloseAt <s>` closes the panel again s seconds in):
+    /// normal app with `-SkopryConnect`, or `-SkopryLive 1`) `-SkopryDrawer 1`, `-SkoprySettings 1` and
+    /// `-SkopryScaleOpen 1` (with `-SkopryScale`) open theirs 1.5 s in, once the Desktop has started
+    /// (`-SkoprySettingsCloseAt <s>` closes the panel again s seconds in):
     /// its start closes a drawer opened before it, and the normal app has no harness to pass them
     /// in at the start.
     private func runLaunchArguments() {
@@ -516,13 +516,13 @@ struct StreamScreen: View {
         func after(_ seconds: Double, _ step: @escaping () -> Void) {
             DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: step)
         }
-        if defaults.bool(forKey: "SillKeyboard"), live {
+        if defaults.bool(forKey: "SkopryKeyboard"), live {
             after(0.5) {
-                print("keyboard: -SillKeyboard 1, the input view takes first responder")
+                print("keyboard: -SkopryKeyboard 1, the input view takes first responder")
                 overlay.setKeyboard(shown: true)
             }
         }
-        let times = (defaults.string(forKey: "SillKeyboardToggle") ?? "")
+        let times = (defaults.string(forKey: "SkopryKeyboardToggle") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in times {
             after(time) {
@@ -532,10 +532,10 @@ struct StreamScreen: View {
                 overlay.toggleKeyboard()
             }
         }
-        // `-SillTurnAt <s>[,<s>…]`: at each second the scene is asked for the other orientation (upright
+        // `-SkopryTurnAt <s>[,<s>…]`: at each second the scene is asked for the other orientation (upright
         // or sideways, from the screen's shape then), a turn mid-session with no hand on the simulator
         // (an iPhone's; iPadOS's windowing refuses it, and says so).
-        let turns = (defaults.string(forKey: "SillTurnAt") ?? "")
+        let turns = (defaults.string(forKey: "SkopryTurnAt") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in turns {
             after(time) {
@@ -549,13 +549,13 @@ struct StreamScreen: View {
                 }
             }
         }
-        // `-SillAXDump <s>`: s seconds in, the screen's accessibility elements in the order the
+        // `-SkopryAXDump <s>`: s seconds in, the screen's accessibility elements in the order the
         // accessibility tree hands them out (VoiceOver's order, without VoiceOver), labels and frames.
-        let dump = defaults.double(forKey: "SillAXDump")
+        let dump = defaults.double(forKey: "SkopryAXDump")
         if dump > 0 { after(dump) { Self.accessibilityDump() } }
-        // `-SillLargerPictureToggle <s>[,<s>…]`: Larger Picture switched at those seconds, as the
-        // Settings panel's switch does (saved; without `-Sill.largerPicture`, which would hold it).
-        let toggles = (defaults.string(forKey: "SillLargerPictureToggle") ?? "")
+        // `-SkopryLargerPictureToggle <s>[,<s>…]`: Larger Picture switched at those seconds, as the
+        // Settings panel's switch does (saved; without `-Skopry.largerPicture`, which would hold it).
+        let toggles = (defaults.string(forKey: "SkopryLargerPictureToggle") ?? "")
             .split(whereSeparator: { $0 == "," || $0 == " " }).compactMap { Double($0) }.filter { $0 >= 0 }
         for time in toggles {
             after(time) {
@@ -565,19 +565,19 @@ struct StreamScreen: View {
             }
         }
         guard live else { return }
-        if defaults.bool(forKey: "SillDrawer") {
+        if defaults.bool(forKey: "SkopryDrawer") {
             after(1.5) { print("harness: the drawer opened"); withAnimation(.easeOut(duration: 0.18)) { drawerOpen = true } }
         }
-        if defaults.bool(forKey: "SillSettings") {
+        if defaults.bool(forKey: "SkoprySettings") {
             after(1.5) { print("harness: the Settings panel opened"); setSettings(true) }
-            // `-SillSettingsCloseAt <s>`: closed again s seconds in, as Done does (the clipboard's chip
+            // `-SkoprySettingsCloseAt <s>`: closed again s seconds in, as Done does (the clipboard's chip
             // waiting under it, then showing: docs/clipboard-plan.md).
-            let closeAt = defaults.double(forKey: "SillSettingsCloseAt")
+            let closeAt = defaults.double(forKey: "SkoprySettingsCloseAt")
             if closeAt > 1.5 { after(closeAt) { print("harness: the Settings panel closed"); setSettings(false) } }
         }
-        if defaults.bool(forKey: "SillScaleOpen") {
+        if defaults.bool(forKey: "SkopryScaleOpen") {
             after(1.5) {
-                let scale = defaults.double(forKey: "SillScale")
+                let scale = defaults.double(forKey: "SkopryScale")
                 if scale > 0 { textScale = scale }
                 print("harness: the Aa ruler opened")
                 scaleOpen = true
@@ -586,7 +586,7 @@ struct StreamScreen: View {
     }
     private static var launchArgumentsRan = false
 
-    /// `-SillAXDump`: walks the key window as an assistive technology does (an element, else its
+    /// `-SkopryAXDump`: walks the key window as an assistive technology does (an element, else its
     /// `accessibilityElements`, else its element count, else its subviews) and prints one line per
     /// element: "ax: 1 Apps (14,454 76×50)".
     private static func accessibilityDump() {
@@ -994,7 +994,7 @@ struct StreamScreen: View {
         }
     }
 
-    /// DEBUG `-SillTourPress`: presses a card's Next (or Skip, once) a while after it appears.
+    /// DEBUG `-SkopryTourPress`: presses a card's Next (or Skip, once) a while after it appears.
     private func tourPressLater(_ run: TourRun) {
         #if DEBUG
         guard let press = TourDebug.current.press else { return }
@@ -1620,9 +1620,9 @@ struct WindowStrip: View {
         }
         .onDisappear { lifted = nil; liftOffset = 0 }
         #if DEBUG
-        // Harness: `-SillWindowMenu 1` opens the first window's submenu at launch.
+        // Harness: `-SkopryWindowMenu 1` opens the first window's submenu at launch.
         .onAppear {
-            if UserDefaults.standard.bool(forKey: "SillWindowMenu"), let first = client.orderedWindows.first { menuFor = first.id }
+            if UserDefaults.standard.bool(forKey: "SkopryWindowMenu"), let first = client.orderedWindows.first { menuFor = first.id }
         }
         #endif
     }
@@ -1915,7 +1915,7 @@ struct AppDrawer: View {
     @ObservedObject var client: StreamClient
     @Binding var drawerOpen: Bool
     @State private var search = ""
-    /// The search field has the keyboard. Set only by DEBUG `-SillDrawerSearch` (ContentView's
+    /// The search field has the keyboard. Set only by DEBUG `-SkopryDrawerSearch` (ContentView's
     /// contract); a tap focuses the field as before.
     @FocusState private var searchFocused: Bool
 
@@ -1983,11 +1983,11 @@ struct AppDrawer: View {
     }
 
     #if DEBUG
-    /// `-SillDrawerSearch <text>` (ContentView's contract): the drawer, once open, searches for that
+    /// `-SkopryDrawerSearch <text>` (ContentView's contract): the drawer, once open, searches for that
     /// text with the keyboard up for its field, as a tap and typing would, so a photo shows what the
     /// keyboard leaves in view of the results.
     private func searchFromLaunchArguments() {
-        guard let query = UserDefaults.standard.string(forKey: "SillDrawerSearch") else { return }
+        guard let query = UserDefaults.standard.string(forKey: "SkopryDrawerSearch") else { return }
         search = query
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             searchFocused = true
@@ -2084,7 +2084,7 @@ struct DrawerRow<Leading: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if let trailing {
                     // Whole, on one line, whatever the title's length: the title truncates instead
-                    // ("Not paired", "Update Sill" and "3 windows" hold a space).
+                    // ("Not paired", "Update Skopry" and "3 windows" hold a space).
                     Text(trailing)
                         .font(.system(size: 13))
                         .foregroundStyle(Palette.muted)

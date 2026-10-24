@@ -1,6 +1,6 @@
-// InstalledApps (Sources/SillHost/InstalledApps.swift) on a fake applications folder:
+// InstalledApps (Sources/SkopryHost/InstalledApps.swift) on a fake applications folder:
 //
-//   swiftc -O Sources/SillHost/InstalledApps.swift Tests/checks/installed-apps/main.swift \
+//   swiftc -O Sources/SkopryHost/InstalledApps.swift Tests/checks/installed-apps/main.swift \
 //       -o .build/checks/installed-apps/check && .build/checks/installed-apps/check
 import Foundation
 

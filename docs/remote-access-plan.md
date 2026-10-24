@@ -9,7 +9,7 @@ a9cc248 unless marked "(fixes)", which means the `direct-wireless-fixes` head e5
 can use this outside of your home WiFi network."
 
 **Reading of it.** The user brings the reachability: a VPN (Tailscale, WireGuard, a work VPN) or a
-port forward on the home router to a public IP. Sill connects through it when Bonjour cannot see
+port forward on the home router to a public IP. Skopry connects through it when Bonjour cannot see
 the Mac, and the Mac makes its addresses easy to find. No hole punching, no relay, no server of
 ours, Apple frameworks only.
 
@@ -70,7 +70,7 @@ This plan ships the remote port only behind pairing and mutual TLS 1.3 with pinn
 | **Overall (mean)** | **6.0** | **7.0** | **7.8** |
 
 **d0, minimal (6.0).** A second, TLS 1.2 ECDHE-PSK listener with one 100-bit key per Mac, delivered
-as a `sill://` link, a QR code or typed.
+as a `skopry://` link, a QR code or typed.
 - Strongest on the slow link: register at ready, a 1 MB cap, a kind 17 limit, eviction by silence,
   and keyframe pacing. All of these are grafted below.
 - But the key is a shared bearer secret, shown in Settings and carried in a claimable URL scheme,
@@ -126,14 +126,14 @@ as a `sill://` link, a QR code or typed.
   - failure copy by cause;
   - the layouts per size;
   - the CLI's throwaway `--remote` identity;
-  - excluding Sill's own windows from the Desktop stream.
+  - excluding Skopry's own windows from the Desktop stream.
 - **From d1:**
   - the typed code hardened with PBKDF2, as digits so the Duo's number pad works;
   - the rotating TXT recognition tag instead of a stable ID;
   - a goodbye message, so the device can say why;
   - `SafeText` for every device-supplied name;
   - a verify block that reads a lock-protected snapshot and never waits on the main actor;
-  - SNI "sill", P-256 only, and the ALPN check;
+  - SNI "skopry", P-256 only, and the ALPN check;
   - per-source backoff;
   - cancelling failed connections at once;
   - a dial order that knows the device's own subnet;
@@ -204,7 +204,7 @@ as a `sill://` link, a QR code or typed.
    - a route line in the panel;
    - an Away from home group;
    - "Pair This iPad…";
-   - `sill://pair` links, always behind a confirmation.
+   - `skopry://pair` links, always behind a confirmation.
 6. **Link basics:**
    - remote sessions ask for 60 fps;
    - a "Low — 4 Mbps" preset;
@@ -229,14 +229,14 @@ as a `sill://` link, a QR code or typed.
 ### 2. The design on one page
 
 ```
-                         ┌────────────────────── Mac (Sill.app / SillHost) ─────────────────────────┐
- device at home ──────▶  │ HOME DOOR  plain TCP, _sill._tcp (+TXT r=tag), ephemeral port             │
+                         ┌────────────────────── Mac (Skopry.app / SkopryHost) ─────────────────────────┐
+ device at home ──────▶  │ HOME DOOR  plain TCP, _skopry._tcp (+TXT r=tag), ephemeral port             │
  (Bonjour / Direct row)  │   admits: loopback · link-local (awdl too) · this Mac's own networks      │
                          │   refuses: anything through a tunnel, anything from the internet          │
                          │                                                                           │
  device away ─────────▶  │ REMOTE DOOR  TLS 1.3, both keys pinned, port 7455, no Bonjour             │
- (VPN / port forward)    │   ALPN sill/1: a session (paired devices, Remote Access on)               │
-                         │   ALPN sill-pair/1: pairing (only while a pairing window is open)         │
+ (VPN / port forward)    │   ALPN skopry/1: a session (paired devices, Remote Access on)               │
+                         │   ALPN skopry-pair/1: pairing (only while a pairing window is open)         │
                          │   refuses internet sources before TLS unless "Allow connections from      │
                          │   the internet" is on                                                     │
                          │ Both doors: the same framing and kinds; kind 18 (signed addresses) on     │
@@ -261,10 +261,10 @@ internet, which it can be today.
 ```swift
 case macInfo = 18        // host → device: JSON SignedMacInfo (Remote.swift) — who this Mac is and how to reach
                          // it from afar, signed with its identity key. In the catalog right after kind 16, on both
-                         // doors, and again whenever it changes. Only from a host with an identity (Sill.app always;
-                         // SillHost with --remote)
+                         // doors, and again whenever it changes. Only from a host with an identity (Skopry.app always;
+                         // SkopryHost with --remote)
 case pairRequest = 19    // device → host: JSON PairRequest — the one message of a pairing connection (ALPN
-                         // sill-pair/1), at most 4 KB, within 10 s of the connection
+                         // skopry-pair/1), at most 4 KB, within 10 s of the connection
 case pairResult = 20     // host → device: JSON PairResult — the answer to 19; the host then closes the connection
 case pairingWanted = 21  // device → host, empty payload: "show your pairing code" (Pair This iPad…). Home door only,
                          // from this Mac's own networks, at most once per 30 s per connection; ignored elsewhere
@@ -354,9 +354,9 @@ public struct Goodbye: Codable, Sendable {
 //   {"host":"2001:db8::20","kind":"internet","via":"IPv6"}
 
 // kind 19
-{"v":1,"method":"qr","proof":"AyZAJqNTU5nSKEaHx6RZOf0K5dOeygR_8JSrCV_gNOo","name":"iPad","model":"iPad14,1"}
+{"v":1,"method":"qr","proof":"FJnQCo_6V0dyBLnxJnTIv4ikAncSjOhddxCjPjODSQg","name":"iPad","model":"iPad14,1"}
 // kind 20
-{"ok":true,"proof":"XAX-uZPsq_Ax8fvI_sV7Ex0a-ROi19rI-FW-ykPh9TE","macID":"A3C5HR4RBV67YR21","name":"Mac mini",
+{"ok":true,"proof":"hUyGV5vbkrHNnyoEHi9UQRNR1dcK6eenmQHHZtkuoA4","macID":"A3C5HR4RBV67YR21","name":"Mac mini",
  "recognitionKey":"ERERERERERERERERERERERERERERERERERERERERERE"}
 {"ok":false,"reason":"code","triesLeft":4}
 {"ok":false,"reason":"busy","retryAfter":2}
@@ -389,11 +389,11 @@ where `Role` is `.server` or `.client(alpn: String)`.
 
 **Server:**
 - `set_peer_authentication_required(true)`.
-- ALPN list `["sill/1", "sill-pair/1"]` (`add_tls_application_protocol` twice).
+- ALPN list `["skopry/1", "skopry-pair/1"]` (`add_tls_application_protocol` twice).
 
 **Client:**
 - ALPN exactly one of the two.
-- `set_tls_server_name("sill")`, so a DDNS or MagicDNS name never goes out in clear SNI. The Mac
+- `set_tls_server_name("skopry")`, so a DDNS or MagicDNS name never goes out in clear SNI. The Mac
   ignores SNI.
 
 **At `.ready`,** both ends read:
@@ -465,13 +465,13 @@ A host with an identity adds a TXT record to its Bonjour registration:
 `NWListener.Service(name:type:domain:txtRecord:)` with `NWTXTRecord(["r": tag])`.
 
 - **The tag.** base64url (16 characters) of 12 bytes: `p ‖ HMAC-SHA256(recognitionKey,
-  UTF8("sill-tag-v1") ‖ p)[0..<6]`.
+  UTF8("skopry-tag-v1") ‖ p)[0..<6]`.
   - `p` is 6 fresh random bytes at **every registration**: each launch, and each Direct Wireless
     replacement's re-advertisement.
   - `recognitionKey` is 32 random bytes kept with the host identity. It is sent only in kind 20 ok.
-- **Vector:** key `0x11` × 32 and `p = a1a2a3a4a5a6` give `r=oaKjpKWmL4V47Ctm` (Swift and Python
+- **Vector:** key `0x11` × 32 and `p = a1a2a3a4a5a6` give `r=oaKjpKWmHSZaPhxT` (Swift and Python
   must agree).
-- **What devices do.** Both browsers use `.bonjourWithTXTRecord(type: "_sill._tcp", domain: nil)`.
+- **What devices do.** Both browsers use `.bonjourWithTXTRecord(type: "_skopry._tcp", domain: nil)`.
   For each result they check the tag against every saved Mac's recognition key; a match names the
   row's Mac exactly.
 - **Why a tag.** It recognises a saved Mac on a network whatever its Bonjour name ("Mac (2)" after a
@@ -487,7 +487,7 @@ A host with an identity adds a TXT record to its Bonjour registration:
 **The link and the QR code (`PairLink`).** Built and parsed with `URLComponents`:
 
 ```
-sill://pair?v=1&m=<macID>&k=<fp, base64url 43>&s=<secret, base64url 22>&n=<Mac name>&p=<port>&a=<address>&a=<address>…
+skopry://pair?v=1&m=<macID>&k=<fp, base64url 43>&s=<secret, base64url 22>&n=<Mac name>&p=<port>&a=<address>&a=<address>…
 ```
 
 - `a` is `host` or `host:port`, with IPv6 in brackets. At most 5, in the Mac's dial order (§4.8).
@@ -518,11 +518,11 @@ sill://pair?v=1&m=<macID>&k=<fp, base64url 43>&s=<secret, base64url 22>&n=<Mac n
 
 **Keys and proofs (`PairingProof`).**
 - QR key: the 16-byte secret `s`.
-- Code key: `K = PBKDF2-HMAC-SHA256(password: the 12 ASCII digits, salt: UTF8("sill-pair-v1") ‖
+- Code key: `K = PBKDF2-HMAC-SHA256(password: the 12 ASCII digits, salt: UTF8("skopry-pair-v1") ‖
   fp_mac (32 raw bytes), rounds: 600_000, length: 32)`, with CommonCrypto `CCKeyDerivationPBKDF`
   (an Apple framework). About 120–160 ms on this Mac.
-- `proof_D = HMAC-SHA256(key, UTF8("sill-pair-v1 device") ‖ 0x00 ‖ fp_device ‖ fp_mac_as_seen)`.
-- `proof_M = HMAC-SHA256(key, UTF8("sill-pair-v1 mac") ‖ 0x00 ‖ fp_mac ‖ fp_device)`.
+- `proof_D = HMAC-SHA256(key, UTF8("skopry-pair-v1 device") ‖ 0x00 ‖ fp_device ‖ fp_mac_as_seen)`.
+- `proof_M = HMAC-SHA256(key, UTF8("skopry-pair-v1 mac") ‖ 0x00 ‖ fp_mac ‖ fp_device)`.
 - Each side takes the other's fingerprint **from the TLS session, never from a message**. The Mac
   compares with `HMAC<SHA256>.isValidAuthenticationCode` (constant time).
 - **Why a relaying man-in-the-middle fails.** It must present its own key to the device, so the
@@ -537,12 +537,12 @@ sill://pair?v=1&m=<macID>&k=<fp, base64url 43>&s=<secret, base64url 22>&n=<Mac n
   fp_mac       348a629f5ceed032c3e8706ec47d9bfafb00fb4250b018dd965435ca50cb836e   (SHA-256 of "mac", a stand-in)
   fp_device    263a4dbe41488fb87214b0032339dbb9f0c8da14c16dfcf13084bf3c2552eca5   (SHA-256 of "device")
   code         482913557208
-  code K       e9baf879a1cc4ac8b21554df480b6c1621671319107c91e7cb05d154f649d31d
-  code proof_D dk7PZj4vHsAxj--1u9Vg7ehSn8a1tWc0RCG46YpFVO8
-  code proof_M 6BmGWC9XT8J8OY8phhq9bASgoSnoWpRxBeqZtvRrWmk
+  code K       afd85a3cc1f56b57d8ba1dd1ae27c258797946cec845c9da25f6d65814c08ec1
+  code proof_D oYdaeiVdF1Hfbm2fvWvK6qTTq66MwXF_MVQAb1PwF4M
+  code proof_M fLAgKmNjuO_5v3BkdAeg1gfAEVw0odamxEJGDNzPFTg
   QR secret    22 × 16 bytes
-  qr proof_D   AyZAJqNTU5nSKEaHx6RZOf0K5dOeygR_8JSrCV_gNOo
-  qr proof_M   XAX-uZPsq_Ax8fvI_sV7Ex0a-ROi19rI-FW-ykPh9TE
+  qr proof_D   FJnQCo_6V0dyBLnxJnTIv4ikAncSjOhddxCjPjODSQg
+  qr proof_M   hUyGV5vbkrHNnyoEHi9UQRNR1dcK6eenmQHHZtkuoA4
   ```
 
 **The exchange.**
@@ -550,7 +550,7 @@ sill://pair?v=1&m=<macID>&k=<fp, base64url 43>&s=<secret, base64url 22>&n=<Mac n
 ```
 device                                                Mac, remote door (port 7455)
 TCP ──────────────────────────────────────────────▶  pre-auth caps; origin check (refused: closed before TLS)
-ClientHello (ALPN sill-pair/1, SNI "sill") ───────▶
+ClientHello (ALPN skopry-pair/1, SNI "skopry") ───────▶
             ◀──────────────────────────────────────  ServerHello … Certificate(Mac) … Finished
 device verify: QR path, the Mac's fp must equal k (else abort:
 the device's certificate is never sent); typed path, any P-256
@@ -560,7 +560,7 @@ kind 19 PairRequest {method, proof_D} ────────────▶  t
             ◀──────────────────────────────────────  kind 20 {ok, proof_M, macID, name, recognitionKey}, or
                                                      {ok:false, reason, triesLeft | retryAfter}; the Mac closes
 device checks proof_M, saves the Mac, closes. Then a session:
-ClientHello (ALPN sill/1), both pinned ───────────▶  Mac: fp paired and Remote Access on → the session
+ClientHello (ALPN skopry/1), both pinned ───────────▶  Mac: fp paired and Remote Access on → the session
             ◀──────────────────────────────────────  kinds 2, 16, 18, 4…, 5, 14 (today's catalog order), frames
 ```
 
@@ -582,17 +582,17 @@ ClientHello (ALPN sill/1), both pinned ───────────▶  Mac
 | Both doors, admitted | Any client → host payload at most 1 MiB (today a header can announce 4 GiB and the host waits for it all: StreamServer.swift:462) | Closed with one line |
 | Both doors | Kind 17: at most 4 applied per second per connection | The excess is answered with the current state (`answering` set) and applies nothing; at most one line a second |
 | Both doors | Device names (`ClientStats.device`, `PairRequest.name` and `model`) go through `SafeText.label`: control and format characters removed (bidi overrides U+202A–202E and U+2066–2069 included), whitespace collapsed, at most 64 characters | — |
-| Device | Frames at most 32 MiB; every other host message at most 4 MiB (today StreamClient.swift:705 waits for any length: an SSH banner parses as a 1.7 GB payload) | Closed. On a remote dial this counts as "not Sill" |
+| Device | Frames at most 32 MiB; every other host message at most 4 MiB (today StreamClient.swift:705 waits for any length: an SSH banner parses as a 1.7 GB payload) | Closed. On a remote dial this counts as "not Skopry" |
 | Kind 21 | Home door; loopback, link-local or LAN origin only; once per 30 s per connection; ignored while a window is open | Ignored |
 
 #### 3.8 Compatibility
 
 | Device | Host | Result |
 |---|---|---|
-| Older (PR #5) | This host | Home door as today. It skips kinds 18 and 22. It never finds the remote door (nothing advertises it). The origin gate refuses it only through a VPN, which only DEBUG `-SillConnect` ever did |
-| This device | Older host, or the CLI without `--remote` | Home door as today. No TXT tag and no kind 18: no Away from home group, and a saved Mac is not recognised on that host's row (only development builds hit this). A remote dial to such a host: `.waiting(-9836)` or refused, "…isn't Sill, or its Sill is too old to pair" |
-| This device | This host, Remote Access off | Home door as today. Kind 18 says `remoteAccess: false`. A remote dial to a listening door (window open) with ALPN sill/1 gets goodbye `remoteOff`; with the door down, it is refused |
-| `sillclient.py` from a9cc248 | This host's home door | Unchanged: it skips unknown kinds |
+| Older (PR #5) | This host | Home door as today. It skips kinds 18 and 22. It never finds the remote door (nothing advertises it). The origin gate refuses it only through a VPN, which only DEBUG `-SkopryConnect` ever did |
+| This device | Older host, or the CLI without `--remote` | Home door as today. No TXT tag and no kind 18: no Away from home group, and a saved Mac is not recognised on that host's row (only development builds hit this). A remote dial to such a host: `.waiting(-9836)` or refused, "…isn't Skopry, or its Skopry is too old to pair" |
+| This device | This host, Remote Access off | Home door as today. Kind 18 says `remoteAccess: false`. A remote dial to a listening door (window open) with ALPN skopry/1 gets goodbye `remoteOff`; with the door down, it is refused |
+| `skopryclient.py` from a9cc248 | This host's home door | Unchanged: it skips unknown kinds |
 
 #### 3.9 Rules for later changes
 
@@ -602,15 +602,15 @@ These are the HostSettings.swift rules, applied to every new payload:
 - no enums on the wire (strings instead; an unknown value is skipped);
 - never rename or retype a field.
 
-The protocol generation is in the ALPN (`sill/2` can later be offered beside `sill/1`) and in
+The protocol generation is in the ALPN (`skopry/2` can later be offered beside `skopry/1`) and in
 `MacInfo.v`, `PairRequest.v` and the link's `v`.
 
 ---
 
-### 4. Host (`SillHostCore`, folder `Sources/SillHost`), file by file
+### 4. Host (`SkopryHostCore`, folder `Sources/SkopryHost`), file by file
 
 All new types are `package` or internal; nothing becomes `public`. The network queue is
-StreamServer's `sill.net`. Everything that hops to the main actor uses `Task { @MainActor }`,
+StreamServer's `skopry.net`. Everything that hops to the main actor uses `Task { @MainActor }`,
 never `MainActor.assumeIsolated`.
 
 #### 4.1 `HostConfig.swift`
@@ -621,7 +621,7 @@ Three Mac-only knobs, beside `directWireless`:
 /// Remote access: the remote door runs (TLS 1.3, paired devices only). The Mac's alone: absent from
 /// StreamSettings, HostSettingsChange, DeviceSettings.accepted, `applying` and `restartNeeded`.
 package var remoteAccess: Bool
-/// The remote door's port. 7455 in `standard`; 0 = any free port (SillHost --remote without a port).
+/// The remote door's port. 7455 in `standard`; 0 = any free port (SkopryHost --remote without a port).
 package var remotePort: Int
 /// The remote door also admits sources outside this Mac's networks and VPNs (a router port forward).
 package var internetAccess: Bool
@@ -724,7 +724,7 @@ enum OriginPolicy {
 - It is defence in depth, not the boundary. A router that source-NATs or hairpins a forward makes an
   internet peer look like `lan`. Pairing is the boundary.
 
-**TEST ONLY:** `SILL_TEST_ORIGIN=vpn|internet` makes loopback sources classify as that origin, on a
+**TEST ONLY:** `SKOPRY_TEST_ORIGIN=vpn|internet` makes loopback sources classify as that origin, on a
 host that does not advertise.
 
 #### 4.5 `HostIdentity.swift` and `PairedDevices.swift` (new)
@@ -732,35 +732,35 @@ host that does not advertise.
 - **`HostIdentity`:** the key (`SecKey`), the certificate DER, `fp`, `macID`, `sec_identity_t` and
   `recognitionKey`. It can sign (`SecKeyCreateSignature`, for kind 18).
 - **`IdentityStore` (protocol), three backends:**
-  - **`KeychainIdentityStore` (Sill.app).** The legacy login keychain. The data-protection keychain
+  - **`KeychainIdentityStore` (Skopry.app).** The legacy login keychain. The data-protection keychain
     needs `keychain-access-groups` and so a provisioning profile, which make-app.sh's bundle does not
-    have (`Packaging/SillDebug.entitlements` holds only `get-task-allow`).
+    have (`Packaging/SkopryDebug.entitlements` holds only `get-task-allow`).
     - Key: `SecKeyCreateRandomKey` with `kSecAttrIsPermanent: true`, application tag
-      `me.saffer.sill.remote.host-key`, label "Sill Remote Access". Looked up by tag.
-    - Recognition key: a generic password, service `me.saffer.sill.remote`, account
+      `app.skopry.remote.host-key`, label "Skopry Remote Access". Looked up by tag.
+    - Recognition key: a generic password, service `app.skopry.remote`, account
       `recognition-key`.
-    - Paired list: a generic password, service `me.saffer.sill.remote`, account `paired-devices`,
+    - Paired list: a generic password, service `app.skopry.remote`, account `paired-devices`,
       JSON.
     - The default ACL trusts the creating app's designated requirement, which survives rebuilds
       signed with the same Apple Development identity, as TCC grants do (R8 checks it).
-  - **`MemoryIdentityStore`:** SillHost `--remote`. New every run; nothing outlives the process.
-  - **`FileIdentityStore`:** TEST ONLY, `SILL_TEST_REMOTE_DIR=<dir>`, honoured only by a host that
+  - **`MemoryIdentityStore`:** SkopryHost `--remote`. New every run; nothing outlives the process.
+  - **`FileIdentityStore`:** TEST ONLY, `SKOPRY_TEST_REMOTE_DIR=<dir>`, honoured only by a host that
     does not advertise.
     - The directory has mode 0700: `host-key` (X9.63 private key, 0600), `recognition-key` (32
       bytes, 0600), `paired.json`.
-    - With `-SillPairAfter`, also `pairing.url` and `pairing.code` (0600).
+    - With `-SkopryPairAfter`, also `pairing.url` and `pairing.code` (0600).
 - **`PairedDevice`,** stored in the keychain item:
   `{fingerprint (base64url), name, model?, pairedAt, method ("qr" | "code"; M5 adds "icloud")}`.
   - Display-only data (`lastSeenAt`, `lastRoute`) lives in the app's defaults under
     `remoteDevicesSeen` (fingerprint prefix → `{at, route}`), written at most once a minute per
     device.
   - The trust list never lives in UserDefaults or a plist: any process of the same user can edit
-    those, add its own key, and then use Sill's Screen Recording and Accessibility grants.
+    those, add its own key, and then use Skopry's Screen Recording and Accessibility grants.
 - **`TrustSnapshot`:** `{paired: Set<Data>, pairingOpen: Bool, remoteAccess: Bool, internetAccess: Bool}`.
   - Immutable, replaced whole under an `NSLock` on every change.
   - The verify block and admission read it on the network queue. **Nothing there ever waits on the
     main actor.**
-- **Loading.** Sill.app loads or creates the identity at launch, before `start()`, so the TXT tag is
+- **Loading.** Skopry.app loads or creates the identity at launch, before `start()`, so the TXT tag is
   in the first registration.
   - A keychain failure: no identity, no TXT tag, no kind 18, the remote door unavailable, and
     `identityProblem` shown in the pane and the menu. The app keeps running.
@@ -770,7 +770,7 @@ host that does not advertise.
 
 - **State:** `closed(reason: used | expired | stopped | cancelled | none)`, or `open` with:
   - the secret (16 bytes), the code, `codeKey: SymmetricKey?` (nil until derived);
-  - `expiresAt` (now + 300 s; `SILL_TEST_PAIRING_TTL` on test hosts);
+  - `expiresAt` (now + 300 s; `SKOPRY_TEST_PAIRING_TTL` on test hosts);
   - `failures`, `nextAllowedAt`, `lastAttemptBySource`;
   - `requestedBy: String?`.
 - **`tryProof(method:proof:fpDevice:fpMac:source:now:) -> Verdict`**, where Verdict is
@@ -812,14 +812,14 @@ It runs on StreamServer's queue. It is owned by `RemoteAccess` and hands admitte
 - **Verify block:** `fp ∈ paired` or `pairingOpen` → `complete(true)`; else `complete(false)`,
   counted as unpaired.
 - **At `.ready`,** read ALPN and fp from the metadata, then:
-  - **`sill/1`:**
+  - **`skopry/1`:**
     - requires `fp ∈ paired` and `remoteAccess`;
     - not paired → cancel (counted);
     - paired but Remote Access off → goodbye `remoteOff`, then close;
     - 8 sessions already → goodbye `busy`, then close;
     - else `server.serve(c, route: .remote(origin, label, fp))` and print
       "Remote client connected: ‹paired name› ‹label› (‹endpoint›)".
-  - **`sill-pair/1`:**
+  - **`skopry-pair/1`:**
     - requires `pairingOpen`, else cancel;
     - read exactly one header and payload (kind 19, at most 4096 bytes) within the deadline;
     - hop to the main actor: `PairingWindow.tryProof`;
@@ -830,7 +830,7 @@ It runs on StreamServer's queue. It is owned by `RemoteAccess` and hands admitte
     - either way, close after the send completes or 250 ms.
   - Any other ALPN → cancel.
 - **`.failed` or `.cancelled` before admission:** `cancel()`, remove the pending entry, and count one
-  failure for the source (5 in 60 s → a 300 s backoff; `SILL_TEST_BACKOFF_SECONDS` on test hosts).
+  failure for the source (5 in 60 s → a 300 s backoff; `SKOPRY_TEST_BACKOFF_SECONDS` on test hosts).
 - **Summary line,** at most once a minute: "Remote access refused N connections in the last minute:
   a unpaired, b from the internet (internet access off), c over the limit."
 - **`apply(want:)`:**
@@ -846,7 +846,7 @@ It runs on StreamServer's queue. It is owned by `RemoteAccess` and hands admitte
 
 #### 4.8 `Reachability.swift` (new), `RouterAddress.swift` (new)
 
-- **`Reachability`** runs while `remoteAccess || pairingOpen`, in Sill.app and SillHost `--remote`.
+- **`Reachability`** runs while `remoteAccess || pairingOpen`, in Skopry.app and SkopryHost `--remote`.
   There is no watcher otherwise, and never on the CLI's default path.
   - **What it reads (SCDynamicStore):**
     - `State:/Network/Service/*/IPv4` and `IPv6`, joined with `Setup:/Network/Service/<id>`
@@ -896,7 +896,7 @@ It runs on StreamServer's queue. It is owned by `RemoteAccess` and hands admitte
     - a private address, or `kDNSServiceErr_DoubleNAT` (-65558) → `doubleNAT`;
     - -65564 or -65565 → `noAnswer`;
     - otherwise `address`.
-  - `SILL_TEST_NO_ROUTER=1` skips the query on test hosts. The query was compiled but never run here
+  - `SKOPRY_TEST_NO_ROUTER=1` skips the query on test hosts. The query was compiled but never run here
     (`scratchpad/remote-access/natpmp-probe.swift`): R0 runs it.
 
 #### 4.9 `StreamServer.swift`
@@ -953,12 +953,12 @@ It runs on StreamServer's queue. It is owned by `RemoteAccess` and hands admitte
 8. **TXT:** `var txtRecord: (() -> NWTXTRecord?)?`, set by the coordinator before `start()`.
    - The service is built by `makeService()` each time it is attached: at init, in `start()`, and in
      `settled` after a Direct Wireless replacement. So every registration carries a fresh tag.
-   - The test registration (`SILL_TEST_SERVICE_TYPE`) carries it too.
+   - The test registration (`SKOPRY_TEST_SERVICE_TYPE`) carries it too.
    - Nil → no TXT record, as today.
 
 #### 4.10 `RemoteAccess.swift` (new; main actor)
 
-The coordinator owns one, in Sill.app always and in SillHost only with `--remote`. It ties together
+The coordinator owns one, in Skopry.app always and in SkopryHost only with `--remote`. It ties together
 the identity, the store, `PairingWindow`, `Reachability`, `RouterAddress` and `RemoteServer`.
 
 - **`apply(config)`:** the three knobs. Starts or stops the door, the watcher and the router query;
@@ -1003,9 +1003,9 @@ the identity, the store, `PairingWindow`, `Reachability`, `RouterAddress` and `R
   `remote?.apply(next)`. The "Settings: …" line comes from `changes(to:)`.
 - **The Desktop filter** (:804): `SCContentFilter(display: d, excludingApplications: [own],
   exceptingWindows: [])`.
-  - `own` is Sill's `SCRunningApplication` from the catalog's last `SCShareableContent`
+  - `own` is Skopry's `SCRunningApplication` from the catalog's last `SCShareableContent`
     (`WindowCatalog` exposes it). Not found (the CLI) → `excludingWindows: []` as today.
-  - Sill's windows (Settings, Log, the pairing window) never go out in a Desktop stream. The window
+  - Skopry's windows (Settings, Log, the pairing window) never go out in a Desktop stream. The window
     catalog already skips them (WindowCatalog.swift:225).
   - The filter is fixed at pipeline start: no running SCStream is ever reconfigured.
 - **`deviceName(_:)`:** the paired name for remote clients before stats, then the stats name through
@@ -1044,11 +1044,11 @@ Settings: remote access off → on
 
 ---
 
-### 5. CLI (`Sources/SillHostCLI/main.swift`)
+### 5. CLI (`Sources/SkopryHostCLI/main.swift`)
 
 | Flag | Effect |
 |---|---|
-| `--remote[=PORT]` | Runs the remote door for this run: `remoteAccess = true`, `remotePort = PORT ?? 0` (any free port, so it never collides with Sill.app's 7455: N12, W8). A new in-memory identity and pairings (TEST ONLY: `SILL_TEST_REMOTE_DIR` on a host that does not advertise). A pairing window is always open: a fresh one after each use or expiry. main.swift prints, from the `onPairingOffer` hook: `Remote access for this run on port 51234 (TLS, paired devices only). Pair with 4829 1355 7208 or sill://pair?v=1&…`, and `Pairing: new code 7310 2284 9915 or sill://pair?…` for each later window. Answers kind 21 by printing the current code again. |
+| `--remote[=PORT]` | Runs the remote door for this run: `remoteAccess = true`, `remotePort = PORT ?? 0` (any free port, so it never collides with Skopry.app's 7455: N12, W8). A new in-memory identity and pairings (TEST ONLY: `SKOPRY_TEST_REMOTE_DIR` on a host that does not advertise). A pairing window is always open: a fresh one after each use or expiry. main.swift prints, from the `onPairingOffer` hook: `Remote access for this run on port 51234 (TLS, paired devices only). Pair with 4829 1355 7208 or skopry://pair?v=1&…`, and `Pairing: new code 7310 2284 9915 or skopry://pair?…` for each later window. Answers kind 21 by printing the current code again. |
 | `--internet` | With `--remote`, also admits internet sources; one line says so. Without `--remote`: "--internet needs --remote." and exit 2. |
 | `--print-reachability` | Prints the address list as the Mac's pane would show it (label, address, kind), then exits. Read-only SystemConfiguration, and no listener. For H18. |
 | none of them | Output byte-identical to the base (masked and sorted), idle and streaming, with and without `--direct-wireless`. No identity, no TXT record, no kind 18. The home door's gate and caps print only when they refuse something, which never happens on the baseline runs. |
@@ -1061,7 +1061,7 @@ Settings: remote access off → on
 
 ---
 
-### 6. Sill.app (`Sources/SillMenuBar`)
+### 6. Skopry.app (`Sources/SkopryMenuBar`)
 
 All errors show inline, never in alerts. Windows open only from AppKit target/action, SwiftUI
 `Button` actions, or (for a device's request) a main-actor hop that shows a window without a modal
@@ -1076,9 +1076,9 @@ the other panes. The pane follows `HostStatus` live; nothing polls.
 **Section 1**
 - Toggle **"Remote access"** (`$settings.config.remoteAccess`).
 - Footer: "Lets the iPhone and iPad you pair connect to this Mac from other networks: through a VPN
-  such as Tailscale, or through a port you forward on your router. Sill turns away every device you
+  such as Tailscale, or through a port you forward on your router. Skopry turns away every device you
   haven’t paired, and encrypts everything the paired ones send and receive."
-- `identityProblem`, when set (orange): "Remote access isn’t available: Sill couldn’t use the
+- `identityProblem`, when set (orange): "Remote access isn’t available: Skopry couldn’t use the
   keychain (‹error›)."
 
 **Section 2 "Addresses"** (only while on)
@@ -1099,8 +1099,8 @@ the other panes. The pane follows `HostStatus` live; nothing polls.
   - No VPN: "No VPN is running on this Mac. Install one such as Tailscale on this Mac and on your
     iPhone or iPad, or allow connections from the internet below."
   - Port in use (orange, the first row): "Port 7455 is in use by another app, so devices can’t reach
-    this Mac remotely. Sill tries again every 30 seconds." with **Change…**.
-  - Another failure: "Remote access couldn’t start (‹error›). Sill tries again every 30 seconds."
+    this Mac remotely. Skopry tries again every 30 seconds." with **Change…**.
+  - Another failure: "Remote access couldn’t start (‹error›). Skopry tries again every 30 seconds."
 - Footer: "Your devices learn these when they pair and keep them current whenever they connect."
 
 **Section 3 "Paired Devices"** (always)
@@ -1133,12 +1133,12 @@ the other panes. The pane follows `HostStatus` live; nothing polls.
     the router forwards a different outside port."
   - **IPv6**, only with a stable global address: "2001:db8::20" with **Copy**, and "Works only if
     your router lets incoming IPv6 connections reach this Mac; most don’t."
-  - Footer while on: "Anyone on the internet can now reach port 7455 and try to connect. Sill turns
+  - Footer while on: "Anyone on the internet can now reach port 7455 and try to connect. Skopry turns
     away every device you haven’t paired. Turning this off doesn’t close the port on your router:
     remove the forward there too."
 
 **Section 5** (always)
-- "This Mac can’t be reached while it’s asleep. While a device is connected from away, Sill keeps it
+- "This Mac can’t be reached while it’s asleep. While a device is connected from away, Skopry keeps it
   from going to sleep by itself." with **[Open Energy Settings…]**. The implementer checks the
   settings URL on macOS 27 (Energy on a desktop; Battery › Options on a laptop).
 
@@ -1155,7 +1155,7 @@ An `NSWindowController` hosting a SwiftUI `PairDeviceView`.
 ```
 ┌─ Pair iPhone or iPad ───────────────────────────────┐
 │ iPad (iPad14,1) on this network asked to pair.      │   (only when requested by a device)
-│ In Sill on your iPhone or iPad, tap Add a Mac…,     │
+│ In Skopry on your iPhone or iPad, tap Add a Mac…,     │
 │ then point it at this code.                         │
 │                 ██▀▀▀▀██ ▄▀▄ ██▀▀▀▀██               │   CIFilter.qrCodeGenerator, level M, integer
 │                 ██ ██ ██ ▀▄█ ██ ██ ██   (220 pt)    │   scale, no interpolation, always dark on white
@@ -1244,7 +1244,7 @@ An `NSWindowController` hosting a SwiftUI `PairDeviceView`.
   - creates the `KeychainIdentityStore` and the `RemoteAccess`, and passes it to the coordinator;
   - wires `onPairingOffer` to show `PairDeviceWindow`;
   - holds the pane's actions: pair, cancel, remove, rename, turn on;
-  - on `--synthetic` with `SILL_TEST_REMOTE_DIR`, uses the `FileIdentityStore`. The bare binary
+  - on `--synthetic` with `SKOPRY_TEST_REMOTE_DIR`, uses the `FileIdentityStore`. The bare binary
     never touches Noah's login keychain in a test.
 - **StreamProtocol's HostSettings.swift header** ("every place a new setting must go") gains one
   line: a Mac-only listener knob (remote access, its port, internet access) goes in HostConfig, the
@@ -1263,13 +1263,13 @@ An `NSWindowController` hosting a SwiftUI `PairDeviceView`.
 
 #### 6.6 DebugHooks and previews
 
-- **`-SillSetAfter`** learns `remoteAccess=1|0`, `remotePort=N`, `internetAccess=1|0` and
+- **`-SkoprySetAfter`** learns `remoteAccess=1|0`, `remotePort=N`, `internetAccess=1|0` and
   `remoteAddressName=host[:port]` (DebugHooks.apply, :72-86).
-- **`-SillPairAfter <s>`** opens the pairing window. On `--synthetic` with `SILL_TEST_REMOTE_DIR`, it
+- **`-SkopryPairAfter <s>`** opens the pairing window. On `--synthetic` with `SKOPRY_TEST_REMOTE_DIR`, it
   also writes `pairing.url` and `pairing.code` there (0600). It never prints them: the app's print
-  shadow copies stdout into Sill.log.
-- **`-SillUnpairAfter <s>`** removes every paired device.
-- **`-SillRenderPreviews`** adds:
+  shadow copies stdout into Skopry.log.
+- **`-SkopryUnpairAfter <s>`** removes every paired device.
+- **`-SkopryRenderPreviews`** adds:
   - `pane-remote-{off,tailscale,notconnected,novpn,internet,cgnat,doublenat,inuse,keychain}-{light,dark}.png`;
   - `pairing-{waiting,requested,wrong,paired,stopped,expired,remoteoff,novpn,othervpn,longname}-{light,dark}.png`
     (`novpn`: this network's address; `othervpn`: this network's address with a WireGuard tunnel's
@@ -1305,18 +1305,18 @@ An `NSWindowController` hosting a SwiftUI `PairDeviceView`.
 | `iOSClient/StreamScreen.swift`, `PortraitStreamScreen.swift` | Host the overlay; `wantedFPS(remote:)` |
 | `iOSClient/StreamClient+Viewport.swift` | `wantedFPS(remote:)` caps at 60 |
 | `iOSClient/MockCatalog.swift` | The new connect and settings cases |
-| `iOSClient/Info.plist` | `NSCameraUsageDescription` "Sill scans the code on your Mac to pair with it.", and `CFBundleURLTypes` with scheme `sill` |
+| `iOSClient/Info.plist` | `NSCameraUsageDescription` "Skopry scans the code on your Mac to pair with it.", and `CFBundleURLTypes` with scheme `skopry` |
 
 #### 7.2 The device's identity and saved Macs
 
 - **`DeviceIdentity`:**
-  - a P-256 key with tag `me.saffer.sill.device-key`, `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`,
+  - a P-256 key with tag `app.skopry.device-key`, `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`,
     never synchronizable;
   - in the Secure Enclave when R0-a shows Network.framework can sign the handshake with it (open
     question 12), else a software Keychain key;
   - created at the first pairing; its certificate rebuilt at launch.
   - A locked or stolen device cannot use it; it is not in backups.
-- **`SavedMac`** (Codable, UserDefaults key `Sill.savedMacs`, JSON, at most 16; the oldest
+- **`SavedMac`** (Codable, UserDefaults key `Skopry.savedMacs`, JSON, at most 16; the oldest
   `lastConnectedAt ?? pairedAt` is dropped first):
 
   ```swift
@@ -1432,7 +1432,7 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
   - each has TCP `connectionTimeout` 10 s;
   - the whole dial gives up after 20 s.
 - **Parameters:**
-  - TLS from `RemoteTLS` with ALPN `sill/1`;
+  - TLS from `RemoteTLS` with ALPN `skopry/1`;
   - a verify block that accepts only the saved fingerprint;
   - the §3.3 TCP options;
   - `includePeerToPeer = false`.
@@ -1450,13 +1450,13 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
   | -9825 or -9829 after `.ready`, or goodbye `removed` | revoked |
   | `.posix(ECONNREFUSED)` | refused |
   | `.dns(NoSuchRecord or NoSuchName)` | name not found |
-  | `.tls(-9836)`, another TLS error, a wrong ALPN, or an oversized message | not Sill |
+  | `.tls(-9836)`, another TLS error, a wrong ALPN, or an oversized message | not Skopry |
   | `ETIMEDOUT`, `ENETUNREACH`, `EHOSTUNREACH`, the 10 s timeout | didn't answer |
   | `.dns(PolicyDenied)` on a LAN address | Local Network |
   | A VPN-kind address (100.64/10, fd7a:115c:a1e0::/48, a `.ts.net` name, or kind "vpn") whose attempt's path used no tunnel interface (`!path.usesInterfaceType(.other)`), or a `.ts.net` name that does not resolve | VPN off here |
 
 - **Priority when every attempt failed:** wrong Mac, revoked, refused, VPN off here, name not found,
-  not Sill, didn't answer.
+  not Skopry, didn't answer.
 - **Pairing dials** use the link's addresses one at a time (never raced: pairing is single-use), in
   the same order, each with the 10 s timeout. A typed pairing dials the typed address only.
 - **The address that wins** is saved as `lastWorked`, and the session's `lastRoute` is set.
@@ -1495,10 +1495,10 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 
 #### 7.7 Pairing flows on the device
 
-- **Add a Mac, scan** (the default): the embedded scanner reads a `sill://pair` link →
+- **Add a Mac, scan** (the default): the embedded scanner reads a `skopry://pair` link →
   `PairLink.parse` → a pairing dial with the pin `k` → kind 19 `method "qr"` → kind 20 ok → check
   `proof_M` → save → a session dial (pinned) → the stream screen.
-  - A code that is not `sill://pair` shows "That’s not a Sill code." under the viewfinder for 2 s.
+  - A code that is not `skopry://pair` shows "That’s not a Skopry code." under the viewfinder for 2 s.
   - The person chose to point the camera, so there is no confirmation step.
 - **Add a Mac, typed:** Address plus Code.
   - The code's check digit is validated locally.
@@ -1528,9 +1528,9 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 |---|---|
 | Remote row | `DrawerRow` with trailing "Remote"; hint "Connects through your VPN or the internet." |
 | The line | "Add a Mac…"; hint "Pairs this ‹iPad› with a Mac so you can reach it away from home." (‹iPad› = iPhone or iPad by idiom, as elsewhere) |
-| The hint sentence (ContentView.swift:245), shown only when nothing is listed, as today | "Your Mac has to be on the same Wi‑Fi network as this ‹iPad›, or have Direct Wireless Connection turned on in Sill. Away from home, add it once with a code from your Mac." |
-| Status | "Connecting to Mac mini remotely…" · "Reconnecting to Mac mini remotely…" · "Pairing with Mac mini…" / "Pairing with 100.101.102.103…" · "Mac mini disconnected. Sill will reconnect when it can reach it." (a saved Mac) · "Stopped trying to reach Mac mini. Tap it to try again." · "Mac mini is saved. Tap it to connect." |
-| Goodbyes | quit: "Mac mini quit Sill. This ‹iPad› reconnects when it’s back." · removed: "Mac mini removed this ‹iPad›. To use it again, pair it again." · remoteOff: "Mac mini turned off Remote Access." · internetOff: "Mac mini stopped accepting connections from the internet. Connect through your VPN." · busy: "Mac mini is already serving 8 devices." |
+| The hint sentence (ContentView.swift:245), shown only when nothing is listed, as today | "Your Mac has to be on the same Wi‑Fi network as this ‹iPad›, or have Direct Wireless Connection turned on in Skopry. Away from home, add it once with a code from your Mac." |
+| Status | "Connecting to Mac mini remotely…" · "Reconnecting to Mac mini remotely…" · "Pairing with Mac mini…" / "Pairing with 100.101.102.103…" · "Mac mini disconnected. Skopry will reconnect when it can reach it." (a saved Mac) · "Stopped trying to reach Mac mini. Tap it to try again." · "Mac mini is saved. Tap it to connect." |
+| Goodbyes | quit: "Mac mini quit Skopry. This ‹iPad› reconnects when it’s back." · removed: "Mac mini removed this ‹iPad›. To use it again, pair it again." · remoteOff: "Mac mini turned off Remote Access." · internetOff: "Mac mini stopped accepting connections from the internet. Connect through your VPN." · busy: "Mac mini is already serving 8 devices." |
 | Row menus (system context menus, as the panel's Quality picker already is) | Remote row: **Connect**, **Forget Mac mini**. A saved Mac's network row: **Connect Remotely**, **Forget Mac mini** |
 
 **Add a Mac card:**
@@ -1538,12 +1538,12 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 | Where | Text |
 |---|---|
 | Title | "Add a Mac" (a heading; VoiceOver focus moves to it) |
-| Intro | "Pair once, and Sill reaches your Mac from anywhere, through your VPN or the internet." |
-| Scan instruction | "On your Mac, choose Pair iPhone or iPad… in the Sill menu, then point this ‹iPad› at the code." |
+| Intro | "Pair once, and Skopry reaches your Mac from anywhere, through your VPN or the internet." |
+| Scan instruction | "On your Mac, choose Pair iPhone or iPad… in the Skopry menu, then point this ‹iPad› at the code." |
 | Viewfinder | Caption "Point at the code on your Mac"; spoken "Camera. Point it at the code on your Mac." |
 | Links | "Enter Code Instead" / "Scan Code Instead" · "Cancel" |
-| Typed | "Type the address and code that Sill shows on your Mac." Fields: Address (placeholder "100.101.102.103 or mac.example.net"; `.URL` keyboard; no autocorrection or capitalization; Return moves on) and Code (placeholder "0000 0000 0000"; `.numberPad`; groups of 4 as typed; paste accepted). [Pair] |
-| Camera | "Sill can’t use the camera. Enter the code instead, or allow the camera in Settings." [Open Settings]. The simulator (`isSupported == false`) goes straight to the typed path |
+| Typed | "Type the address and code that Skopry shows on your Mac." Fields: Address (placeholder "100.101.102.103 or mac.example.net"; `.URL` keyboard; no autocorrection or capitalization; Return moves on) and Code (placeholder "0000 0000 0000"; `.numberPad`; groups of 4 as typed; paste accepted). [Pair] |
+| Camera | "Skopry can’t use the camera. Enter the code instead, or allow the camera in Settings." [Open Settings]. The simulator (`isSupported == false`) goes straight to the typed path |
 
 **Inline pairing errors** (orange, under the field they belong to):
 - "That doesn’t look like an address. Try 100.101.102.103 or mac.example.net."
@@ -1557,22 +1557,22 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 - "This code expired. Choose Pair iPhone or iPad… on your Mac for a new one."
 - "Pairing didn’t finish: the Mac at 100.101.102.103 couldn’t show it knows the code. Pair from the
   same network as your Mac, or scan the code instead." (a bad `proof_M`, or no kind 20 in 15 s)
-- "Nothing answered at 100.101.102.103. Check the address, and that Sill is open on your Mac."
-- "Something answered at 100.101.102.103, but it isn’t Sill, or its Sill is too old to pair."
-- "That’s not a Sill code."
+- "Nothing answered at 100.101.102.103. Check the address, and that Skopry is open on your Mac."
+- "Something answered at 100.101.102.103, but it isn’t Skopry, or its Skopry is too old to pair."
+- "That’s not a Skopry code."
 
 **Remote dial failures** (the status line, by the priority of §7.5):
 
 | Kind | Text |
 |---|---|
-| wrong Mac | "This isn’t the Mac mini this ‹iPad› paired with. If Sill was set up again on it, forget it here and pair again." (no Connect Anyway) |
-| revoked | "Mac mini no longer accepts this ‹iPad›. Pair it again from Sill’s Settings on the Mac." |
-| refused | "Mac mini answered, but Sill isn’t accepting remote connections there. Check that Sill is open and Remote Access is on. If you changed its port, connect at home once." |
+| wrong Mac | "This isn’t the Mac mini this ‹iPad› paired with. If Skopry was set up again on it, forget it here and pair again." (no Connect Anyway) |
+| revoked | "Mac mini no longer accepts this ‹iPad›. Pair it again from Skopry’s Settings on the Mac." |
+| refused | "Mac mini answered, but Skopry isn’t accepting remote connections there. Check that Skopry is open and Remote Access is on. If you changed its port, connect at home once." |
 | VPN off here | "Tailscale looks off on this ‹iPad›. Turn it on, then tap Mac mini." ("Your VPN" when the address has no service name) |
 | name not found | ".ts.net" names: "This ‹iPad› can’t look up mac-mini.tail1234.ts.net. Is Tailscale on?"; others: "This ‹iPad› can’t look up home.example.net." |
-| not Sill | "Something answered at 203.0.113.9, but it isn’t Sill. Your home’s internet address may have changed." |
+| not Skopry | "Something answered at 203.0.113.9, but it isn’t Skopry. Your home’s internet address may have changed." |
 | didn't answer | "Mac mini didn’t answer. It may be asleep, or Tailscale may be off on the Mac." For a raw internet IP: "Mac mini didn’t answer at 203.0.113.9. If your home’s internet address changed, connect at home once to update it, or add an address name on the Mac." |
-| Local Network | "To reach 192.168.1.20, allow Local Network for Sill in Settings." |
+| Local Network | "To reach 192.168.1.20, allow Local Network for Skopry in Settings." |
 
 #### 7.9 The address parser (`Sources/StreamProtocol/AddressParser.swift`, pure; Foundation and `inet_pton`)
 
@@ -1588,8 +1588,8 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
   characters in all, an optional trailing dot. Single labels are allowed (MagicDNS short names,
   `localhost`). Names whose labels are all numeric are refused.
 - Ports are 1–65535. With none, the Mac's remote port applies (7455 when unknown).
-- `sill://pair…` input is handed to `PairLink`.
-- DEBUG `-SillConnect` uses this parser too, so `[::1]:P` works (today's split at the last colon
+- `skopry://pair…` input is handed to `PairLink`.
+- DEBUG `-SkopryConnect` uses this parser too, so `[::1]:P` works (today's split at the last colon
   breaks IPv6).
 
 #### 7.10 Layout per size (connect screen, Add a Mac card, overlay)
@@ -1641,9 +1641,9 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 
   | Situation | Group |
   |---|---|
-  | This device saved this Mac (the macID of kind 18 is saved) | A row with a leading checkmark, "Paired for remote access". Footnote: "Away from home, Sill reaches Mac mini through Tailscale (mac-mini.tail1234.ts.net)." (the first VPN or internet address; otherwise "through your VPN or the internet") |
+  | This device saved this Mac (the macID of kind 18 is saved) | A row with a leading checkmark, "Paired for remote access". Footnote: "Away from home, Skopry reaches Mac mini through Tailscale (mac-mini.tail1234.ts.net)." (the first VPN or internet address; otherwise "through your VPN or the internet") |
   | Not saved, `remoteAccess` on | A button row **Pair This ‹iPad›…**. Footnote: "Pair once to reach Mac mini through your VPN or the internet. Mac mini shows a code; scan it with this ‹iPad›." |
-  | Not saved, `remoteAccess` off | Footnote only: "To reach Mac mini away from home, turn on Remote Access in Sill’s Settings on the Mac." |
+  | Not saved, `remoteAccess` off | Footnote only: "To reach Mac mini away from home, turn on Remote Access in Skopry’s Settings on the Mac." |
   | Connected remotely | The paired row, and "Connected through Tailscale." |
 
 - **The Direct Wireless row on a remote route:** disabled, with "Change this on Mac mini, or from a
@@ -1660,12 +1660,12 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
     the device's picker all gain it.
   - An older device shows it as "Custom — 4 Mbps", read-only (HostSettings.swift:182-184).
   - An older host refuses a 4 Mbps pick, and the panel goes back with the warning haptic.
-  - Quality is host-wide and Sill.app saves it, so a remote downgrade follows the user home. The
+  - Quality is host-wide and Skopry.app saves it, so a remote downgrade follows the user home. The
     README says so.
 
 #### 7.12 Harness and DEBUG arguments (the contract comment at ContentView.swift:56-91, and CLAUDE.md)
 
-- **`-SillConnectCase`** keeps `looking|hint|nearby|denied` (re-shot: they now show the Add a Mac
+- **`-SkopryConnectCase`** keeps `looking|hint|nearby|denied` (re-shot: they now show the Add a Mac
   line) and gains:
   - `remote`: a network row, a Direct row, and two Remote rows (one long name, one "(2)");
   - `addmac`: the card with a placeholder viewfinder;
@@ -1673,26 +1673,26 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
   - `addcodeerror`: "That code didn’t work…";
   - `pairing`: "Pairing with Mac mini…";
   - `remotedial`: "Connecting to Mac mini remotely…";
-  - `remotefail`, with `-SillRemoteFailure vpnoff|timeout|refused|dns|wrongmac|revoked|notsill|gaveup|quit|removed|remoteoff`;
+  - `remotefail`, with `-SkopryRemoteFailure vpnoff|timeout|refused|dns|wrongmac|revoked|notskopry|gaveup|quit|removed|remoteoff`;
   - `camera`: the camera refused;
   - `externalpair`: the link confirmation.
-- **`-SillSettingsCase`** gains:
+- **`-SkoprySettingsCase`** gains:
   - `remote`: Tailscale, 48 ms, paired;
   - `remoteinternet`;
   - `remoteslow`: the callout;
   - `remotepair`: on, not paired, Pair This iPad…;
   - `remoteoff`;
   - `noremote`: no kind 18, so no group.
-- **`-SillScanOverlay 1`:** the stream screen with the overlay.
-- **`-Sill.savedMacs '<JSON>'`** seeds saved Macs for one run (the argument domain, never written);
+- **`-SkopryScanOverlay 1`:** the stream screen with the overlay.
+- **`-Skopry.savedMacs '<JSON>'`** seeds saved Macs for one run (the argument domain, never written);
   `'[]'` empties them.
-- **`-SillPairURL '<url>'`** (normal app): pairs with that link at launch, without the confirmation,
+- **`-SkopryPairURL '<url>'`** (normal app): pairs with that link at launch, without the confirmation,
   then streams.
-- **`-SillPairCode <12 digits> -SillPairAddress host:port`:** the typed path at launch.
-- **`-SillDialSaved 1`:** dials the first saved Mac's addresses at launch, as a tap on its Remote row
+- **`-SkopryPairCode <12 digits> -SkopryPairAddress host:port`:** the typed path at launch.
+- **`-SkopryDialSaved 1`:** dials the first saved Mac's addresses at launch, as a tap on its Remote row
   would.
-- **`-SillForgetMacs 1`:** clears saved Macs and the device key at launch.
-- **`-SillConnect host:port`:** unchanged (a plain dial to the home door); it now uses the address
+- **`-SkopryForgetMacs 1`:** clears saved Macs and the device key at launch.
+- **`-SkopryConnect host:port`:** unchanged (a plain dial to the home door); it now uses the address
   parser, and **never saves anything**.
 
 ---
@@ -1746,26 +1746,26 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 | The VPN off on the device | "Tailscale looks off on this ‹iPad›…"; the Remote row stays (it is a saved Mac) |
 | The VPN off on the Mac | The pane shows "Tailscale — Not connected". The device: "didn't answer…" |
 | The home's public IP changes | Names follow by themselves. A raw IP gets the "didn't answer at …" copy, and refreshes at the next home connection (verified kind 18) |
-| Carrier-grade NAT or double NAT | The pane says so, in orange; a VPN is the way. Sill never opens router ports |
+| Carrier-grade NAT or double NAT | The pane says so, in orange; a VPN is the way. Skopry never opens router ports |
 | The router forwards another outside port (17455 → 7455) | The Mac's address name `home.example.net:17455`, or typed on the device; the saved address keeps its own port |
 | IPv6 | Temporary, deprecated and link-local addresses are never listed; zone IDs are refused; a global address shows only with the internet switch, with its router warning; brackets in links and typed input |
 | Two Macs of one name | Keyed by Mac ID; "Mac mini" and "Mac mini (2)"; tags tell their network rows apart; pairing one never touches the other |
 | One Mac, a Bonjour clash ("Mac (2)") | Matched by the tag, whatever the name |
-| Sill reinstalled on the Mac (new key) | Pins fail: "This isn't the Mac mini this ‹iPad› paired with…". Forget, then pair again. The network row is the new Mac, untagged for this device until it pairs |
+| Skopry reinstalled on the Mac (new key) | Pins fail: "This isn't the Mac mini this ‹iPad› paired with…". Forget, then pair again. The network row is the new Mac, untagged for this device until it pairs |
 | The device restored from a backup | No device key (`ThisDeviceOnly`), so its saved Macs are cleared at launch; it pairs again, and the Mac shows the old record with an old "last connected" date until Remove |
 | Remote Access turned off while devices stream remotely | goodbye `remoteOff`; the pairing window closes; redials are refused ("…isn't accepting remote connections…") |
 | Internet access turned off while an internet device streams | goodbye `internetOff`; VPN devices carry on |
 | The port changed while devices stream remotely | Live sessions continue; kind 18 carries the new port. An away device that missed it gets the refused copy, "connect at home once" |
 | The port in use at launch | The attention item and the orange row; a retry every 30 s; the home door is unaffected |
-| Sill.app and the CLI side by side | The CLI takes any port for `--remote`; the app keeps 7455. Two identities; tags tell them apart |
+| Skopry.app and the CLI side by side | The CLI takes any port for `--remote`; the app keeps 7455. Two identities; tags tell them apart |
 | A remote device changes Quality | Allowed and saved, as today; it follows the person home; the menu shows it |
 | A remote device toggles Direct Wireless | Refused and answered unchanged; the panel's row is disabled with its reason |
 | A kind 21 flood from a home device | One per 30 s per connection; an open window is not reopened |
 | A scanned code whose Mac is unreachable from here (office Mac, device on cellular) | Every address fails: "Nothing answered…". Pairing needs the device to reach the Mac once |
 | Pairing through a relay (on-path attacker) | QR: the pin refuses it before anything is sent. Code: proofs bind both keys; offline grinding costs about 10,000 GPUs for 5 minutes |
-| Scanners on a forwarded port (internet switch on) | TLS alerts only, never a byte of Sill; caps; one summary line a minute |
-| A stranger's Sill on a café LAN, with the same name | Its tag does not match: a plain network row, not the saved Mac. The home door stays unauthenticated until M5, as today |
-| A local process connecting over loopback | The home door serves it, as today (a confused deputy for Sill's TCC grants). Closing that is M5's, with the home door behind pairing (open question 1) |
+| Scanners on a forwarded port (internet switch on) | TLS alerts only, never a byte of Skopry; caps; one summary line a minute |
+| A stranger's Skopry on a café LAN, with the same name | Its tag does not match: a plain network row, not the saved Mac. The home door stays unauthenticated until M5, as today |
+| A local process connecting over loopback | The home door serves it, as today (a confused deputy for Skopry's TCC grants). Closing that is M5's, with the home door behind pairing (open question 1) |
 | The Mac asleep, or a closed laptop lid | "didn't answer"; the pane's sleep line. Bonjour Sleep Proxy wakes work only on the LAN |
 | The Mac's display asleep or locked during a remote session | Unknown whether capture continues (R6) |
 | The app backgrounded during a remote session | The host drops it after 8 s of silence; on return, liveness is reset, and a reconnect follows if the session is gone |
@@ -1781,28 +1781,28 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 **Hard rules for the implementing session:**
 - Only synthetic hosts from `.build/release`, started from Python with `start_new_session=True`,
   killed by PID, none left running.
-- The bare `SillMenuBar --synthetic` for app paths, with `SILL_TEST_REMOTE_DIR`. Never
-  `/Applications/Sill.app`, the `me.saffer.sill.mac` domain, Noah's login keychain (except R0-b,
-  with his OK) or his iPad. Run `defaults delete SillMenuBar` afterwards.
-- `SILL_TEST_NO_ROUTER=1` on every headless host. Never talk to the router.
+- The bare `SkopryMenuBar --synthetic` for app paths, with `SKOPRY_TEST_REMOTE_DIR`. Never
+  `/Applications/Skopry.app`, the `app.skopry.mac` domain, Noah's login keychain (except R0-b,
+  with his OK) or his iPad. Run `defaults delete SkopryMenuBar` afterwards.
+- `SKOPRY_TEST_NO_ROUTER=1` on every headless host. Never talk to the router.
 - Never tap a real Mac's row in the simulator: Noah's Mac is listed.
 - Keep AWDL-on tests under 20 s and on test service types.
-- `$T` is a fresh temporary directory per gate. `sillclient.py --identity=$T/…` keeps its identity
+- `$T` is a fresh temporary directory per gate. `skopryclient.py --identity=$T/…` keeps its identity
   there.
 
 **New test tools (in the repo):**
-- **`Scripts/sillrelay.py`** (standard library, asyncio):
+- **`Scripts/skopryrelay.py`** (standard library, asyncio):
   `--listen 0 --to HOST:PORT [--delay-ms N] [--rate-mbps R] [--blackhole-after S]`.
   - A passthrough relay: TLS stays end to end.
   - Host → client shaping reads from the host only as fast as R allows, so the host's own queue
     fills as on a real uplink.
   - `--blackhole-after` stops forwarding both ways without closing.
-  - It prints "sillrelay listening on 127.0.0.1:P".
-- **`Scripts/sillclient.py`** gains (each checked before connecting, as today):
+  - It prints "skopryrelay listening on 127.0.0.1:P".
+- **`Scripts/skopryclient.py`** gains (each checked before connecting, as today):
   - `--host=H`;
   - `--tls` with `--identity=DIR`. The identity is made on first use with
     `/usr/bin/openssl ecparam -name prime256v1 -genkey -noout -param_enc named_curve` and
-    `openssl req -x509 -new -key … -subj /CN=sillclient -days 3650`. This was checked to load in
+    `openssl req -x509 -new -key … -subj /CN=skopryclient -days 3650`. This was checked to load in
     Python 3.11.9 / OpenSSL 3.0.13 with TLS 1.3 and ALPN. It pins the Mac's SPKI hash from
     `getpeercert(binary_form=True)` with a small DER walk, and exits 3 before sending a byte on a
     mismatch;
@@ -1817,30 +1817,30 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 
 | # | Check | Pass when |
 |---|---|---|
-| H0 | **Preflight** (no commit). Record the base commit; `git archive` it to `$SP/base` and build it. Baselines: `SillHost --synthetic` idle 35 s; with `sillclient.py PORT 5 desktop`; both again with `--direct-wireless`; the bare app's and the bundle's `-SillRenderPreviews`; the policy and ledger check counts; the base host through `sillrelay.py --rate-mbps 2 --delay-ms 150` for 90 s. **Probes:** P1, the loopback mTLS probe with the two ALPN values and the random-CN certificate; P2, PBKDF2 600k in Swift (CommonCrypto) equals §3.6's vector, and its time; P3, an accepted connection's `currentPath.localEndpoint` at `.preparing`, on loopback and when the Mac connects to its own Tailscale address (which interface does the local address map to?); P4, `NWBrowser.Descriptor.bonjourWithTXTRecord` reads `r` from a `_silltest._tcp` registration | Files exist; every probe answers, or the plan changes first |
+| H0 | **Preflight** (no commit). Record the base commit; `git archive` it to `$SP/base` and build it. Baselines: `SkopryHost --synthetic` idle 35 s; with `skopryclient.py PORT 5 desktop`; both again with `--direct-wireless`; the bare app's and the bundle's `-SkopryRenderPreviews`; the policy and ledger check counts; the base host through `skopryrelay.py --rate-mbps 2 --delay-ms 150` for 90 s. **Probes:** P1, the loopback mTLS probe with the two ALPN values and the random-CN certificate; P2, PBKDF2 600k in Swift (CommonCrypto) equals §3.6's vector, and its time; P3, an accepted connection's `currentPath.localEndpoint` at `.preparing`, on loopback and when the Mac connects to its own Tailscale address (which interface does the local address map to?); P4, `NWBrowser.Descriptor.bonjourWithTXTRecord` reads `r` from a `_skoprytest._tcp` registration | Files exist; every probe answers, or the plan changes first |
 | H1 | Builds: `swift build -c release`; iOS Debug and Release as the earlier steps built them | Only the known warnings (CaptureProbe; the old `StreamClient` capture warning) |
-| H2 | **The CLI byte for byte.** H0's runs on the new build, digits masked, sorted | Identical, idle and streaming, with and without `--direct-wireless`; "Advertising _sill._tcp…" present; no TXT record (`dns-sd` on a test-type run) |
+| H2 | **The CLI byte for byte.** H0's runs on the new build, digits masked, sorted | Identical, idle and streaming, with and without `--direct-wireless`; "Advertising _skopry._tcp…" present; no TXT record (`dns-sd` on a test-type run) |
 | H3 | **Pure checks** (swiftc; each with mutants caught): the address parser (at least 40 cases, including every §7.9 rule); `PairingCode` (Damm over 20,000 codes: every substitution and adjacent transposition caught; normalisation; lengths); `PairingProof` (§3.6's vectors exactly; the labels differ; swapped fingerprints change the proofs); certificate, fingerprint and Mac ID (`SecCertificateCreateWithData` accepts; `openssl x509 -inform der -noout -text` parses a named curve; the fingerprint agrees in Swift and Python; the Mac ID vector); `RecognitionTag` (the vector; 10,000 wrong keys never match); `SafeText`; `PairLink` (round trip, IPv6, `v≠1`, `m≠MacID(k)`, missing fields); kind 18 signing (verifies; one flipped byte fails; the wrong key fails); `OriginPolicy` (every rule, by door and switch, including 100.64/10 on utun and on en0, ULA on utun and en0, on-link and off-link global IPv6, awdl, mapped IPv4); `AddressList.build` (fixtures shaped like Noah's store: utun0–3 link-local, Tailscale on utun4, the CoreDevice ULA on utun5, en0 private plus a deprecated ULA → exactly Tailscale v4, Tailscale v6, Wi‑Fi v4, and the MagicDNS name with the resolver stubbed; also a WireGuard service, a non-NE point-to-point tunnel, Wi‑Fi plus Ethernet, temporary IPv6, and global IPv6 only with the switch); `PairingWindow` (expiry, 5 failures, single use, spacing, per source, busy before K); `DiscoveryPolicy` and `RemoteDialPolicy` (the existing checks unchanged, plus Remote rows, due times, the path-change exemption, the 120 s stop, dial order with the subnet rule, the copy priority, and a LAN pin mismatch not counting); `SavedMacs` (merge, refresh, cap, never-save rules, clearing without a key) | All pass |
 | H4 | **Home door caps.** `--big-payload=5242880`; ten `--set` within 1 s; `--device` with control characters, bidi overrides and 500 characters; 50 connections reset before sending | One "Closing …" line and that client closed while a second streams; at most 4 applied, 10 answers, at most one "ignored" line a second; a clean name of at most 64 characters in the log; no descriptor growth (`lsof`) and no "Client left" lines for the reset ones |
-| H5 | **Home door origin gate.** `SILL_TEST_ORIGIN=vpn`, then `=internet`, then unset; also the fixes' `SILL_TEST_PEER_TO_PEER_INTERFACE=en0` link-local client | Refused with zero bytes and one summary line; served without the variable; the en0 link-local client is served, and is disconnected when Direct Wireless turns off (the fixes' gate still passes) |
-| H6 | **The remote door up.** `SillHost --synthetic --remote` | Two new lines only: the core's "Remote access: listening on port P (TLS, paired devices only; 0 paired)." and main.swift's startup line with the port, the code and the URL; `lsof` shows two listeners; without `--remote` one listener, and H2 holds; `--internet` alone exits 2 |
-| H7 | **QR pairing.** `sillclient.py --tls --pair-url=URL --identity=$T/a`, then a session dial | Kind 20 ok with a valid `proof_M`; the "Paired … with the QR code" line; the session's catalog order 2, 16, 18, 4…, 5, 14; frames; kind 18 verifies and its macID equals MacID(fp) |
-| H8 | **A paired session.** The same identity, no code; then `--pair-url` again | A session with negotiated ALPN `sill/1`; re-pairing replaces the record (one row in `paired.json`) |
+| H5 | **Home door origin gate.** `SKOPRY_TEST_ORIGIN=vpn`, then `=internet`, then unset; also the fixes' `SKOPRY_TEST_PEER_TO_PEER_INTERFACE=en0` link-local client | Refused with zero bytes and one summary line; served without the variable; the en0 link-local client is served, and is disconnected when Direct Wireless turns off (the fixes' gate still passes) |
+| H6 | **The remote door up.** `SkopryHost --synthetic --remote` | Two new lines only: the core's "Remote access: listening on port P (TLS, paired devices only; 0 paired)." and main.swift's startup line with the port, the code and the URL; `lsof` shows two listeners; without `--remote` one listener, and H2 holds; `--internet` alone exits 2 |
+| H7 | **QR pairing.** `skopryclient.py --tls --pair-url=URL --identity=$T/a`, then a session dial | Kind 20 ok with a valid `proof_M`; the "Paired … with the QR code" line; the session's catalog order 2, 16, 18, 4…, 5, 14; frames; kind 18 verifies and its macID equals MacID(fp) |
+| H8 | **A paired session.** The same identity, no code; then `--pair-url` again | A session with negotiated ALPN `skopry/1`; re-pairing replaces the record (one row in `paired.json`) |
 | H9 | **Typed pairing.** `--pair-code=CODE` with no pin | `proof_M` checked, the pin saved, then a session |
-| H10 | **Refusals.** (a) A new identity against the bare app with remote on and no window. (b) Five wrong codes, then the right one, and attempts under 1 s apart. (c) `SILL_TEST_PAIRING_TTL=5` and a correct code at 6 s. (d) Two clients with one code, 50 ms apart. (e) A plain client at the remote door; a TLS client at the home door; `curl http://127.0.0.1:P/` and a raw "POST /" at the remote door. (f) A paired `sill/1` session while Remote Access is off and a window is open (bare app) | (a) The client reaches ready and then a TLS read error; no Sill byte; only the minute's summary. (b) `triesLeft` 4…1, then `stopped`; the right code then gets `closed`; too soon gets `busy`. (c) `expired`. (d) Exactly one ok. (e) Dropped, with zero bytes; -9836; closed within 100 ms with no plaintext answer. (f) Goodbye `remoteOff` |
-| H11 | **Pre-auth caps.** 12 raw TCP connections to the remote door from 127.0.0.1 and ::1, while a paired client streams; then 5 failed handshakes from one source (`SILL_TEST_BACKOFF_SECONDS=5`) | At most 2 held per source and 8 in all, the rest closed at once; each held one closed at 10 ± 0.5 s; the paired client served throughout; the source refused during the backoff, then allowed |
-| H12 | **No plaintext.** A passthrough `sillrelay.py` records both directions of a 10 s paired session | None of "macName", "windows", "Test Pattern" or the device name appears in either direction; the host's first byte is 0x16 |
-| H13 | **Remote-route rules.** From a paired session, `--set=directWireless=1,bitrate=25000000@3`; kind 21 on the remote door; kind 21 from a loopback home session (twice within 30 s); `SILL_TEST_ORIGIN=internet` with `--internet`, then internet access turned off on the bare app | Direct Wireless refused with its line, the bitrate applied, one answer; kind 21 ignored on the remote door; the CLI prints its code once in 30 s; the internet session is served, then gets goodbye `internetOff` within 1 s and EOF |
-| H14 | **Slow link.** `sillrelay.py --rate-mbps 2 --delay-ms 150`, 90 s, remote session vs H0's base; also an unshaped home-door client on the new build | The base shows a "not draining" eviction or a keyframe storm. The new build: no eviction, frames in every 5 s window, forced keyframe requests at least 2 s apart, keyframes a minute at most the base's; record the pong RTT p95. The unshaped home client's keyframes a minute and `net.dropped` equal the base's within noise |
-| H15 | **Liveness.** `sillrelay.py --blackhole-after 5` on a remote session, and on a home session | Remote: "Client silent for … dropping" at about 13 s (5 + 8). Home: the 4 s drain rule, as today |
-| H16 | **Port.** The bare app, remote on, `-remotePort P` with P held by a Python socket; then released; then `-SillSetAfter '3 remotePort=P2'` while a remote session streams | The "in use" line and status; listening within 30 s of the release; a rebind with the session continuing, and kind 18 carrying P2 |
-| H17 | **The TXT tag.** `SILL_TEST_SERVICE_TYPE=_silltest._tcp SILL_TEST_REMOTE_DIR=$T/h SillHost --synthetic --remote`; `dns-sd -t 3 -L "Sill test <pid>" _silltest._tcp local`; a Direct Wireless toggle through `sillclient --set` | An `r=` that Python resolves with `$T/h/recognition-key`; a new `r` after the replacement that still resolves; no TXT record without `--remote` |
-| H18 | **Reachability.** `SillHost --print-reachability` (addresses masked in the log); kind 18 of a `--remote` host | Tailscale (plus MagicDNS when it resolves) and Wi‑Fi; no utun0–3, CoreDevice tunnel, temporary or deprecated IPv6, awdl or llw; kind 18's list equals it (with 127.0.0.1 first on test hosts); no router query with `SILL_TEST_NO_ROUTER=1` |
-| H19 | **The app, persistence.** The bare `SillMenuBar --synthetic` with `SILL_TEST_REMOTE_DIR=$T/app -SillPairAfter 1 -SillLogFile $T/app.log`, then `-SillSetAfter '3 remoteAccess=1,internetAccess=1,remotePort=P'`, then a relaunch, then `-SillUnpairAfter 8` | `sillclient` pairs with `$T/app/pairing.url`; the settings save and apply (`defaults read SillMenuBar`); after the relaunch the same Mac ID, the same port and a valid pairing; goodbye `removed` within 1 s, and the next dial refused; **the log contains neither the code nor the secret** (grep both); then `defaults delete SillMenuBar` |
-| H20 | **TLS cost.** 60 s at 60 fps synthetic, `sillclient --stats` over the remote door vs the home door | Host CPU within +0.5 percentage points (`ps`, release); median frame age within 1 ms |
-| H21 | **Compatibility.** A swiftc decode check with a9cc248's StreamProtocol against the new kind 16 and window list; a9cc248's `sillclient.py` against the new home door; the new device decoder against an older host's messages | All decode; unknown kinds are skipped; the old client is unaffected |
+| H10 | **Refusals.** (a) A new identity against the bare app with remote on and no window. (b) Five wrong codes, then the right one, and attempts under 1 s apart. (c) `SKOPRY_TEST_PAIRING_TTL=5` and a correct code at 6 s. (d) Two clients with one code, 50 ms apart. (e) A plain client at the remote door; a TLS client at the home door; `curl http://127.0.0.1:P/` and a raw "POST /" at the remote door. (f) A paired `skopry/1` session while Remote Access is off and a window is open (bare app) | (a) The client reaches ready and then a TLS read error; no Skopry byte; only the minute's summary. (b) `triesLeft` 4…1, then `stopped`; the right code then gets `closed`; too soon gets `busy`. (c) `expired`. (d) Exactly one ok. (e) Dropped, with zero bytes; -9836; closed within 100 ms with no plaintext answer. (f) Goodbye `remoteOff` |
+| H11 | **Pre-auth caps.** 12 raw TCP connections to the remote door from 127.0.0.1 and ::1, while a paired client streams; then 5 failed handshakes from one source (`SKOPRY_TEST_BACKOFF_SECONDS=5`) | At most 2 held per source and 8 in all, the rest closed at once; each held one closed at 10 ± 0.5 s; the paired client served throughout; the source refused during the backoff, then allowed |
+| H12 | **No plaintext.** A passthrough `skopryrelay.py` records both directions of a 10 s paired session | None of "macName", "windows", "Test Pattern" or the device name appears in either direction; the host's first byte is 0x16 |
+| H13 | **Remote-route rules.** From a paired session, `--set=directWireless=1,bitrate=25000000@3`; kind 21 on the remote door; kind 21 from a loopback home session (twice within 30 s); `SKOPRY_TEST_ORIGIN=internet` with `--internet`, then internet access turned off on the bare app | Direct Wireless refused with its line, the bitrate applied, one answer; kind 21 ignored on the remote door; the CLI prints its code once in 30 s; the internet session is served, then gets goodbye `internetOff` within 1 s and EOF |
+| H14 | **Slow link.** `skopryrelay.py --rate-mbps 2 --delay-ms 150`, 90 s, remote session vs H0's base; also an unshaped home-door client on the new build | The base shows a "not draining" eviction or a keyframe storm. The new build: no eviction, frames in every 5 s window, forced keyframe requests at least 2 s apart, keyframes a minute at most the base's; record the pong RTT p95. The unshaped home client's keyframes a minute and `net.dropped` equal the base's within noise |
+| H15 | **Liveness.** `skopryrelay.py --blackhole-after 5` on a remote session, and on a home session | Remote: "Client silent for … dropping" at about 13 s (5 + 8). Home: the 4 s drain rule, as today |
+| H16 | **Port.** The bare app, remote on, `-remotePort P` with P held by a Python socket; then released; then `-SkoprySetAfter '3 remotePort=P2'` while a remote session streams | The "in use" line and status; listening within 30 s of the release; a rebind with the session continuing, and kind 18 carrying P2 |
+| H17 | **The TXT tag.** `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp SKOPRY_TEST_REMOTE_DIR=$T/h SkopryHost --synthetic --remote`; `dns-sd -t 3 -L "Skopry test <pid>" _skoprytest._tcp local`; a Direct Wireless toggle through `skopryclient --set` | An `r=` that Python resolves with `$T/h/recognition-key`; a new `r` after the replacement that still resolves; no TXT record without `--remote` |
+| H18 | **Reachability.** `SkopryHost --print-reachability` (addresses masked in the log); kind 18 of a `--remote` host | Tailscale (plus MagicDNS when it resolves) and Wi‑Fi; no utun0–3, CoreDevice tunnel, temporary or deprecated IPv6, awdl or llw; kind 18's list equals it (with 127.0.0.1 first on test hosts); no router query with `SKOPRY_TEST_NO_ROUTER=1` |
+| H19 | **The app, persistence.** The bare `SkopryMenuBar --synthetic` with `SKOPRY_TEST_REMOTE_DIR=$T/app -SkopryPairAfter 1 -SkopryLogFile $T/app.log`, then `-SkoprySetAfter '3 remoteAccess=1,internetAccess=1,remotePort=P'`, then a relaunch, then `-SkopryUnpairAfter 8` | `skopryclient` pairs with `$T/app/pairing.url`; the settings save and apply (`defaults read SkopryMenuBar`); after the relaunch the same Mac ID, the same port and a valid pairing; goodbye `removed` within 1 s, and the next dial refused; **the log contains neither the code nor the secret** (grep both); then `defaults delete SkopryMenuBar` |
+| H20 | **TLS cost.** 60 s at 60 fps synthetic, `skopryclient --stats` over the remote door vs the home door | Host CPU within +0.5 percentage points (`ps`, release); median frame age within 1 ms |
+| H21 | **Compatibility.** A swiftc decode check with a9cc248's StreamProtocol against the new kind 16 and window list; a9cc248's `skopryclient.py` against the new home door; the new device decoder against an older host's messages | All decode; unknown kinds are skipped; the old client is unaffected |
 | H22 | **Previews.** Before and after | Only the new tab's samples, the pairing window samples, menu.txt's new items (Remote Access…, Pair iPhone or iPad…, and Low from step 7) and the remote card sample differ. Look at each |
-| H23 | **Hard rules** (grep) | No `assumeIsolated` or `updateConfiguration` in Sources/SillHost. `HostConfig.standard` has `remoteAccess: false` and `internetAccess: false`. `remoteAccess`, `remotePort` and `internetAccess` appear in neither `StreamSettings`, `HostSettingsChange` nor `DeviceSettings`. No new Stats key on the default path. No `print` of a code or secret in Sources/SillHost. `StreamServer(advertise: !synthetic)` unchanged |
+| H23 | **Hard rules** (grep) | No `assumeIsolated` or `updateConfiguration` in Sources/SkopryHost. `HostConfig.standard` has `remoteAccess: false` and `internetAccess: false`. `remoteAccess`, `remotePort` and `internetAccess` appear in neither `StreamSettings`, `HostSettingsChange` nor `DeviceSettings`. No new Stats key on the default path. No `print` of a code or secret in Sources/SkopryHost. `StreamServer(advertise: !synthetic)` unchanged |
 | H24 | **Regression.** Spot runs of the direct-wireless and host-settings gates: the ledger check, the policy check, the swap fallbacks, the move test | As before |
 
 **Simulator (S):** the iPad Pro 13" simulator the earlier steps used (40522E9E-8B13-4676-BC94-D94FDD048471), driven with launch arguments and the iOS Simulator control tool (inspect, then tap).
@@ -1849,18 +1849,18 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 |---|---|
 | S1 | **The photo matrix.** Every new connect case at 1000x710, 710x1000, 500x710, 710x500, 402x874, 874x402 and 375x667; the four re-shot cases at the Duo sizes; every new settings case at the four Duo sizes and at `content_size accessibility-extra-large` (reset afterwards); the overlay at the four Duo sizes. Check: nothing crosses y = 500 at 710x1000; the card goes side by side under 520 pt; "Remote" is never truncated; errors wrap; the title does not move sideways. Send Noah the sheet |
 | S2 | **Taps.** Add a Mac unfolds and Cancel folds it; Enter Code Instead and back; Esc; Return moves between fields; a check-digit error with nothing sent (no connection opened); Forget in a Remote row's menu (mock) |
-| S3 | **Live pairing.** `SillHost --synthetic --remote`; the normal app with `-SillPairURL '<printed URL>'` → paired over TLS (the host's line), streaming, "Connected by address · N ms". Then `xcrun simctl openurl <udid> '<URL>'` shows the confirmation (photo). Disconnect → the Remote row appears after 3 s (synthetic hosts do not advertise); relaunch with `-SillDialSaved 1` → a pinned session. The typed path with `-SillPairCode … -SillPairAddress 127.0.0.1:P`. Afterwards `-SillForgetMacs 1`, or reset the simulator's keychain for Sill |
-| S4 | **Reconnect.** The bare app with `SILL_TEST_REMOTE_DIR`, killed mid-stream → "Reconnecting to … remotely…" within about 6 s; relaunched → back without a tap. Through `sillrelay.py --blackhole-after 5` → the device's liveness fires in 6–7 s |
-| S5 | **Live failure copy.** Refused (host stopped); timeout (a seeded Mac at 192.0.2.1); wrong Mac (another test directory on the same port); revoked (`-SillUnpairAfter`); name (`nowhere.invalid`); not Sill (a Python listener sending an SSH banner); goodbye `quit` and `removed` |
+| S3 | **Live pairing.** `SkopryHost --synthetic --remote`; the normal app with `-SkopryPairURL '<printed URL>'` → paired over TLS (the host's line), streaming, "Connected by address · N ms". Then `xcrun simctl openurl <udid> '<URL>'` shows the confirmation (photo). Disconnect → the Remote row appears after 3 s (synthetic hosts do not advertise); relaunch with `-SkopryDialSaved 1` → a pinned session. The typed path with `-SkopryPairCode … -SkopryPairAddress 127.0.0.1:P`. Afterwards `-SkopryForgetMacs 1`, or reset the simulator's keychain for Skopry |
+| S4 | **Reconnect.** The bare app with `SKOPRY_TEST_REMOTE_DIR`, killed mid-stream → "Reconnecting to … remotely…" within about 6 s; relaunched → back without a tap. Through `skopryrelay.py --blackhole-after 5` → the device's liveness fires in 6–7 s |
+| S5 | **Live failure copy.** Refused (host stopped); timeout (a seeded Mac at 192.0.2.1); wrong Mac (another test directory on the same port); revoked (`-SkopryUnpairAfter`); name (`nowhere.invalid`); not Skopry (a Python listener sending an SSH banner); goodbye `quit` and `removed` |
 | S6 | **Accessibility.** The labels, hints, headings and focus moves of §7.10, from the accessibility tree |
-| S7 | **An older host.** a9cc248's `SillHost --synthetic`, built from `$SP/base`, with `-SillConnect` → no Away from home group after 2 s; no kind 19 or 21 sent |
-| S8 | **A slow link.** `sillrelay.py --delay-ms 150 --rate-mbps 5` between the simulator and a remote session: pairing completes; the device asks for 60 fps; with `--delay-ms 300` the slow-link callout appears |
+| S7 | **An older host.** a9cc248's `SkopryHost --synthetic`, built from `$SP/base`, with `-SkopryConnect` → no Away from home group after 2 s; no kind 19 or 21 sent |
+| S8 | **A slow link.** `skopryrelay.py --delay-ms 150 --rate-mbps 5` between the simulator and a remote session: pairing completes; the device asks for 60 fps; with `--delay-ms 300` the slow-link callout appears |
 
 **Noah's devices (R), handed over at the end:** the iPad mini, and an iPhone for hotspot or cellular.
 
 | # | Check |
 |---|---|
-| R0 | **Probes, with Noah.** (a) A DEBUG-only check: a Secure Enclave key signing TLS client authentication against `SillHost --synthetic --remote` over the LAN (decides open question 12). (b) With Noah's OK, since it writes to his login keychain: `make-app.sh --install --open` creates the identity; rebuild and relaunch read it without a prompt. (c) `natpmp-probe` from Terminal (`scratchpad/remote-access/natpmp-probe.swift`). (d) The embedded scanner on the iPad |
+| R0 | **Probes, with Noah.** (a) A DEBUG-only check: a Secure Enclave key signing TLS client authentication against `SkopryHost --synthetic --remote` over the LAN (decides open question 12). (b) With Noah's OK, since it writes to his login keychain: `make-app.sh --install --open` creates the identity; rebuild and relaunch read it without a prompt. (c) `natpmp-probe` from Terminal (`scratchpad/remote-access/natpmp-probe.swift`). (d) The embedded scanner on the iPad |
 | R1 | **Tailscale setup, timed (under 2 minutes).** Remote Access on; menu › Pair iPhone or iPad…; on the iPad, Add a Mac… and scan. "Paired" on both; the Mac lists the iPad. At home the Mac stays a plain row, and the host logs no utun origin for the home session |
 | R2 | **Away.** The iPad on the iPhone's hotspot or cellular, Tailscale on. The Remote row about 3 s after launch; tap. "Connected through Tailscale · N ms"; the Mac's card says "through Tailscale". Ten minutes on a real window with the trackpad and typing, at Balanced and at Low; note frame age and RTT; no eviction |
 | R3 | **Leaving the house mid-stream** (LAN to hotspot): "Reconnecting to ‹Mac› remotely…" and streaming again within about 10 s, without a tap |
@@ -1873,7 +1873,7 @@ and types, `isExpensive`). Then, at every browser change and at every due time:
 | R10 | **Port forward** (optional, if the router allows): the switch on shows the router address, or the CGNAT or double NAT line; forward 7455; connect over cellular by IP, then by address name; switch off → "stopped accepting connections from the internet" |
 | R11 | **Direct Wireless at the café** (the iPhone's hotspot) with the Mac at home, both on: the Direct row wins; a drop reconnects Direct at 6 s, not remotely |
 | R12 | **VoiceOver and a hardware keyboard** on the card, the scanner's announcements, the overlay and the pane's Copy buttons. The pairing window never shows in a Desktop stream |
-| R13 | **Mixed builds:** this iPad against PR #5's Sill.app (plain works, no Away from home group); PR #5's iPad against this host (plain works; nothing remote) |
+| R13 | **Mixed builds:** this iPad against PR #5's Skopry.app (plain works, no Away from home group); PR #5's iPad against this host (plain works; nothing remote) |
 
 ---
 
@@ -1894,8 +1894,8 @@ Commit messages end with the session's attribution lines.
    - the home door gate;
    - register at `.ready`; cancel on `.failed`;
    - the 1 MB cap; the kind 17 limit; `SafeText` at the log and status seams;
-   - the Desktop filter excluding Sill;
-   - `sillrelay.py`; `sillclient.py` `--host`, `--big-payload`, `--flood`, `--device`, `--stop-ping`
+   - the Desktop filter excluding Skopry;
+   - `skopryrelay.py`; `skopryclient.py` `--host`, `--big-payload`, `--flood`, `--device`, `--stop-ping`
      and `--stop-read`.
 
    Gates: H1, H2, H3 (`OriginPolicy`), H4, H5, H24.
@@ -1909,16 +1909,16 @@ Commit messages end with the session's attribution lines.
      keyframe pacing, goodbyes;
    - the `HostConfig` knobs and `HostStatus.remote`;
    - the CLI's `--remote`, `--internet` and `--print-reachability`;
-   - `sillclient.py` `--tls`, `--identity`, `--pair-url`, `--pair-code`, `--expect-tls-fail` and
+   - `skopryclient.py` `--tls`, `--identity`, `--pair-url`, `--pair-code`, `--expect-tls-fail` and
      `--pairing-wanted`.
 
    Gates: H1, H2, H3 (`AddressList`, `PairingWindow`), H6–H15, H17, H18, H20, H23.
-4. **"Sill.app: Remote Access settings, the pairing window and the menu"**:
+4. **"Skopry.app: Remote Access settings, the pairing window and the menu"**:
    - `KeychainIdentityStore`;
    - the pane, the pairing window, the menu items and attention item, the card route;
    - the `HostSettings` keys, the sleep rule, `DebugHooks`, previews.
 
-   Gates: H1, H16, H19, H22. Delete the `SillMenuBar` domain afterwards.
+   Gates: H1, H16, H19, H22. Delete the `SkopryMenuBar` domain afterwards.
 5. **"iOS: device identity, saved Macs, remote dialing and reconnect"** (the model):
    - `DeviceIdentity`, `SavedMacs`, `RemoteDialPolicy`, `RemoteConnector`, StreamClient+Remote;
    - TXT browsing and tags; rows; the reconnect order;
@@ -1946,8 +1946,8 @@ Commit messages end with the session's attribution lines.
      - the Current step;
      - Layout (the new files);
      - Build and run: `--remote`, `--internet`, `--print-reachability`, the TEST ONLY variables
-       (`SILL_TEST_REMOTE_DIR`, `SILL_TEST_PAIRING_TTL`, `SILL_TEST_BACKOFF_SECONDS`,
-       `SILL_TEST_ORIGIN`, `SILL_TEST_NO_ROUTER`), `sillrelay.py`, the `sillclient.py` flags, the
+       (`SKOPRY_TEST_REMOTE_DIR`, `SKOPRY_TEST_PAIRING_TTL`, `SKOPRY_TEST_BACKOFF_SECONDS`,
+       `SKOPRY_TEST_ORIGIN`, `SKOPRY_TEST_NO_ROUTER`), `skopryrelay.py`, the `skopryclient.py` flags, the
        harness lines;
      - Untested, for Noah: R0–R13.
    - README: a Remote access section:
@@ -1955,9 +1955,9 @@ Commit messages end with the session's attribution lines.
      - troubleshooting (AllowedIPs, shields up and ACLs, CGNAT, hairpin, sleep);
      - quality following you home;
      - the CLI's code in Terminal;
-     - `defaults delete me.saffer.sill.mac remoteAccess remotePort internetAccess remoteAddressName`;
-     - the keychain items (Keychain Access › login › "Sill Remote Access" and service
-       `me.saffer.sill.remote`).
+     - `defaults delete app.skopry.mac remoteAccess remotePort internetAccess remoteAddressName`;
+     - the keychain items (Keychain Access › login › "Skopry Remote Access" and service
+       `app.skopry.remote`).
 9. **Review and hand-over.**
    - Three lenses: security and protocol (the pre-auth surface, the proof binding, pins,
      revocation, no code in any log); listeners and concurrency (admission states, the verify
@@ -1994,10 +1994,10 @@ Commit messages end with the session's attribution lines.
 - **The modal-loop rule** in the app: no `NSMenu.popUp`, `runModal` or `.terminateLater` terminate
   from a Task, a continuation or a main-queue block. Errors inline, never alerts. No system
   presentations on the device except the existing context-menu style.
-- **Secrets:** the pairing code and secret are never logged by Sill.app, never in `HostStatus`, never
+- **Secrets:** the pairing code and secret are never logged by Skopry.app, never in `HostStatus`, never
   in kind 16 or 18, never in a TXT record. The trust list and keys live in the keychain (the app),
   in memory (the CLI) or in a 0700 directory (tests only). They are never in UserDefaults.
-- **Tests never touch** Noah's running Sill.app, `/Applications`, `me.saffer.sill.mac`, his login
+- **Tests never touch** Noah's running Skopry.app, `/Applications`, `app.skopry.mac`, his login
   keychain (except R0-b with his OK) or his iPad. TEST ONLY hooks are honoured only by hosts that do
   not advertise.
 - **New iOS files** need their four pbxproj entries by hand. Swift 5 language mode.
@@ -2058,8 +2058,8 @@ and both verify blocks consult "paired store ∪ iCloud set" with `method: "iclo
 6. **A "Low — 4 Mbps" preset.** Default: **yes**, first in every Quality list.
 7. **Keep the Mac from idle sleep while a remote device is connected?** Default: **yes**
    (`.userInitiated` while connected remotely; the display may sleep).
-8. **Leave Sill's own windows out of the Desktop stream?** Default: **yes**. It keeps the pairing
-   code off every device. The cost: a device no longer sees Sill's Settings or Log windows in the
+8. **Leave Skopry's own windows out of the Desktop stream?** Default: **yes**. It keeps the pairing
+   code off every device. The cost: a device no longer sees Skopry's Settings or Log windows in the
    Desktop.
 9. **The typed code.** Default: **12 digits (11 random plus a Damm check digit), PBKDF2 at 600,000
    rounds.** It suits the Duo's number pad. The alternative is 10 Crockford characters with a check
@@ -2070,9 +2070,9 @@ and both verify blocks consult "paired store ∪ iCloud set" with `method: "iclo
     absent from `/etc/services` and below the ephemeral range. It is never another port by itself.
 12. **The Secure Enclave for the device key, if R0-a passes?** Default: **yes**; otherwise a software
     key with `WhenUnlockedThisDeviceOnly`.
-13. **`sill://pair` links from the Camera and Messages?** Default: **register the scheme, always with
+13. **`skopry://pair` links from the Camera and Messages?** Default: **register the scheme, always with
     a confirmation**. The in-app scanner is the main path, since another app could claim the scheme.
-14. **The CLI's `--remote`.** Default: **a throwaway in-memory identity**, for tests; Sill.app is the
+14. **The CLI's `--remote`.** Default: **a throwaway in-memory identity**, for tests; Skopry.app is the
     remote host.
 15. **Fast-forward the local `main` ref to origin/main?** Default: **leave it to Noah.** Nothing in
     this plan compares against local `main`.
@@ -2087,10 +2087,10 @@ fixes of its first round are one commit ("Review fixes (step 9)" below). Every o
 question above took its default: the home door stays unpaired (1), the internet path ships behind
 its own switch (2), Pair This iPad… from home (3), Direct Wireless refused from afar (4),
 hand-built DER certificates (5), the Low preset (6), idle sleep held off while a device is
-connected remotely (7), Sill's windows left out of the Desktop stream (8), 12 digits with a Damm
+connected remotely (7), Skopry's windows left out of the Desktop stream (8), 12 digits with a Damm
 check digit and PBKDF2 at 600,000 rounds (9), pairing never turns Remote Access on (10), port 7455
 changed only on the Mac (11), a software device key until R0-a says otherwise (12; DEBUG
-`-SillDeviceKeySE 1` tries the Secure Enclave), `sill://pair` registered but always confirmed (13)
+`-SkopryDeviceKeySE 1` tries the Secure Enclave), `skopry://pair` registered but always confirmed (13)
 and the CLI's throwaway identity (14).
 
 | Step | Commit | Gates run and passed |
@@ -2098,20 +2098,20 @@ and the CLI's throwaway identity (14).
 | 1 Protocol | `4de3efb` | H1, H3 (188 checks, 20/20 mutants, the plan's vectors, a live loopback mTLS handshake per rule), H21 |
 | 2 Home door | `5112041` | H1, H2, H3 (OriginPolicy 66, 10/10 mutants), H4, H5, H24 |
 | 3 Remote door | `be66c33`, review fixes `b481c71` | H1, H2, H3 (AddressList and PairingWindow 41, 15/15 mutants), H6–H15, H17, H18, H20 (remote 5.79 % CPU vs home 6.08 %), H23, the goodbyes, and the review's own gates |
-| 4 Sill.app | `4c562de` | H1, H16 (listening 26.6 s after the port was freed; a rebind under a streaming session), H19 (neither the code nor the secret in any log), H22 |
+| 4 Skopry.app | `4c562de` | H1, H16 (listening 26.6 s after the port was freed; a rebind under a streaming session), H19 (neither the code nor the secret in any log), H22 |
 | 5 iOS model | `3c1bd97` | H1, H3 (49 checks, 26/26 mutants; the discovery policy's 68), S3, S4 (reconnect at 3.1 s; liveness 6 s after a blackhole), S5 (every failure's words, live) |
 | 6 iOS UI | `5468bdc` | S1 (≈200 photos: every new connect case at the seven sizes, the re-shot cases, every settings case at the Duo sizes and at accessibility-extra-large, the overlay), S2 and S6 as XCUITests, S3's outside link live, S7 |
 | 7 Low and 60 fps | `fc39a45` | H1, H2, H14 (Balanced and Low), H22, the ledger check with Low, S8 |
 | 8 Docs | `47e4e7c` | — |
 | 9 Review fixes | the commit after `47e4e7c` | H1, H2, H3 (the step 5 checks at 60, 33/33 mutants), H22 (only the three spent-code pairing samples), the host's own gates and S2, S3, S6 again, below |
 
-**Measured.** Through `sillrelay.py --rate-mbps 2 --delay-ms 150` for 90 s, a paired TLS session
+**Measured.** Through `skopryrelay.py --rate-mbps 2 --delay-ms 150` for 90 s, a paired TLS session
 kept every 5 s window full (≈300 frames), was never evicted and saw keyframes at the encoder's 4 s
 cadence (15.3 a minute at Balanced; 16.0 at Low, the extra one being the restart for the change);
 the pong round trip was 153 ms at the median and 157–158 ms at p95; an unshaped home client on the
 same build equalled a9cc248's (5,398 frames, 23 keyframes, nothing dropped). On the simulator
 through `--delay-ms 150 --rate-mbps 5`, typed pairing finished 1.7 s after launch; with
-`-SillScreenFPS 120` the device asked for 60 fps through a VPN route and 120 by address; through
+`-SkopryScreenFPS 120` the device asked for 60 fps through a VPN route and 120 by address; through
 `--delay-ms 300` the panel read "Connected through Tailscale · 303 ms" with the slow-link
 callout. The CLI's output is still a9cc248's, byte for byte (masked and sorted), after step 7.
 
@@ -2126,9 +2126,9 @@ callout. The CLI's output is still a9cc248's, byte for byte (masked and sorted),
   (§4.7 counted every end before admission). A keyframe forced for a slow remote client waits
   for the encoder's 4 s interval while a home client is connected.
 - The CLI notices an expired pairing window at the next attempt ("expired"), then opens a fresh
-  one. A plain client whose bytes parse as a TLS record gets a 7-byte TLS alert, never a Sill byte.
+  one. A plain client whose bytes parse as a TLS record gets a 7-byte TLS alert, never a Skopry byte.
   The certificate's CN is 16 random hex characters (about 312 bytes, not 287).
-- Sill.app keeps its key, recognition key and trust list in the legacy login keychain: the
+- Skopry.app keeps its key, recognition key and trust list in the legacy login keychain: the
   data-protection keychain needs a provisioning profile, which a Developer ID app does not have.
 - The device: on an iPad the code field uses the numbers-and-punctuation keyboard, because the
   floating number pad swallowed the next tap (Pair took two). The scanner asks for the camera
@@ -2143,17 +2143,17 @@ callout. The CLI's output is still a9cc248's, byte for byte (masked and sorted),
   request halves what the screen could show. The overlay's Cancel also stops a pairing still
   dialing and drops a waiting link.
 - `defaults delete` takes one key at a time, so the README's reset is a loop over the keys.
-- DEBUG arguments beyond §7.12: `-SillSettingsEnd 1` (the panel scrolled to its end, for photos),
-  `-SillRemoteRoute vpn|internet` and `-SillScreenFPS 120` (S8 on a loopback host and a 60 Hz
-  simulator), `-SillDeviceKeySE 1` (R0-a).
+- DEBUG arguments beyond §7.12: `-SkoprySettingsEnd 1` (the panel scrolled to its end, for photos),
+  `-SkopryRemoteRoute vpn|internet` and `-SkopryScreenFPS 120` (S8 on a loopback host and a 60 Hz
+  simulator), `-SkopryDeviceKeySE 1` (R0-a).
 - Commit trailers name the model that wrote them (Claude Opus 5.5), not the one the task named.
 
 **Review fixes (step 9).** Fourteen confirmed findings; each fix below, and where it departs from
 the plan.
-- A pick never streams one of Sill's own windows: `WindowCatalog.resolveWindow` (the fallback of a
+- A pick never streams one of Skopry's own windows: `WindowCatalog.resolveWindow` (the fallback of a
   pick with the virtual display on) and the staged window's pin skip this process's windows, as
   the catalog did; a device guessing the ID just above the newest could stage the pairing window.
-  A Desktop stream on a host with remote access looks for Sill among every window when the
+  A Desktop stream on a host with remote access looks for Skopry among every window when the
   on-screen look missed it (the status item leaves that list while a full-screen app hides the
   menu bar); excluding nothing let a pairing window opened later reach the devices.
 - The internet switch counts only while Remote Access is on (§1 made it the only gate): a pairing
@@ -2187,7 +2187,7 @@ the plan.
 - The connect screen's status line is announced to VoiceOver (§7.8), also the line a session
   ended with, when the screen comes back.
 - Saved Macs are cleared at launch only when the Keychain says no device key exists under any tag
-  (errSecItemNotFound); a DEBUG `-SillDeviceKeySE 1` run, whose tag had no key, cleared real
+  (errSecItemNotFound); a DEBUG `-SkopryDeviceKeySE 1` run, whose tag had no key, cleared real
   pairings.
 - Not applied: the route line's wrap after "·" (unverified; it matches the readout's rule on
   origin/main, where a wrap falls after the "·"). The merge applied it, and its review kept the
@@ -2201,18 +2201,18 @@ the plan.
   with …", "Paired with …", then the used link's error in the overlay until Cancel, and after the
   first Mac quit nothing dialed the second; Pair This iPad… typed: the title, the content at the
   top while typing, the record with the Mac's five kind 18 addresses and the typed one) and the
-  keys (a `-SillDeviceKeySE 1` launch keeps the saved Macs, an empty Keychain clears them). The
+  keys (a `-SkopryDeviceKeySE 1` launch keeps the saved Macs, an empty Keychain clears them). The
   pre-fix build fails the link test (the overlay gone after Pair; the second Mac dialed by itself
   after the first quit) and the keys test (the saved Mac cleared).
 
 **Not verified here, for Noah (R0–R13 as built).**
-- R0 probes: (a) `-SillDeviceKeySE 1` against `SillHost --synthetic --remote` over the LAN (does a
+- R0 probes: (a) `-SkopryDeviceKeySE 1` against `SkopryHost --synthetic --remote` over the LAN (does a
   Secure Enclave key sign TLS client authentication?); (b) with your OK, since it writes to your
   login keychain: `make-app.sh --install --open`, Settings › Remote Access on, then a rebuild and
   relaunch read the same identity without a prompt (`KeychainIdentityStore` never ran here: every
-  test host used `SILL_TEST_REMOTE_DIR` or memory); (c) `natpmp-probe` from Terminal; (d) the
+  test host used `SKOPRY_TEST_REMOTE_DIR` or memory); (c) `natpmp-probe` from Terminal; (d) the
   embedded scanner on the iPad (the simulator has none), including the camera prompt, a
-  non-Sill QR code, and a failed pairing: the code still in view is held until tapped ("Tap the
+  non-Skopry QR code, and a failed pairing: the code still in view is held until tapped ("Tap the
   code to try again."), and a spent code shows no QR on the Mac.
 - R1–R11 as written above: Tailscale setup and pairing timed; away on the hotspot; leaving home
   mid-stream; Wi‑Fi to cellular; Tailscale off at either end; sleep (15 minutes with nobody at the
@@ -2223,7 +2223,7 @@ the plan.
   first-responder probe saw no key press at all), so only ⌘. was tested. Also that the pairing
   window never shows in a Desktop stream (also with a full-screen app in front when it starts),
   and that the connect screen's status lines are spoken.
-- R13: mixed builds (this iPad against PR #5's Sill.app: no Away from home group; PR #5's iPad
+- R13: mixed builds (this iPad against PR #5's Skopry.app: no Away from home group; PR #5's iPad
   against this host).
 - Also: the Local Network prompt on a fresh install before the first remote dial; the live menu
   and Settings in the macOS 26 look (only offscreen renders were checked); one unexplained failure
@@ -2258,7 +2258,7 @@ hotspot with a typed code: the window gave this network's address first (10.128.
 answered nothing from there ("Nothing answered at 10.128.0.34"), while the Mac's Tailscale IPv4
 address and its MagicDNS name both paired. His decision: the window shows those two instead of
 the local IP; §6.2 has the rule (`PairingWindowAddress.choose`). It is the app's alone: nothing in
-Sources/SillHost, SillHostCLI or StreamProtocol changed, so the CLI's output cannot. Checked: a
+Sources/SkopryHost, SkopryHostCLI or StreamProtocol changed, so the CLI's output cannot. Checked: a
 clean release build (only the CaptureProbe warning) and `make-app.sh` without `--install`; the rule
 with swiftc against StreamProtocol's sources and the real `AddressList.build`, 36 checks (Noah's
 store with and without the internet switch and its router address, no MagicDNS name, IPv6 only, a
@@ -2294,17 +2294,17 @@ form; a range, not a service's name, deciding; and 5,000 random runs against a r
 rule, 1,686 of them without a VPN and 1,947 with a LAN address and no Tailscale, each giving the
 first line cb0ec55 gave) and 35 of 35 mutants caught (among them ae7f5c9's rule, the prototype's
 order, each range edge and a /32 or /16 read of the IPv6 range); this Mac's live list
-(`SillHost --print-reachability`) still gives the name with its Tailscale IPv4 under it, without
+(`SkopryHost --print-reachability`) still gives the name with its Tailscale IPv4 under it, without
 Tailscale's entries 10.128.0.34 alone, and without the name that IPv4 alone; a clean release
 build (only the CaptureProbe warning) and `make-app.sh` without `--install`; the previews from the bundle against 78d76e0's, rendered back
 to back with the same saved settings: every file byte for byte the same (the nine pairing samples
 and menu.txt among them) but for the new `othervpn`, light and dark, and the General pane, whose
-"Running from" path and build number are each bundle's own. Nothing in Sources/SillHost,
-SillHostCLI or StreamProtocol changed, so the CLI's output cannot.
+"Running from" path and build number are each bundle's own. Nothing in Sources/SkopryHost,
+SkopryHostCLI or StreamProtocol changed, so the CLI's output cannot.
 
-**Not verified here, for Noah (the Address row).** With this build's Sill.app, Pair iPhone or iPad…
+**Not verified here, for Noah (the Address row).** With this build's Skopry.app, Pair iPhone or iPad…
 should read the Mac's MagicDNS name with "or" and its Tailscale IPv4 muted under it (what
-`SillHost --print-reachability` lists). With the window open, Tailscale off on the Mac: 10.128.0.34
+`SkopryHost --print-reachability` lists). With the window open, Tailscale off on the Mac: 10.128.0.34
 alone, and the window 18 pt shorter; back on: the name and the "or" line return (the IPv4 alone
 for a few seconds, until MagicDNS answers, is expected; note it if it stays). Each line can be
 selected without "or" coming along, and pasted (Universal Clipboard) or typed into Enter Code

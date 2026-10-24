@@ -5,7 +5,7 @@ SP = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(SP, "..", "..", ".."))   # the repository
 OUT = os.path.join(ROOT, ".build", "checks", "gesture-chords")   # the mutants' sources and binaries
 os.makedirs(OUT, exist_ok=True)
-SRC = os.path.join(ROOT, "Sources/SillHost/GestureChords.swift")
+SRC = os.path.join(ROOT, "Sources/SkopryHost/GestureChords.swift")
 orig = open(SRC).read()
 INPUT = "case .buttonDown, .keyDown, .text: forget()\n        case .pointerMove, .buttonUp, .scroll, .keyUp: break"
 MUTANTS = {
@@ -63,7 +63,7 @@ for name, (old, new) in MUTANTS.items():
         print(f"{name}: NOT APPLIED (pattern found {orig.count(old)} times)"); continue
     path = os.path.join(OUT, "mutant.swift")
     open(path, "w").write(orig.replace(old, new))
-    b = subprocess.run(["swiftc", "-O", "-package-name", "sill", path, os.path.join(SP, "main.swift"), "-o", os.path.join(OUT, "mutant")],
+    b = subprocess.run(["swiftc", "-O", "-package-name", "skopry", path, os.path.join(SP, "main.swift"), "-o", os.path.join(OUT, "mutant")],
                        capture_output=True, text=True)
     if b.returncode != 0:
         print(f"{name}: DOES NOT COMPILE\n{b.stderr[:600]}"); continue

@@ -2,11 +2,11 @@
 compiled with the check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillMenuBar/IdentityStorePlan.swift")
+F = os.path.join(WT, "Sources/SkopryMenuBar/IdentityStorePlan.swift")
 MUTANTS = [
     ("bare binary reaches the real-app branch",
      "if synthetic || !bundled {", "if synthetic && !bundled {"),
-    ("Sill.app --synthetic takes the file store",
+    ("Skopry.app --synthetic takes the file store",
      "if synthetic, !bundled, let dir = testRemoteDir, !dir.isEmpty { return .testDirectory(dir) }",
      "if !bundled, let dir = testRemoteDir, !dir.isEmpty { return .testDirectory(dir) }"),
     ("a non-synthetic bare binary takes the file store",

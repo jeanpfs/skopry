@@ -1,10 +1,10 @@
-# A window Sill sized goes back: the plan
+# A window Skopry sized goes back: the plan
 
 2026-10-14. Branch `restore-window-frames` (worktree `/Users/noah/Downloads/winstream-restore-frames`)
 from origin/main at 985a733; line numbers are at 985a733. Issue #57 (rosstex): "disconnecting on the
 iOS app doesn't revert apps back to their original shape/size on Mac, so everything is shrunken. It
 would be great if the windows fix themselves after disconnecting." The triage of 2026-10-13
-(`sill-handoff/triage/2026-10-13-open-items.md`) rated it "do soon" and a prerequisite for fitting by
+(`skopry-handoff/triage/2026-10-13-open-items.md`) rated it "do soon" and a prerequisite for fitting by
 default (#70). Host only; no wire change, nothing on the device.
 
 ## The problem
@@ -30,30 +30,30 @@ Only the virtual display records and restores: `WindowSizer.placement` and `rest
 So a window streamed with Aa at 0.75× on a 1000×710 panel stays 1333×947 on the Mac after the
 device goes, and one at 1.5× stays 667×473: "everything is shrunken".
 
-This change reverses that for the windows Sill itself sized: each goes back when it stops streaming.
+This change reverses that for the windows Skopry itself sized: each goes back when it stops streaming.
 
 ## The design
 
-### The rule (pure: `Sources/SillHost/WindowRestore.swift`)
+### The rule (pure: `Sources/SkopryHost/WindowRestore.swift`)
 
-For each window Sill fits, a record:
+For each window Skopry fits, a record:
 
-- `original`: the frame before Sill first touched it (Accessibility's frame, read just before the
+- `original`: the frame before Skopry first touched it (Accessibility's frame, read just before the
   first resize: the window server's list can be two seconds stale, AX is live).
-- `set`: the frame Sill last left it at, as the app took it (read back after the resize: an app
+- `set`: the frame Skopry last left it at, as the app took it (read back after the resize: an app
   enforces a minimum, snaps to a grid, or keeps the window on screen).
-- `asked`: the size Sill last asked for. An app that applies a size after answering the write reads
+- `asked`: the size Skopry last asked for. An app that applies a size after answering the write reads
   back its old size (VirtualStage.swift's settle loop has the same caveat); at the stop it is at the
-  asked size, which is Sill's doing all the same.
-- `moved`: the window was found away from where Sill left it at a later fit (the person at the Mac
+  asked size, which is Skopry's doing all the same.
+- `moved`: the window was found away from where Skopry left it at a later fit (the person at the Mac
   moved it, or its app did).
 
 A fit (`WindowRestore.fitted`): the first makes the record; a later one (a rotation, another Aa
 step, a restart that resized) keeps `original`, takes the new `set` and `asked`, and sets `moved`
-when the window was moved since the last fit (`movedSince`, after the review: at Sill's size, read
+when the window was moved since the last fit (`movedSince`, after the review: at Skopry's size, read
 back or asked, its top-left corner more than 2 pt from `set`'s; at another size, both its left and
-right edges, or both its top and bottom, gone the same way by more than 2 pt from where Sill left it,
-at either of Sill's sizes). A resize from any edge or corner keeps the opposite edge where it was, and
+right edges, or both its top and bottom, gone the same way by more than 2 pt from where Skopry left it,
+at either of Skopry's sizes). A resize from any edge or corner keeps the opposite edge where it was, and
 one with Option held moves the two apart, so neither is a move: the next fit undoes it and the window
 still goes back whole. Once set, `moved` stays.
 
@@ -62,17 +62,17 @@ When the window stops streaming (`WindowRestore.decide`), from its frame now:
 1. No frame (the window closed, its app quit): nothing to do (`gone`).
 2. Full screen: left as it is (`leave(.fullScreen)`): a window in a full-screen Space refuses moves
    and sizes, and taking it out of full screen is the person's call in regular mode.
-3. Within 2 pt of `original`: already home, nothing to do (`home`; no line). Unless Sill asked for
+3. Within 2 pt of `original`: already home, nothing to do (`home`; no line). Unless Skopry asked for
    another size and the app never showed it (`set`'s size is `original`'s, `asked` is not): then the
    original frame is written again, without a line (`settle`). An app that applies a size after
    answering the write, stopped within that moment (a pick right after a pick, Quit right after a
-   fit), would otherwise take Sill's size after the stop and keep it; for an app at its minimum the
+   fit), would otherwise take Skopry's size after the stop and keep it; for an app at its minimum the
    write changes nothing. The check's model found this race (Results).
-4. Its size is not Sill's (more than 2 pt from both `set` and `asked`): it was resized after Sill's
+4. Its size is not Skopry's (more than 2 pt from both `set` and `asked`): it was resized after Skopry's
    last fit, by the person at the Mac. Left alone, position too (`leave(.resized)`).
-5. Its size is Sill's and it has not moved (its origin within 2 pt of `set`'s, `moved` false): the
+5. Its size is Skopry's and it has not moved (its origin within 2 pt of `set`'s, `moved` false): the
    whole `original` frame (`restore(original, whole: true)`).
-6. Its size is Sill's and it was moved: `original`'s size where it is now, its origin nudged so the
+6. Its size is Skopry's and it was moved: `original`'s size where it is now, its origin nudged so the
    frame stays in the visible area of the display it is on, as a fit keeps it
    (`restore(…, whole: false)`).
 7. A target within 2 pt of where it is: `home`.
@@ -81,7 +81,7 @@ A resize on the Mac while the window streams is undone today within about two se
 catalog's resize check restarts the pipeline, 2135-2140, and the restart fits the window again,
 1344), so rule 4 mostly sees a resize made in the last two seconds before the stop, or after the
 fit that a restart would have redone. Such a re-fit keeps `original`: the window goes back to the
-frame it had before Sill first touched it, not to the size the person tried for a moment, whichever
+frame it had before Skopry first touched it, not to the size the person tried for a moment, whichever
 edge or corner was dragged (since the review; before, a drag of the left or top edge counted as a
 move).
 
@@ -104,7 +104,7 @@ check pins them.
   another window or the Desktop, `select(.none)` when the last device leaves or the stream stops,
   each window's restart keeps its own. Its defer restores every fitted window when nothing streams
   at the end (a window that closed, a stream that failed to start).
-- `shutdownForExit` (Sill.app's Quit, and the signals under `HostShutdown.install`): every fitted
+- `shutdownForExit` (Skopry.app's Quit, and the signals under `HostShutdown.install`): every fitted
   window, after the goodbye, beside the stage's release. `releaseKeysForExit` (the CLI's default
   path at a signal, `HostShutdown.installKeyRelease`): every fitted window too, after the keys.
 - The virtual display turned on while a fitted window streams (the restart `restartNeeded` asks
@@ -117,10 +117,10 @@ check pins them.
 - `windowsChanged` (after the review): the streamed window missing from the catalog's on-screen list
   in regular mode keeps streaming through three looks, as a staged full-screen window does, when it
   was full screen when last listed or when picked (its frame covered a display: `coversDisplay`,
-  VirtualStage's 98 % rule) or, when Sill fitted it, Accessibility says it is full screen now; unless
+  VirtualStage's 98 % rule) or, when Skopry fitted it, Accessibility says it is full screen now; unless
   Accessibility and the window server both say it is gone (`WindowRestore.keepsStreaming`). A window
   entering or leaving full screen is off every list for a second or two, and stopping it then decided
-  its way back mid-change. It now comes back at the size Sill gave it and keeps streaming.
+  its way back mid-change. It now comes back at the size Skopry gave it and keeps streaming.
 
 The two sequences that read and move a window are WindowRestore's since the review, generic over
 `WindowRestore.Access` (a window's frame, whether it is full screen, whether the window server lists
@@ -134,7 +134,7 @@ Mac, so the coordinator, the check and the live probe run the same code:
   nudge back and records nothing; a size that goes unanswered (`Write.timedOut`, Accessibility's
   cannotComplete) puts it back too and is recorded from where the window was, since a busy app may
   take it later; then the size the app took and a second nudge for it; with no read-back, the old
-  size where Sill put the window (as a read-back that has not shown the size yet).
+  size where Skopry put the window (as a read-back that has not shown the size yet).
 - `WindowRestore.stop`, one window's way back: one read first (no frame from a window the window
   server no longer lists is `gone`; none from one it lists means its app does not answer, a beach
   ball, and the window is left with a line after at most a second, instead of up to six seconds of
@@ -170,10 +170,10 @@ moved with nothing to say so.
 ## Open questions, and the default taken for each
 
 1. **A signal in the CLI's default path** (no `--virtual-display`): restore there too? Default:
-   yes. `releaseKeysForExit` restores after the keys, so a Ctrl-C of `swift run SillHost` puts a
+   yes. `releaseKeysForExit` restores after the keys, so a Ctrl-C of `swift run SkopryHost` puts a
    window back; it prints one "Restored" line only when a window was fitted, and dies of the signal
    with the same status as before. HostShutdown's comment changes with it.
-2. **Full screen at the stop**: leave it, with a line. The window returns to Sill's size when it
+2. **Full screen at the stop**: leave it, with a line. The window returns to Skopry's size when it
    leaves full screen. Alternative: take it out of full screen first, as the virtual display does
    (`leaveFullScreenIfNeeded`); rejected for regular mode, where full screen may be the person's.
 3. **Resized on the Mac after the last fit**: leave it entirely, position included (Noah's
@@ -209,7 +209,7 @@ Added by the review's fixes (2026-10-14):
 17. **A size write with no answer in time** (finding 4): recorded as asked, from where the window
     was (its nudge put back), so a busy app that takes it later still goes back.
 18. **A size write that went through with no read-back** (finding 4): recorded as a read-back that
-    has not shown the size yet, the old size where Sill put the window. The review suggested the
+    has not shown the size yet, the old size where Skopry put the window. The review suggested the
     size asked; the check's model showed that wrong for an app that also applies sizes late (the
     stop found it at its own frame, nothing to settle, and the size landed after). For an app that
     clamps to a minimum and takes a size unseen, a stop that comes before the next fit sees it judges
@@ -217,9 +217,9 @@ Added by the review's fixes (2026-10-14):
     seconds) heals the record.
 19. **A window off the list while entering or leaving full screen** (finding 1): three of the
     catalog's looks, as a staged window has, for any regular-mode window that was listed in full
-    screen and for one Sill fitted that Accessibility says is full screen. Also when Sill did not fit
+    screen and for one Skopry fitted that Accessibility says is full screen. Also when Skopry did not fit
     it: the stream goes on rather than end on an empty panel. Left: a pick, Disconnect, Quit or a
-    restart within that second still decides mid-change, and so does a window Sill never saw in full
+    restart within that second still decides mid-change, and so does a window Skopry never saw in full
     screen whose flag is already down when the catalog misses it; either may stay at the size Aa gave it.
 
 ## The test plan
@@ -242,10 +242,10 @@ Added by the review's fixes (2026-10-14):
   drift from it.
 - **Builds**: `swift build -c release` (only the known CaptureProbe warning). No iOS file changes.
 - **`Tests/checks/run-all.sh`**: all.
-- **H2, the CLI's stdout**: origin/main's `SillHost` and this branch's, each built from
-  `git archive`, `--synthetic` with `SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1
-  SILL_TEST_NO_ROUTER=1`: idle 35 s, and a test client picking the Desktop; digits masked, lines
-  sorted: identical. Only while no device is connected to Sill.app (no-device.sh), though neither
+- **H2, the CLI's stdout**: origin/main's `SkopryHost` and this branch's, each built from
+  `git archive`, `--synthetic` with `SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1
+  SKOPRY_TEST_NO_ROUTER=1`: idle 35 s, and a test client picking the Desktop; digits masked, lines
+  sorted: identical. Only while no device is connected to Skopry.app (no-device.sh), though neither
   touches the hardware encoder.
 - **Live, with Accessibility** (only if this shell is trusted, `AXIsProcessTrusted()`, read
   without prompting): `Scripts/restore-probe/run.sh`. An AppKit app of its own (`owner.swift`, a
@@ -260,11 +260,11 @@ Added by the review's fixes (2026-10-14):
   stopped during a fit (its size unanswered and recorded, taken once it runs again, then put back) and
   the left edge dragged in before a re-fit (the whole frame back). The front app is read before and
   after and must not change. Never one of Noah's windows, never a virtual display, never input.
-- **Untested, for Noah**, with a Sill.app built from this branch and a device: below, in Results.
+- **Untested, for Noah**, with a Skopry.app built from this branch and a device: below, in Results.
 
 ## Results
 
-All on 2026-10-14, on this Mac (macOS 27.0, M2 Pro, one 1512×982 display), with Sill.app idle and no
+All on 2026-10-14, on this Mac (macOS 27.0, M2 Pro, one 1512×982 display), with Skopry.app idle and no
 device connected (`Scripts/encoder-check/no-device.sh` before each host). The first round's, then the
 review's and its fixes' (below).
 
@@ -276,10 +276,10 @@ review's and its fixes' (below).
   found, 11,332 stage releases, 2,223 restarts by the catalog's resize check. The model asserts
   that every one came up.
 - **What the model found.** Its first run failed 12 sessions: a window of an app that applies a
-  size after answering the write (the model's `late` app) ended at Sill's size. A stop right after
+  size after answering the write (the model's `late` app) ended at Skopry's size. A stop right after
   a fit (Quit in the model, a pick right after a pick on a real Mac) read the window at its
   original frame, so there was nothing to do, and then the app applied the fit's size. Fixed by
-  `settle` (rule 3): the original frame is written again, without a line, when Sill asked for
+  `settle` (rule 3): the original frame is written again, without a line, when Skopry asked for
   another size and the read-back never showed it. Unit cases and mutants W12 to W14 hold it.
 - **Mutants**: 48 of 48 caught (`run.sh --mutants`, 3 min 24 s): the first fit, re-fits and moves,
   every decision and its order, the tolerance (0, 3, and strict compares), `keep`'s four edges and
@@ -289,9 +289,9 @@ review's and its fixes' (below).
   from `git archive` of this branch for H2. No iOS file changed, so no iOS build.
 - **`Tests/checks/run-all.sh`**: all 41 passed (383 s), `window-restore` among them.
 - **H2, the CLI's stdout** (origin/main at 985a733 against this branch, each built from
-  `git archive`; `--synthetic` with `SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1
-  SILL_TEST_NO_ROUTER=1`; two rounds, alternating): idle 35 s identical, masked and sorted (7
-  lines each); with `sillclient.py PORT 22 desktop` (about 34 fps of the test pattern on the
+  `git archive`; `--synthetic` with `SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1
+  SKOPRY_TEST_NO_ROUTER=1`; two rounds, alternating): idle 35 s identical, masked and sorted (7
+  lines each); with `skopryclient.py PORT 22 desktop` (about 34 fps of the test pattern on the
   software encoder), identical without the `[Ns]` stats lines, and with them differing only in the
   last partial second's line, which differs the same way between two runs of the same build (base
   against base, new against new). No "Restored", "Left" or "Could not restore" line in any run.
@@ -318,7 +318,7 @@ each checked against the code before it was fixed, one commit each:
   the code says a window leaving full screen is off every list for a second or two, and the device's
   full-screen light makes the catalog look at once. The stop then decided mid-change: still full
   screen ("Left … as it is"), or at the display's frame or mid-animation ("resized on the Mac"); the
-  record was gone when the window settled at Sill's size. Fixed by `WindowRestore.keepsStreaming` in
+  record was gone when the window settled at Skopry's size. Fixed by `WindowRestore.keepsStreaming` in
   `windowsChanged` (open question 19): three looks for a window full screen when last listed or
   picked (`coversDisplay`) or, fitted, full screen to Accessibility, unless both Accessibility and the
   window server say it is gone. The check's model could not see this case (its catalog only took a
@@ -336,11 +336,11 @@ each checked against the code before it was fixed, one commit each:
   top-left corner and `fitted` noted a move, so the window went back at its own size at the shifted
   place. Fixed by `movedSince` (open question 15). Judged from the frame read back alone, the model's
   first run with edge resizes failed 52 checks (the one traced: an app that applies sizes late, which
-  reads back its old size), so a resized window is judged from either of Sill's sizes; the one session
+  reads back its old size), so a resized window is judged from either of Skopry's sizes; the one session
   left was two resizes between fits (top edge, then bottom), which look like a move, and the oracle
   now takes either way back after such compound changes. The model's person resizes from any edge or
   corner or with Option.
-- **4. A resize Sill made could go unrecorded** (nit; 913deef): a size write that went through with a
+- **4. A resize Skopry made could go unrecorded** (nit; 913deef): a size write that went through with a
   failed read-back, and one that timed out and landed later. Fixed in `WindowRestore.fit` (open
   questions 17 and 18). The review's suggested record for the first (the size asked) failed 3 of the
   model's sessions (the one traced: an app that also applies sizes late, read at its own frame at the
@@ -355,7 +355,7 @@ each checked against the code before it was fixed, one commit each:
   CLAUDE.md and the pull request say so.
 - **6. Noah's list and the public copy** (nit; this commit): the probe has run; the list gains the
   flows above, two devices and a display unplugged while it streams; support.html says a window left
-  full screen keeps Sill's size when it leaves full screen, and that with several devices the last to
+  full screen keeps Skopry's size when it leaves full screen, and that with several devices the last to
   disconnect restores it; README's How it works says "your last device disconnects".
 
 Verified after the fixes (2026-10-14; the build machine was shared with other agents, load averages
@@ -383,34 +383,34 @@ up to several hundred, so times are long):
   incrementally in the worktree with no new warning, and the restore probe's driver and owner compile.
   No iOS file changed, so no iOS build; no screen changed, so no harness photos.
 - **H2, the CLI's stdout** (origin/main at 985a733 against this branch, each from a clean copy;
-  `--synthetic` with `SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1`, each
-  host started only while no device was connected to Sill.app and ended by SIGTERM, exit 143; two
+  `--synthetic` with `SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1`, each
+  host started only while no device was connected to Skopry.app and ended by SIGTERM, exit 143; two
   rounds, alternating): idle 35 s identical, masked and sorted (7 lines each); with
-  `sillclient.py PORT 22 desktop`, identical without the `[Ns]` lines, and the `[1s]` lines identical
+  `skopryclient.py PORT 22 desktop`, identical without the `[Ns]` lines, and the `[1s]` lines identical
   masked but for the seconds where the client comes and goes, which differ the same way between two
   runs of the same build (base against base, new against new). No "Restored", "Left", "Could not
   restore" or "Window sizing" line in any run.
 - **Live, the restore probe** (`Scripts/restore-probe/run.sh`, the screen unlocked, the display awake,
-  Noah idle 97 minutes, no device on Sill.app): 20 of 20 in 35 s, the front app unchanged. Steps 1 to
+  Noah idle 97 minutes, no device on Skopry.app): 20 of 20 in 35 s, the front app unchanged. Steps 1 to
   12 as the review saw them (step 9: AppKit answers -25200 to a window that cannot be resized, and the
-  nudge is put back; step 10: not answering after 1.00 s, left at Sill's size). Step 13, new: the app
+  nudge is put back; step 10: not answering after 1.00 s, left at Skopry's size). Step 13, new: the app
   stopped once its window was matched, the fit took 3.02 s (three one-second timeouts) and recorded
   the size as unanswered; after SIGCONT the app took the size late (667×473), and the stop put the
   window back whole (20,73,900×600): before the fix nothing was recorded and it would have stayed at
   667×473. Step 14, new: the left edge dragged in 60 pt, a re-fit at (80,73,667×473), the stop: back
   whole at (20,73,900×600), not its own size at (80,73).
-- **Not run**: Sill.app with a device; anything in full screen live (a full-screen Space would take
+- **Not run**: Skopry.app with a device; anything in full screen live (a full-screen Space would take
   over Noah's screen); the virtual display with a fitted window; the coordinator's glue live (a
   synthetic host picking a window would capture Noah's windows for its catalog). No iOS file changed,
   so no iOS build; no screen changed, so no harness photos.
 
 ### Untested, for Noah
 
-With Sill.app from this branch (`Scripts/make-app.sh --install --open`) and the iPad, Virtual Display
+With Skopry.app from this branch (`Scripts/make-app.sh --install --open`) and the iPad, Virtual Display
 off, and Aa slid to 1.5× while a window streams:
 
-1. Pick another window: the first goes back to its old frame, Sill.log "Restored ‹app› — ‹title› to
-   (x,y,w×h)". The same after Disconnect, and after Quit Sill.
+1. Pick another window: the first goes back to its old frame, Skopry.log "Restored ‹app› — ‹title› to
+   (x,y,w×h)". The same after Disconnect, and after Quit Skopry.
 2. Move the window on the Mac, then disconnect: its own size where it is now, "…, its own size where
    it was moved". The same with a rotation of the iPad after the move.
 3. Resize the window on the Mac from its bottom-right corner and disconnect within about two seconds
@@ -426,7 +426,7 @@ off, and Aa slid to 1.5× while a window streams:
 7. Full screen from the lights, then disconnect while it is still full screen: left in full screen,
    "Left … as it is: it is full screen"; out of full screen afterwards it keeps the size Aa gave it
    (resize it yourself), as support.html says.
-8. A window already full screen when you pick it: no "Resized" line (Sill.log "Window sizing: … is
+8. A window already full screen when you pick it: no "Resized" line (Skopry.log "Window sizing: … is
    full screen; not resizing."); out of full screen while it streams, then disconnect: back at its own
    frame, never the display's size.
 9. Two devices streaming the same window: the first to disconnect changes nothing; the last puts the
@@ -438,9 +438,9 @@ off, and Aa slid to 1.5× while a window streams:
     width).
 12. `Scripts/restore-probe/run.sh` once more after any change here (20 of 20 on 2026-10-14).
 
-Known, and left: after a crash or Force Quit of Sill the window stays at the size Aa gave it; a pick,
+Known, and left: after a crash or Force Quit of Skopry the window stays at the size Aa gave it; a pick,
 Disconnect or Quit within the second a window takes to enter or leave full screen may still leave it
-at the size Aa gave it, and so may a window Sill never saw in full screen whose full-screen flag is
+at the size Aa gave it, and so may a window Skopry never saw in full screen whose full-screen flag is
 already down when the catalog misses it.
 
 ## Progress

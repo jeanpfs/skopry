@@ -1,7 +1,7 @@
 // H3 (step 4, device): DiscoveryPolicy's home rules and SavedMacs against StreamProtocol's own
 // values (the wire's strings, a real kind 20, a real TXT tag), then pairing at home walked end to end
 // through the pure rules, as StreamClient chains them: a Mac's row, a tap, the ask and its answer, the
-// record saved, the pinned session, a removal, a new pairing, an older Sill.app, an open door, a
+// record saved, the pinned session, a removal, a new pairing, an older Skopry.app, an open door, a
 // look-alike. docs/home-pairing-plan.md §7.2–7.7.
 import Foundation
 var fails = 0, passes = 0
@@ -99,17 +99,17 @@ var again = saved[0]; again.method = PairRequest.code; again.revoked = nil; agai
 saved = SavedMacs.adding(again, to: saved)
 r = row(door: .pairingRequired, method: .wifi, tag: tagM)
 check("4 paired again: pinned, not revoked, homeTLS kept by the new record", r.tap == .pinned && saved[0].revoked == nil && saved[0].homeTLS == true)
-// 5. An older Sill.app on the Mac (no p, same tag): nothing dialed, in DEBUG too; -SillForgetHomeTLS lets DEBUG dial it plain.
+// 5. An older Skopry.app on the Mac (no p, same tag): nothing dialed, in DEBUG too; -SkopryForgetHomeTLS lets DEBUG dial it plain.
 r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-check("5 an older Sill.app: Update Sill and nothing dialed, in DEBUG too (no downgrade)", r.word == .updateSill && r.tap == .updateSill && r.reconnect == .updateSill)
+check("5 an older Skopry.app: Update Skopry and nothing dialed, in DEBUG too (no downgrade)", r.word == .updateSkopry && r.tap == .updateSkopry && r.reconnect == .updateSkopry)
 saved = SavedMacs.forgettingHomeTLS(saved)
 r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-check("5 after -SillForgetHomeTLS 1: DEBUG dials it plain, as before pairing at home", r.tap == .plain && P.sessionTrust(r.tap, savedPin: nil) == .plain)
+check("5 after -SkopryForgetHomeTLS 1: DEBUG dials it plain, as before pairing at home", r.tap == .plain && P.sessionTrust(r.tap, savedPin: nil) == .plain)
 r = row(door: .plain, method: .wifi, tag: tagM, debug: false)
-check("5 a Release build never does", r.tap == .updateSill && r.word == .updateSill)
+check("5 a Release build never does", r.tap == .updateSkopry && r.word == .updateSkopry)
 sawRow(door: .pairingRequired, tag: tagM)
 r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-check("5 seen with p once more: homeTLS again, and the plain row is refused again", saved[0].homeTLS == true && r.tap == .updateSill)
+check("5 seen with p once more: homeTLS again, and the plain row is refused again", saved[0].homeTLS == true && r.tap == .updateSkopry)
 // 6. An open door (Require pairing off), another Mac, not saved: any key, then that key for the session.
 r = row(door: .open, method: .wifi, tag: strangerTag)
 check("6 an open door's unsaved Mac: Not paired (never a paired Mac's word); a tap connects with any key", r.id == nil && r.word == .openDoor
@@ -144,7 +144,7 @@ check("9 a tap on it dials M pinned (never any key), as the reconnect does", loo
       && P.sessionTrust(lookTap, savedPin: lookMac?.fingerprintData) == .saved(pin: fpM))
 check("9 the stranger's key fails that pin (-9808): another key as M, never a session", P.homeEnd(trust: .saved(pin: fpM), goodbye: nil, tls: -9808) == .wrongKey)
 check("9 without p, M seen over TLS: nothing dialed, in DEBUG too", P.homeDial(door: .plain, saved: true, revoked: false, homeTLS: lookMac?.homeTLS == true,
-      debug: true, tap: true) == .updateSill)
+      debug: true, tap: true) == .updateSkopry)
 check("9 a tagless row under another name is no saved Mac: an open door's reads Not paired", P.rowMac(tagged: nil, carriesTag: false, name: "Office", saved: byName) == nil
       && P.rowWord(door: .open, saved: false, revoked: false, homeTLS: false, debug: true, method: .wifi, cable: false) == .openDoor)
 
@@ -153,7 +153,7 @@ check("9 a tagless row under another name is no saved Mac: an open door's reads 
 // A device-opened window closes; a later proof hears kind 20's reason (PairingWindow.closedReason);
 // the home card shows DiscoveryPolicy.homeRefusal's words for it. Where the close keeps the asker
 // quiet (AskLimits.quiets: its next tap gets no new code), the words must send the person to the
-// Sill menu on the Mac first; "Tap it for a new one" is for a close that quiets nobody. A reason
+// Skopry menu on the Mac first; "Tap it for a new one" is for a close that quiets nobody. A reason
 // several closes share ("closed": the Mac's Cancel, and a code another device used) takes the words
 // of the strictest.
 func cardWords(_ reason: String) -> String {
@@ -170,7 +170,7 @@ for close in closes { for byThisProof in [true, false] {
     quietAll += 1
     let reason = PairingWindow.closedReason(close, stoppedByThisProof: byThisProof)
     let words = cardWords(reason)
-    let menuFirst = words.contains("choose Pair iPhone or iPad\u{2026} in the Sill menu, then tap Mac mini again")
+    let menuFirst = words.contains("choose Pair iPhone or iPad\u{2026} in the Skopry menu, then tap Mac mini again")
     if AskLimits.quiets(close) ? menuFirst : (menuFirst || words.hasSuffix("for a new one.")) { quietHonest += 1 }
     else { print("  \(close) (\(byThisProof)): \(reason) → \(words)") }
 } }
@@ -183,7 +183,7 @@ check("the literals homeRefusal reads are the wire's", PairResult.code == "code"
 // MARK: 11. The reconnect meets a door that now asks devices to pair (the security review, 2026-09-27)
 
 // An unsaved Mac on an open door, its session lost without a goodbye (or a DEBUG device's plain
-// session with main's Sill.app, which then became this one): GoodbyePolicy's words promise a
+// session with main's Skopry.app, which then became this one): GoodbyePolicy's words promise a
 // reconnect. Require pairing is on when the row comes back (p=1): the reconnect never asks, so it
 // waits for a tap; it ends there with the goodbye's own words, not "…reconnects when it's back".
 let lost = GoodbyePolicy.outcome(nil, mac: "Office", device: "iPad", saved: false)
@@ -224,7 +224,7 @@ if let keyM = RemoteKey.generate(), let idM = RemoteIdentity(privateKey: keyM), 
     check("10 two P-256 keys and M's signed kind 18", false)
 }
 
-// MARK: 12. The Mac set up again with a new key (Noah, 2026-09-27: Sill for Mac 0.4.0 made the Mac a
+// MARK: 12. The Mac set up again with a new key (Noah, 2026-09-27: Skopry for Mac 0.4.0 made the Mac a
 // new key and a new recognition key; the row read the saved Mac's word by its name, and a tap dialed
 // the old key for ever)
 

@@ -6,7 +6,7 @@ import StreamProtocol
 /// hold and which could cross the crease). Opening it asks the Mac to show its code (kind 21); the
 /// scanner reads it, or the code is typed (the address comes from this connection's kind 18). A
 /// pairing here never moves the session: the pairing connection closes and the home session goes
-/// on. Also where an outside sill://pair link is confirmed while connected, and its pairing then
+/// on. Also where an outside skopry://pair link is confirmed while connected, and its pairing then
 /// runs to its end.
 struct PairingOverlay: View {
     @ObservedObject var client: StreamClient

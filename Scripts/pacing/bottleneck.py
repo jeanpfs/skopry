@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The pacing harness's path between its device and its host: a downlink bottleneck with a rate
 (Mbit/s, optionally changing over time) and a buffer of Q bytes in front of it, plus a fixed
-propagation delay each way. A variant of Scripts/sillrelay.py, which paces reads with a 64 KB
+propagation delay each way. A variant of Scripts/skopryrelay.py, which paces reads with a 64 KB
 receive buffer and so has no deep bottleneck queue; the Python standard library only.
 
 The link keeps a virtual clock: while data waits, chunks go back to back at the rate, and a late
@@ -20,7 +20,7 @@ usage: bottleneck.py --listen PORT --to HOST:PORT --rate-mbps R --delay-ms D [--
   --rate-at         T seconds after the relay started, the rate becomes R (a cellular dip: 20:0.5,35:8);
                     a rate of 0 stops the downlink alone: the device's pings still reach the host
   --blackhole-at T  from T seconds after the relay started nothing crosses either way, and nothing is
-                    closed (a path gone dead both ways; sillrelay.py's --blackhole-after, from the
+                    closed (a path gone dead both ways; skopryrelay.py's --blackhole-after, from the
                     relay's start instead of each connection's)
 The uplink (device → host) is only delayed. Prints one line per connection and per rate change."""
 import asyncio, socket, sys, time

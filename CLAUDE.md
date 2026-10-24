@@ -1,4 +1,8 @@
-# Sill
+> **Inherited history.** Everything below the next line is the working log of the original project (Sill, by Noah Saffer / Saffsanity), renamed to Skopry but otherwise unchanged: "Noah", the PR and issue numbers, the accounts and the domain are that project's. Skopry's own changes are in the commit history and in `android/README.md`.
+
+---
+
+# Skopry
 
 Open-source, free app that streams individual Mac app windows to iPhone and iPad
 (designed for iPhone Duo first), with a free Mac companion. Tip jar, no
@@ -37,23 +41,23 @@ first. Wire, host and device; additive.
   clipboard."), none per copy, never contents; `clip.sent`/`clip.recv`. `HostConfig.shareClipboard`
   (on): Settings › General's `ClipboardSection`, "Share clipboard with devices" (`shareClipboard`),
   and while macOS asks or denies, why and "Allow in System Settings…" (Paste from Other Apps,
-  `Privacy_Pasteboard`; one read on that click first while macOS has not asked about Sill, so it is
+  `Privacy_Pasteboard`; one read on that click first while macOS has not asked about Skopry, so it is
   listed); the CLI's `--no-clipboard`; the Mac's alone, applied at once by `setTarget`. A synthetic
-  host shares a pasteboard of its own (TEST ONLY `SILL_TEST_PASTEBOARD`, `SILL_TEST_CLIPBOARD_LOG=1`,
-  `SILL_TEST_CLIPBOARD_ACCESS`), never this Mac's clipboard.
+  host shares a pasteboard of its own (TEST ONLY `SKOPRY_TEST_PASTEBOARD`, `SKOPRY_TEST_CLIPBOARD_LOG=1`,
+  `SKOPRY_TEST_CLIPBOARD_ACCESS`), never this Mac's clipboard.
 - Device: `StreamClient+Clipboard` (subscription, `stop`, the Mac's text written `.localOnly` with a
-  10-minute expiration, the handled change count `Sill.clipboardHandled`) and `ClipboardChip`: when
-  Sill becomes active (or a session starts within 15 s after) with new text on the clipboard
+  10-minute expiration, the handled change count `Skopry.clipboardHandled`) and `ClipboardChip`: when
+  Skopry becomes active (or a session starts within 15 s after) with new text on the clipboard
   (`changeCount`, `hasStrings`: no prompt), "Paste on ‹Mac›" / "Then press ⌘V there." with the
   system's Paste control (`PasteButton`, UIPasteControl) and Dismiss; its 20 s run only while it
-  shows with Sill active, never under VoiceOver, which is told when it first shows (`chipCounts`);
+  shows with Skopry active, never under VoiceOver, which is told when it first shows (`chipCounts`);
   under the bar sideways (bottom corner while the link's line shows), above the window bar or row 1
   upright. A Paste is "Sent to ‹Mac›’s clipboard" only once a ping sent after the text comes back (a
   16-byte random payload, the receipt; none in max(4 s, 4 × the worst round trip): "Didn’t reach
   ‹Mac›. Try Paste again." and the chip again). Settings › This iPad: Share Clipboard
-  (`Sill.shareClipboard`, on) and Paste on ‹Mac›, while the Mac says it. Harness:
-  `-SillClipboardChip 1`, `-SillClipboardNote sent|long|notsent`; live, `-SillSettingsScript '<t> paste
-  TEXT'` and `-SillSettingsCloseAt <s>`.
+  (`Skopry.shareClipboard`, on) and Paste on ‹Mac›, while the Mac says it. Harness:
+  `-SkopryClipboardChip 1`, `-SkopryClipboardNote sent|long|notsent`; live, `-SkoprySettingsScript '<t> paste
+  TEXT'` and `-SkoprySettingsCloseAt <s>`.
 - The review (2026-10-14, eight findings, all taken; the plan's "The review"): the stop lost to the rate
   and macOS's paste privacy (the two should-fixes), the floor's image rule, "Sent" before the Mac had it,
   the chip unannounced and running out unseen, the Mac's footnote and the support page's sentence, the
@@ -72,16 +76,16 @@ first. Wire, host and device; additive.
   byte for byte the reviewed build's but the new note. Earlier (7e6468a): the XCUITest tap on the
   chip's Paste, two devices, every marker, the bare app's switch. This Mac's own clipboard was never
   read or written.
-- **Untested, for Noah:** on the iPad and iPhone with this Sill.app, at home and through Tailscale:
-  copy in TextEdit, paste on the device; copy in Notes, back to Sill, Paste on the chip, ⌘V on the
-  Mac; a password copied in 1Password and in the Passwords app never arrives (and Sill.log has no
+- **Untested, for Noah:** on the iPad and iPhone with this Skopry.app, at home and through Tailscale:
+  copy in TextEdit, paste on the device; copy in Notes, back to Skopry, Paste on the chip, ⌘V on the
+  Mac; a password copied in 1Password and in the Passwords app never arrives (and Skopry.log has no
   line for it); Universal Clipboard on (same Apple Account): the chip may come once for the Mac's own
   copy (known), an iPhone copy is not passed on; Settings › General's switch live; VoiceOver on the
-  chip (its announcement, no time limit); Split View (the chip waits for Sill's next activation; the
+  chip (its announcement, no time limit); Split View (the chip waits for Skopry's next activation; the
   panel's Paste works). From the review: macOS's paste alert through `defaults write
-  me.saffer.sill.mac EnablePasteboardPrivacyDeveloperPreview -bool yes` (the plan's step 9: the
+  app.skopry.mac EnablePasteboardPrivacyDeveloperPreview -bool yes` (the plan's step 9: the
   orange line, Allow in System Settings…, Allow and Deny, then `defaults delete` it); Paste right
-  after 10 s away from Sill ("Sent" only when ⌘V pastes it); on by default replacing a photo on the
+  after 10 s away from Skopry ("Sent" only when ⌘V pastes it); on by default replacing a photo on the
   device's clipboard, and that clipboard empty 10 minutes later (say whether either should change).
 
 **A hardware keyboard and trackpad on the device (2026-10-14, branch `hardware-keyboard` from main at
@@ -92,16 +96,16 @@ and #68 together)". Device only: no wire change, nothing on the Mac changed.
   `InputOverlayView.keyCommands` adds Esc with each of the sixteen ⌃⌥⇧⌘ combinations
   (`wantsPriorityOverSystemBehavior`, no title) while the view is first responder and no `EscapeKey` is on
   screen in its window (`EscapeKey.onScreen(in:)`; an EscapeKey's own Esc goes to the newest one in the
-  window it was pressed in, `fire(in:)`: each Sill window is its own); the action goes through
+  window it was pressed in, `fire(in:)`: each Skopry window is its own); the action goes through
   `ForwardedKeys.commanded` (down and up, the command's modifiers). One key press is sent once whichever
   channel brings it (`pressed`: a press no later than a command is swallowed with its up; `commanded`:
   nothing while the press holds it down). The Settings panel gains `EscapeKey(action: close)` (Done keeps
   `.cancelAction` for ⌘.). DEBUG: an `hwkey:` line for every hardware key and its channel, `escape:` when
-  an EscapeKey takes Esc, `-SillKeyProbe 1` (GameController's view of each key), `-SillEscViaCommand 1`.
+  an EscapeKey takes Esc, `-SkopryKeyProbe 1` (GameController's view of each key), `-SkopryEscViaCommand 1`.
   For the reporter: Control-[ is Esc in a terminal.
 - Keys without the Keyboard button (#68): `HardwareKeyboardPolicy` (pure, `Tests/checks/hardware-keyboard`),
   owned by `InputOverlayProxy` (one per stream screen; it outlives a rotation). With a hardware keyboard
-  (`HardwareKeyboardMonitor`, GameController's coalesced keyboard; DEBUG `-SillHardwareKeyboard 1|0`) the
+  (`HardwareKeyboardMonitor`, GameController's coalesced keyboard; DEBUG `-SkopryHardwareKeyboard 1|0`) the
   input view takes the keyboard by itself when a view joins a window (a session's start, a rotation, a
   reconnect), a keyboard attaches or the last taker closes (`StreamScreen.keyboardTakers`: Settings,
   pairing, the tour, the Apps drawer, Menus), and lets go when a taker opens or the keyboard goes; another
@@ -116,16 +120,16 @@ and #68 together)". Device only: no wire change, nothing on the Mac changed.
   at a time; a pointer scroll's first event and a lone notch are deltas (`scrolled(to:at:)`).
 - Defaults taken: the button keeps its software-keyboard meaning; the drawer and Menus are takers; all
   sixteen Esc combinations; nothing drawn during the hold; the person's keyboard across a rotation and ⌘W
-  with a taker open as before; Sill's own coast for a trackpad; no scrolling over the on-screen trackpad;
+  with a taker open as before; Skopry's own coast for a trackpad; no scrolling over the on-screen trackpad;
   the hold also under Full Keyboard Access and Switch Control until Noah's step 13 says otherwise (UIKit
   can tell Switch Control, not Full Keyboard Access).
 - Verified (the plan's Results): hardware-keyboard 51 checks, 20,000 random sessions, 31 of 31 mutants (in
   CI's matrix); key-strokes 347 (18 new) and 81 of 81 mutants (9 new); `run-all.sh` all 41; the iOS app
   Debug and Release for the simulator and Debug for a device, and `swift build -c release`, with the known
   warnings only; 19 harness photos identical to main's (the Menus pull-down open among them, the hold let
-  go under it); live on private simulators against `SillHost --synthetic`, with `Tests/keyrig` (new, TEST
+  go under it); live on private simulators against `SkopryHost --synthetic`, with `Tests/keyrig` (new, TEST
   ONLY: a virtual HID keyboard and mouse inside the simulator, as duorig): keys and ⌘W with no Keyboard
-  button, after two turns too (an iPhone, `-SillTurnAt`); Esc, ⇧Esc, ⌘Esc and ⌥⌘Esc through both channels;
+  button, after two turns too (an iPhone, `-SkopryTurnAt`); Esc, ⇧Esc, ⌘Esc and ⌥⌘Esc through both channels;
   Esc closing Settings and skipping the tour with nothing sent; the tour shown with a keyboard attached; a
   keyboard going and coming; the button's two states on a fresh iPhone; wheel notches; the touch rig 72 of
   72 against main's. Found there and fixed: a lone wheel notch was never sent; the rule asked with no view
@@ -137,7 +141,7 @@ and #68 together)". Device only: no wire change, nothing on the Mac changed.
 - The review (2026-10-14; the plan's Results, "The review and its fixes"): four findings, each checked
   here first and fixed in a commit of its own. Esc's key commands and EscapeKey keep to their own window
   (`onScreen(in:)`, `fire(in:)`): Settings open in a window behind took the stream's Esc key commands in
-  front (a private simulator, `-SillSecondWindow 1 -SillSettings 1 -SillEscViaCommand 1`: 2fc53ed's build
+  front (a private simulator, `-SkoprySecondWindow 1 -SkoprySettings 1 -SkopryEscViaCommand 1`: 2fc53ed's build
   sent no key 53 to the host, this one did), and Esc could close another window's panel. README, the
   support page, the App Store bullet and the next What's New kept Esc and trackpad scrolling out until
   Noah's steps 1, 7 and 9 passed, through Universal Control on 2026-10-15 (the plan's "Words that wait
@@ -147,14 +151,14 @@ and #68 together)". Device only: no wire change, nothing on the Mac changed.
   only; `run-all.sh` all 41 at the first run; the touch rig 72 of 72; Esc in one window and in two, live; no check
   compiles a file the review changed, so no mutants again.
 - **Untested, for Noah (the plan's 1–13, on the iPad with the Magic Keyboard, a Debug build):** which
-  channel brings Esc (`hwkey:`; `-SillKeyProbe 1`), Esc in iTerm2's vim, zsh's vi mode and Zed, and
-  Control-[; typing right after connecting and after a turn; ⌘W closing the Mac's window, not Sill's;
+  channel brings Esc (`hwkey:`; `-SkopryKeyProbe 1`), Esc in iTerm2's vim, zsh's vi mode and Zed, and
+  Control-[; typing right after connecting and after a turn; ⌘W closing the Mac's window, not Skopry's;
   nothing drawn, and nothing popping up when the keyboard is taken away; the Keyboard button's two states;
   Esc over Settings, the tour and pairing; the tour on a fresh install with the keyboard attached;
   two-finger scrolling (any double coast) and a mouse's wheel; VoiceOver; an input method's candidates
-  (none drawn during the hold: the Keyboard button brings iPadOS's views back); two Sill windows side by
+  (none drawn during the hold: the Keyboard button brings iPadOS's views back); two Skopry windows side by
   side (Settings open in one leaves Esc to the other; Esc closes only its own window's panel); Full
-  Keyboard Access and Switch Control (Tab, Space and Esc through Sill's bar while the stream holds the
+  Keyboard Access and Switch Control (Tab, Space and Esc through Skopry's bar while the stream holds the
   keyboard).
 
 **Larger Picture on an iPhone held upright (2026-10-14, branch `larger-picture` from main at 985a733,
@@ -164,7 +168,7 @@ take up more than half of the vertical space." Device only: no wire change, noth
 Since Noah's test on his iPhone 15 Pro (2026-10-15: "when in Desktop mode, there is negative space
 on the bottom, seemingly because of the Mac aspect ratio. Can we disable this feature when Desktop
 mode is active?") it applies only while a window streams (the bullet "Only while a window streams").
-- Settings › This iPhone: **Larger Picture** (off by default; `Sill.largerPicture`,
+- Settings › This iPhone: **Larger Picture** (off by default; `Skopry.largerPicture`,
   `StreamClient.largerPictureKey`, never sent; offered only on an iPhone without a hinge whose
   picture it makes larger: the environment's `largerPictureOffered`, from
   `PhonePortraitLayout.offersLargerPicture(screen:)`, judged upright whichever way the phone is
@@ -222,8 +226,8 @@ mode is active?") it applies only while a window streams (the bullet "Only while
   `copy`) the bar card lights Apps, Aa and Keyboard and its first row is about Apps; upright cards
   are placed against the picture's room (`TourPolicy.place`'s `room`, TourOverlay's), so a card
   stands under a short picture with its tail at row 1. TourLayout stays `.phone` (switching is no
-  turn). DEBUG: `-Sill.largerPicture 1`, `-SillVideoSize WxH`, `-SillLargerPictureToggle`,
-  `-SillDrawerSearch <text>`, `-SillAXDump` (the accessibility tree's order; a private simulator's
+  turn). DEBUG: `-Skopry.largerPicture 1`, `-SkopryVideoSize WxH`, `-SkopryLargerPictureToggle`,
+  `-SkopryDrawerSearch <text>`, `-SkopryAXDump` (the accessibility tree's order; a private simulator's
   `ApplicationAccessibilityEnabled` first), the console's `trackpad:` and `keyboard:` lines.
 - The review (2026-10-14; five findings, all holding, one commit per theme): the drawer, under row
   1, kept only its search field above a keyboard (62 pt on every phone): now above row 1 (77abae3,
@@ -242,7 +246,7 @@ mode is active?") it applies only while a window streams (the bullet "Only while
   live on the 18 Pro Max, the 15 Pro and the SE the whole drawer above the Mac's keyboard and its
   search field's, to the pixel, the switch flipped with Settings open moving nothing until it
   closed (then one viewport), and VoiceOver's order with the drawer open: row 1, then the drawer.
-  Photos in `~/Downloads/sill-handoff/larger-picture/` (`review-fixes/` for the review's).
+  Photos in `~/Downloads/skopry-handoff/larger-picture/` (`review-fixes/` for the review's).
 - **Untested, for Noah (the plan's P list), on the iPhone 15 Pro with this build:** with the switch
   on, the Desktop as with it off (no black under it), a window picked: Larger Picture as it appears
   (with Aa set the window grows into the room a moment later), the Desktop again: the thumbnails
@@ -260,20 +264,20 @@ mode is active?") it applies only while a window streams (the bullet "Only while
   On iOS 17 or 18, if an iPhone with one is at hand, the keyboard's height (every height here is
   iOS 27's). On a Duo from October 23: no switch, the cover as before.
 
-**A window Sill sized goes back (2026-10-14, branch `restore-window-frames` from main at 985a733,
+**A window Skopry sized goes back (2026-10-14, branch `restore-window-frames` from main at 985a733,
 PR #75; docs/restore-window-frames-plan.md has the rule, the open questions with the defaults taken,
 the review, the results and Noah's steps).** Issue #57 (rosstex): "disconnecting on the iOS app doesn't revert
 apps back to their original shape/size on Mac". In regular mode (Virtual Display off) Aa resized the
 real window (`StreamCoordinator.fitToViewport`) and nothing put it back, on purpose until now. Host
 only; no wire change, nothing on the device, nothing stored.
 - The rule (`WindowRestore`, pure; `Tests/checks/window-restore`): each fit's record (`original`,
-  the AX frame before Sill first touched it; `set`, the frame read back; `asked`; `moved`, noted at
-  a later fit by `movedSince`: at Sill's size its top-left corner elsewhere, at another size both
-  edges of an axis gone the same way from where Sill left it, at either of Sill's sizes, so a resize
+  the AX frame before Skopry first touched it; `set`, the frame read back; `asked`; `moved`, noted at
+  a later fit by `movedSince`: at Skopry's size its top-left corner elsewhere, at another size both
+  edges of an axis gone the same way from where Skopry left it, at either of Skopry's sizes, so a resize
   from any edge or corner, or with Option, is no move; 2 pt tolerance) and, when the window stops
-  streaming, `decide`: gone (nothing), full screen (left, a line), home (nothing), `settle` (Sill
+  streaming, `decide`: gone (nothing), full screen (left, a line), home (nothing), `settle` (Skopry
   asked another size and the read-back never showed it: an app that applies a size late, stopped
-  first; the original written again, no line), resized on the Mac after Sill's last fit (left
+  first; the original written again, no line), resized on the Mac after Skopry's last fit (left
   entirely, a line), unmoved (the whole original frame), moved (its own size where it is, kept on its
   display by `keep`). Lines in the stage's style: "Restored ‹app› — ‹title› to (x,y,w×h)", "…, its
   own size where it was moved", "Left … at (…): it was resized on the Mac", "Left … as it is: it is
@@ -284,7 +288,7 @@ only; no wire change, nothing on the device, nothing stored.
   check's stand-in Mac in the model): `fit`, WindowSizer.resize's (nothing for a window in full
   screen; the frame before, the nudge, the size; a refusal puts the nudge back and records nothing; a
   size gone unanswered, `Write.timedOut` from cannotComplete, puts it back and is recorded from where
-  the window was; no read-back: recorded as not yet shown, its old size where Sill put it; the second
+  the window was; no read-back: recorded as not yet shown, its old size where Skopry put it; the second
   nudge); `stop`, one window's way back (one read: no frame and listed is not answering, left with a
   line; not listed, gone; else `decide` and `put` through `WindowSizer.restore`); `stageHome`;
   `Ledger.restore` (every window that stops but the staged one); `keepsStreaming` and
@@ -304,7 +308,7 @@ only; no wire change, nothing on the device, nothing stored.
   keeps the frame it would have gone back to (`stageHome`) and the record is handed over
   (`Ledger.take`) only once staged; `restoreFits` skips the staged window (Quit mid-`prepare`).
 - Defaults taken (the plan's 19): the CLI's Ctrl-C restores too (a line only when a window was
-  sized, the same exit status); full screen at the stop left (it keeps Sill's size when it leaves
+  sized, the same exit status); full screen at the stop left (it keeps Skopry's size when it leaves
   full screen; support.html says so); resized left, position included; moved keeps its place, also
   after a re-fit; a resize a re-fit undid is forgotten, from any edge or corner; a move and a resize
   between two fits judged as the edges show them; a failed restore tried once; nothing after a crash
@@ -328,14 +332,14 @@ only; no wire change, nothing on the device, nothing stored.
   streaming, 36 windows that left full screen while streaming went back) and 95 of 95 mutants
   (in CI's matrix; the first full run caught 94, F1's pattern gone stale, 299557c); H2 against 985a733: idle identical masked and sorted, a Desktop client identical
   but for the seconds where it comes and goes, as base against base; the restore probe live, 20 of 20
-  (the screen unlocked, Noah idle, no device on Sill.app): step 13, the app stopped during a fit, its
+  (the screen unlocked, Noah idle, no device on Skopry.app): step 13, the app stopped during a fit, its
   size unanswered then taken late (667×473), put back whole; step 14, the left edge dragged in before
   a re-fit, back whole. No iOS file changed; no screen changed.
-- Not verified: Sill.app with a device; anything in full screen live (a full-screen Space would
+- Not verified: Skopry.app with a device; anything in full screen live (a full-screen Space would
   take over Noah's screen); the virtual display with a fitted window; the coordinator's glue live (a
   synthetic host picking a window would capture Noah's windows). Known: a pick, Disconnect or Quit
   within the second a window takes to enter or leave full screen may still leave it at Aa's size.
-- **Untested, for Noah** (the plan's twelve, with Sill.app from this branch, the iPad, Virtual
+- **Untested, for Noah** (the plan's twelve, with Skopry.app from this branch, the iPad, Virtual
   Display off, Aa at 1.5×): pick another window, Disconnect, Quit: back each time ("Restored …");
   moved on the Mac then disconnect: its size where it is; resized from the bottom-right then
   disconnect within 2 s: left; the left or top edge dragged, 2 s, disconnect: back whole at its old
@@ -348,7 +352,7 @@ only; no wire change, nothing on the device, nothing stored.
 **Finding the Mac again after hours idle (2026-10-14, branch `reconnect-after-sleep` from main at
 985a733, PR #77, issue #69; the plan, the causes with line numbers, the decisions, the results and the
 review's fixes are in `docs/reconnect-after-sleep-plan.md`).** The report: after a few hours dormant
-nothing reconnected until the Mac was logged in to and Sill relaunched on the iPad. Device code, the
+nothing reconnected until the Mac was logged in to and Skopry relaunched on the iPad. Device code, the
 support page and the docs; no wire change, nothing on the Mac.
 - The browsers: iOS makes a suspended app's connection to mDNSResponder defunct (-65569), and the
   Bonjour browser was made once (`startBrowsing`), so after hours in the background the rows were
@@ -370,7 +374,7 @@ support page and the docs; no wire change, nothing on the Mac.
   20 and every 30 s after the last started, 12 at most, in the foreground only
   (`DiscoveryPolicy.redialRow`; `Reconnect.rowListing`, `rowDials`, `lastRowDialAt`); the row listed
   afresh, the return from the background, or a tap starts again. The line (`reconnectLine`):
-  "Reconnecting to ‹Mac›…", after 3 "‹Mac› isn’t answering. It may be asleep. Sill keeps trying, or
+  "Reconnecting to ‹Mac›…", after 3 "‹Mac› isn’t answering. It may be asleep. Skopry keeps trying, or
   tap it to try now.", after 12 "Stopped trying to reach ‹Mac›. Tap it to try again.". The let-go
   looks again; a reconnect dial that ends without a goodbye before it connects is one dial
   (`sessionEnded`); "Waiting for ‹Mac›…" is a tap's line only; the retry chain lives while a
@@ -378,13 +382,13 @@ support page and the docs; no wire change, nothing on the Mac.
 - A Desktop the Mac stopped (its capture stopped, so the host selects nothing) is asked for again
   at once, under the old 10 s spacing (`DiscoveryPolicy.autoDesktop`); 0.5.1 asks only with the
   Mac's next window list, sent when a window opens, closes or changes.
-- DEBUG `-SillBrowserFail N` (each of the first N network browsers reported failed with -65569 half
-  a second after it starts) and `-SillConnectCase asleep`. The support page's "Your Mac isn’t listed"
-  gains a sleeping Mac (Sill may not be able to wake it, so keep it awake: Energy, or Battery) and a
-  restarted one (Sill opens after a login, with Launch at Login); README's Good to know, the next
+- DEBUG `-SkopryBrowserFail N` (each of the first N network browsers reported failed with -65569 half
+  a second after it starts) and `-SkopryConnectCase asleep`. The support page's "Your Mac isn’t listed"
+  gains a sleeping Mac (Skopry may not be able to wake it, so keep it awake: Energy, or Battery) and a
+  restarted one (Skopry opens after a login, with Launch at Login); README's Good to know, the next
   What's New (docs/app-store-metadata.md), DEVELOPMENT.md.
 - The review (2026-10-14, after 1c4b921), four findings, each fixed in a commit of its own: the
-  home-side words said Sill can't wake a sleeping Mac, at odds with the bound's own reason (a dial
+  home-side words said Skopry can't wake a sleeping Mac, at odds with the bound's own reason (a dial
   through a sleep proxy may wake it) and neither verified: now "may not be able to" (1798232); a
   rebuild keeps a Mac by name, not by interface, so a working cable session back from a short trip
   could move to Wi-Fi and back on its pong from before the trip: the stamp above, a model in
@@ -393,12 +397,12 @@ support page and the docs; no wire change, nothing on the Mac.
   (0e8a098). Its own runs agreed with the ones below and ran `sessionEnded`'s new branch live (a
   TLS stand-in that never sends a window list: dials at +0, 7.2, 17.2, 37.3, 67.4 s; main's build
   dialled about every 6 s).
-- Verified (the plan's Results): on a private simulator against `SillHost --synthetic --pairing` as a
-  `_silltest._tcp` row, the host stopped for 20 s: main's build dialled at +0 and +6.3 s after the
+- Verified (the plan's Results): on a private simulator against `SkopryHost --synthetic --pairing` as a
+  `_skoprytest._tcp` row, the host stopped for 20 s: main's build dialled at +0 and +6.3 s after the
   loss and then nothing for the minute after the host came back; this branch dialled at +0, 5.3, 15.3
   and 35.3 s and the session came back without a tap. Stopped for 300 s: 12 dials at the rule's times,
   the quiet line at +20.5 s, "Stopped trying…" at +281.8 s and no dial after it; back from the
-  background, a dial at once and the session in 40 ms. `-SillBrowserFail 3`: made again 1.05, 2.12 and
+  background, a dial at once and the session in 40 ms. `-SkopryBrowserFail 3`: made again 1.05, 2.12 and
   4.21 s after each failure, the row listed throughout. The Desktop: asked for again 10 ms after a
   stand-in Mac said nothing streams. Photos of `asleep` at the Duo's four sizes and 744×1133, default
   and accessibility-extra-large; `homerows` pixel for pixel main's. After the review's fixes: four
@@ -409,26 +413,26 @@ support page and the docs; no wire change, nothing on the Mac.
   their mutant patterns as on main; `run-all.sh`, all 40; iOS Debug for the simulator (CI's command),
   Release for the simulator and Debug for a device, only the known `StreamClient` capture warning;
   `swift build -c release`, only the CaptureProbe one; CI green on 0e8a098.
-- **Untested, for Noah:** the real overnight case on the iPad mini (Sill left streaming or on the
+- **Untested, for Noah:** the real overnight case on the iPad mini (Skopry left streaming or on the
   connect screen for hours, the iPad locked; back: the console's "browser: rebuilt the network
   browser (back from the background)", the Mac's row as it is now, and the session back by itself if
-  the Mac is awake with Sill open); a Mac asleep behind an Apple TV or HomePod (`dns-sd -B
+  the Mac is awake with Skopry open); a Mac asleep behind an Apple TV or HomePod (`dns-sd -B
   _sleep-proxy._udp` lists one; the Mac's "Wake for network access" on): the row stays, dials every
   5, 10, 20, 30 s, the quiet line, and whether a dial wakes the Mac and connects, which settles the
   support page's words (the plan's §4 has them for a yes); R6, whether macOS stops a capture when the
-  display sleeps or the Mac locks (Sill.app streaming the Desktop, then `pmset displaysleepnow` or
-  ⌃⌘Q: whether Sill.log says "Capture stopped: …", and whether the picture comes back by itself once
+  display sleeps or the Mac locks (Skopry.app streaming the Desktop, then `pmset displaysleepnow` or
+  ⌃⌘Q: whether Skopry.log says "Capture stopped: …", and whether the picture comes back by itself once
   the Mac is woken and unlocked: this build asks at once, 0.5.1 with the Mac's next window list); the
-  nearby browser made again (Direct Wireless on, the iPad on the iPhone's hotspot, Sill sent to the
+  nearby browser made again (Direct Wireless on, the iPad on the iPhone's hotspot, Skopry sent to the
   background and back: the console's "browser: rebuilt the nearby browser (back from the
   background)", the Direct row kept), which no headless run here could do without turning on this
   Mac's AWDL; a session over the USB cable across a short trip to the background (streaming over the
-  cable, Sill sent away for 2 s and back: no "path: the cable went away" on the console, no second
-  "Client connected" in Sill.log), which no test host on loopback can show.
+  cable, Skopry sent away for 2 s and back: no "path: the cable went away" on the console, no second
+  "Client connected" in Skopry.log), which no test host on loopback can show.
 
 **The Settings window on a small screen (2026-10-14, branch `settings-window-height` from main at
 985a733, PR #74; issue #59; the probe, the plan and the results are in
-`docs/settings-window-plan.md`).** rosstex, a 14-inch MacBook Pro on macOS 26.6.2 with Sill 0.5.1:
+`docs/settings-window-plan.md`).** rosstex, a 14-inch MacBook Pro on macOS 26.6.2 with Skopry 0.5.1:
 "The Remote Access settings on Mac are too tall and cannot be resized." Mac app only: no wire change,
 nothing on the iOS side, the CLI untouched.
 - Cause (a scratch probe of the same setup on macOS 27.0.1): AppKit gives the selected pane's view a
@@ -436,8 +440,8 @@ nothing on the iOS side, the CLI untouched.
   preferredContentSize, SwiftUI's whole Form) at priority 501, just over the window's own 500, and
   lays the window out to it, keeping its top-left; the window is not resizable, so nothing shortens
   it (a 50-row pane made a 2,028 pt window). The constraint follows growth and every tab switch; in
-  the probe it did not follow a pane that got shorter, but Sill's Remote Access pane shrank the
-  window with it (909 → 734 pt). Sill's window adds 80 pt of title bar and toolbar. Remote Access
+  the probe it did not follow a pane that got shorter, but Skopry's Remote Access pane shrank the
+  window with it (909 → 734 pt). Skopry's window adds 80 pt of title bar and toolbar. Remote Access
   with the internet switch on (909 to 983 pt) and rosstex's 951 pt window fit a 14-inch only at More
   Space (1,800 × 1,169); General (727) fits at the default scaling, Dock or not, but not at the
   larger-text scalings with the Dock (`Tests/checks/settings-window` has each case).
@@ -447,11 +451,11 @@ nothing on the iOS side, the CLI untouched.
   switch (`SettingsTabController.onSelect`), on `NSApplication.didChangeScreenParametersNotification`
   and `windowDidChangeScreen`; a new cap lays a window on screen out at once. `place()` (after
   `windowDidResize` and `refit`) moves the window back inside the visible frame, 12 pt clear of the
-  edge it ran past, when Sill's own changes leave it partly outside; never sideways, never while a
+  edge it ran past, when Skopry's own changes leave it partly outside; never sideways, never while a
   mouse button is down (then once all are up, `placeOnRelease`), and never a window that fits where
   it is: a saved frame sets only the window's top-left, and AppKit orders a window that ran off the
   bottom while hidden back in at the screen's bottom, so a capped window can sit flush with the menu
-  bar or the screen's bottom, the 24 pt on the other side. Sill's virtual display is never the screen
+  bar or the screen's bottom, the 24 pt on the other side. Skopry's virtual display is never the screen
   (`SettingsWindowFit.screenIndex`). Rejected in the probe: an NSHostingController subclass clamping
   preferredContentSize (SwiftUI never calls its setter) and a SwiftUI `.frame(maxHeight:)` on the
   pane (lowered while a pane showed, it left the window tall: the probe's 501 constraint did not
@@ -460,16 +464,16 @@ nothing on the iOS side, the CLI untouched.
   issue's screens, an external 4K display, screens above and beside, windows partly off the screen,
   the virtual display, the test height, then 20,000 seeded random cases) and 27 of 27 mutants, in
   CI's mutants matrix.
-- TEST ONLY, the bare binary; Sill.app ignores each with one line: `-SillSettingsAfter '<s>
+- TEST ONLY, the bare binary; Skopry.app ignores each with one line: `-SkoprySettingsAfter '<s>
   <tab>|close|report|end|height=<points>; …'` (opens Settings as the menu does and prints the window's
-  frame, the pane's whole height and how much shows), `-SillTestScreenHeight <points>`,
-  `-SillSettingsShot <dir>` (docs/DEVELOPMENT.md).
+  frame, the pane's whole height and how much shows), `-SkopryTestScreenHeight <points>`,
+  `-SkoprySettingsShot <dir>` (docs/DEVELOPMENT.md).
 - Verified (the plan's Results; this Mac, a 14-inch at its default scaling, 949 pt under the menu
-  bar; the bare binary on `--synthetic` on loopback, only while no device was connected, Sill.app
+  bar; the bare binary on `--synthetic` on loopback, only while no device was connected, Skopry.app
   untouched): `swift build -c release` clean from `git archive`, only the CaptureProbe warning;
   `run-all.sh`, all 41; the previews (130 files) identical to 985a733's; every tab at its natural
   height (limit 845) but Remote Access with the internet switch on (909: shows 845, scrolls, 12 pt
-  from both edges, Sill having moved it); `-SillTestScreenHeight 700`: General (727) and Remote
+  from both edges, Skopry having moved it); `-SkopryTestScreenHeight 700`: General (727) and Remote
   Access (909) capped at 596 and scrolling; the screen changing under the tall pane (`height=`, the
   notification's path): 845, 596, 396, 845, the window shrinking and growing; a pane growing past
   the cap, and a tab switch to it, with the window low: moved up to 12 pt over the bottom; a window
@@ -477,39 +481,39 @@ nothing on the iOS side, the CLI untouched.
   top-left) capped at 925, 0 pt under the menu bar and 24 over the bottom, and a 70 and a 140 pt
   Dock under it, 855 and 785, its top kept; a pane grown while Settings was closed, reopened by
   AppKit at the screen's bottom, 24 pt under the menu bar; General and Streaming scrolled to their
-  ends inside a 600 pt screen (231 and 72 pt); Sill.app's ignore lines, from the binary in a scratch
+  ends inside a 600 pt screen (231 and 72 pt); Skopry.app's ignore lines, from the binary in a scratch
   bundle under `sandbox-exec` with binds denied; CI's "Build and check" on c2339e2 and, after the
   review's fixes, 1865ada. Photos without personal details in
-  `~/Downloads/sill-handoff/settings-window/`.
+  `~/Downloads/skopry-handoff/settings-window/`.
 - Review (2026-10-14, at bb2451e; it re-ran everything above with the same numbers): three findings,
   each fixed in a commit of its own (the plan's "The review"). Should fix: the untested lists left
-  out macOS 26, the reporter's, and Sill's virtual display (now U6 and U7). Nits: "the 501
+  out macOS 26, the reporter's, and Skopry's virtual display (now U6 and U7). Nits: "the 501
   constraint never shrinks" and "General does not fit a 14-inch with the Dock" (corrected above,
   with 20 checks for which pane fits which scaling); U1, U2 and the PR's steps promised 12 pt above
-  and below (now: 12 pt only on a side Sill moved the window away from). Re-run after the fixes:
+  and below (now: 12 pt only on a side Skopry moved the window away from). Re-run after the fixes:
   `swift build -c release` clean from `git archive`, only the CaptureProbe warning; `run-all.sh`,
   all 41; `settings-window` 27 of 27 mutants; where a capped window sits, with a scratch build whose
   window was invisible and never activated (the screen unlocked, nobody at it).
-- **Untested, for Noah** (the plan's U1 to U8, with Sill.app from this branch on the 14-inch): at
+- **Untested, for Noah** (the plan's U1 to U8, with Skopry.app from this branch on the 14-inch): at
   the scaling at the far left with the Dock showing, every tab fits between the menu bar and the
-  Dock (12 pt clear only on a side Sill moved it away from), General scrolls to Quit Sill and Remote
+  Dock (12 pt clear only on a side Skopry moved it away from), General scrolls to Quit Skopry and Remote
   Access (Remote Access and "Allow connections from the internet" on) to Sleep; with Settings open,
   change the scaling and the Dock's size and hiding: it follows each time (note a Dock change that
   shows only at the next tab click); drag it to a smaller external display and let go low: it moves
   up once the button is up, and grows back on the larger one; a held click on a tab never moves it;
-  VoiceOver reaches Quit Sill in a capped General; macOS 26, the reporter's (everything was
+  VoiceOver reaches Quit Skopry in a capped General; macOS 26, the reporter's (everything was
   measured on 27.0.1, and merging closes #59): U1 on a Mac with 26, or a build for rosstex; with
-  Sill's virtual display there (Virtual Display on, a window streaming), every tab shows on the
+  Skopry's virtual display there (Virtual Display on, a window streaming), every tab shows on the
   built-in display and fits it, also once Virtual Display is turned off with Settings open; macOS 14
   or 15 if at hand.
 
-**Sill for Android (2026-10-14, branch `android-client` from main at 985a733; `android/README.md`
-has setup, the map to the iOS files and what differs).** A user's request: Sill on their Android
+**Skopry for Android (2026-10-14, branch `android-client` from main at 985a733; `android/README.md`
+has setup, the map to the iOS files and what differs).** A user's request: Skopry on their Android
 devices, reachable over their Tailscale tailnet, near the iOS app's features. A native Kotlin client
 (Compose UI, MediaCodec HEVC, the Android Keystore, Conscrypt TLS 1.3, NSD) in `android/`, speaking
-the wire protocol of `Sources/StreamProtocol` as it is: **no Mac change**, any Sill for Mac from
+the wire protocol of `Sources/StreamProtocol` as it is: **no Mac change**, any Skopry for Mac from
 0.4.0 serves it (the remote door over Tailscale; the TLS home door at home).
-- In it: pairing by the typed code (PBKDF2 and the proofs) and by the `sill://pair` link (QR via
+- In it: pairing by the typed code (PBKDF2 and the proofs) and by the `skopry://pair` link (QR via
   Google's code scanner, pasted, or opened from another app behind a confirmation); the session
   (hello first, 0.25 s pings, ClientStats, liveness by bytes, GoodbyePolicy's reconnect); kinds 0–28:
   the stream, the catalog and thumbnails, Apps (launch), window commands, kind 16/17 through a port
@@ -523,22 +527,22 @@ the wire protocol of `Sources/StreamProtocol` as it is: **no Mac change**, any S
 - Decoder size: phones' HEVC decoders can stop below a Retina capture (the Galaxy A15's MediaTek:
   2560×1440, 1080p at 60), so a stream this device cannot decode asks the Mac for Standard by itself,
   and the viewport's fps is capped at what the decoder sustains.
-- Verified on a Galaxy A15 (Android 14) against `SillHost --synthetic` on loopback through `adb
-  reverse` (the remote door with `SILL_TEST_ORIGIN=vpn`, and `--pairing`'s home door with a stand-in
-  `_silltest._tcp` record): both pairings, streaming (decode 24 ms at 1512×948), input in the host's
-  `SILL_TEST_INPUT_LOG`, a settings change ("away bitrate 4 → 15"), the menus against
+- Verified on a Galaxy A15 (Android 14) against `SkopryHost --synthetic` on loopback through `adb
+  reverse` (the remote door with `SKOPRY_TEST_ORIGIN=vpn`, and `--pairing`'s home door with a stand-in
+  `_skoprytest._tcp` record): both pairings, streaming (decode 24 ms at 1512×948), input in the host's
+  `SKOPRY_TEST_INPUT_LOG`, a settings change ("away bitrate 4 → 15"), the menus against
   `Scripts/menufixture.swift` (Probe › Set Label A pressed), the scripted pointer, the reconnect, the
   ask and the Wi‑Fi row; release (R8) build 2.9 MB; `./gradlew testDebugUnitTest` 17 tests, the
   pairing vectors of `Tests/checks/protocol` among them.
-- **Untested:** a real Sill.app over Tailscale (the user installs Sill for Mac 0.5.1 and turns on
+- **Untested:** a real Skopry.app over Tailscale (the user installs Skopry for Mac 0.5.1 and turns on
   Remote Access), the hardware encoder's 60 fps on the phone, the Z Fold4 and Tab S8 Ultra, IMEs
   beyond Samsung Keyboard's key events.
 
 **Release 0.5.1 (2026-10-09, branch `release-0.5.1` from main at 05f2bb8, main merged in again
 at e3ce043 after PR #47; PR #48; Noah's go the same day: "When #47 passes the CI, merge it, then
 once that is merged do #48. Then run the release procedure").** Noah: "I want the release in the GitHub to line up with the app version, I want
-all versions to be 0.5.1." One release, and one version for both apps from now on: Sill for Mac
-0.5.1 (after 0.4.0; there is no 0.4.1; the tag will be v0.5.1) with Sill for iPhone and iPad 0.5.1
+all versions to be 0.5.1." One release, and one version for both apps from now on: Skopry for Mac
+0.5.1 (after 0.4.0; there is no 0.4.1; the tag will be v0.5.1) with Skopry for iPhone and iPad 0.5.1
 (4) (`MARKETING_VERSION` 0.5.1 and `CURRENT_PROJECT_VERSION` 4 in both configurations: the build
 numbers keep counting across versions). docs/release-checklist.md has the rule (part 2's first
 item) and the release's order ("The away release").
@@ -546,24 +550,24 @@ item) and the release's order ("The away release").
   old saved record retires itself), and PR #47, the iPhone Duo with the iOS 27.1 SDK (the entry
   below; the status bar hidden on the stream screen in every pose of the inner display, Noah's
   pick of 2026-10-09); PRs #44 and #45 went to TestFlight as 0.5 (3). Neither half
-  strands the other (read from the code): Sill for Mac 0.5.1 serves 0.5 (2) and (3), and 0.5.1 (4)
-  works with Sill for Mac 0.4.0, without the away quality and the link's notice, which are the Mac's.
+  strands the other (read from the code): Skopry for Mac 0.5.1 serves 0.5 (2) and (3), and 0.5.1 (4)
+  works with Skopry for Mac 0.4.0, without the away quality and the link's notice, which are the Mac's.
 - The words: support.html's and index.html's away sentences (inside the Remote Access markers) and
   privacy.html's date (October 9, 2026: the day the site goes out, if later); README's Good to know
   (0.4.0 or later; one version number); the metadata (the description's Away bullet, 2,603
   characters; the review notes' REMOTE ACCESS sentence, 3,995 bytes of 4,000, and the same sentence
   for App Store Connect's own notes; the version 0.5.1 (4) and its What's New; App Store Connect
   adds a version only once the current one is Ready for Distribution). README's How it works and
-  privacy.html's link-report line came with #39. In sill-handoff's `release-051/`: the release
+  privacy.html's link-report line came with #39. In skopry-handoff's `release-051/`: the release
   notes (`notes-0.5.1.md`: a WAITS FOR comment to settle, then `fill-notes.sh` after `--publish`),
   What to Test for 0.5.1 (4) (`testflight-0.5.1-4.md`, 1,462 characters), and STATUS.md with every
   command's result.
 - Verified on 336adc0 (STATUS.md): `swift build -c release`, only the CaptureProbe warning;
   `Tests/checks/run-all.sh`, all 39 (`policy` 392); the iOS app for the generic simulator as CI
-  builds it, only the StreamClient capture warning; `release.sh --dry-run`: "Built .build/Sill.app,
+  builds it, only the StreamClient capture warning; `release.sh --dry-run`: "Built .build/Skopry.app,
   version 0.5.1 (535)", "identity keychain: data-protection keychain (access group
-  9B2KKVM937.me.saffer.sill.mac)", Sill-0.5.1.zip 3.2 MB and Sill-0.5.1.dmg 3.3 MB, signed, not
-  notarized ("Unnotarized Developer ID"); `release-ios.sh` without `--upload`: 0.5.1 (4), Sill.ipa
+  9B2KKVM937.app.skopry.mac)", Skopry-0.5.1.zip 3.2 MB and Skopry-0.5.1.dmg 3.3 MB, signed, not
+  notarized ("Unnotarized Developer ID"); `release-ios.sh` without `--upload`: 0.5.1 (4), Skopry.ipa
   2.8 MB, Apple Distribution, the App Store profile, `ITSAppUsesNonExemptEncryption` NO, both
   required-reason APIs declared. Nothing uploaded, tagged or published; only the branch pushed.
 - Shipping (Noah's go of 2026-10-09 lifted the TestFlight hold of 2026-10-08): PR #47 merged
@@ -572,7 +576,7 @@ item) and the release's order ("The away release").
   to Test, the description and What's New, README's How it works, index.html), then the pull
   request's steps: merge, tag v0.5.1 on the merge commit, `release-ios.sh --upload` and What to
   Test, `release.sh --publish` from the tag, the notes (`fill-notes.sh`, `gh release edit`), the
-  site republished, the check signed out; the results in sill-handoff's `release-051/STATUS.md`.
+  site republished, the check signed out; the results in skopry-handoff's `release-051/STATUS.md`.
   Still open, and shipped without them on Noah's call: his device tests of away from home (P4–P13
   below) and of the iPhone Duo (the Duo entry's P1–P13, on a Duo from October 23); on the App
   Store, 0.5 went live on 2026-10-08 and 0.5.1 (4) on 2026-10-10, approved within hours
@@ -589,7 +593,7 @@ Approved from mockups: (a) the book pose, one stream across the fold and nothing
 window's own shape and the trackpad the rest; (c1) the cover upright, the phone's arrangement beside
 the camera's strip; (c2) on its side, the compact landscape bar. Device only, no wire change (a TEST
 ONLY host picture aside).
-- `DuoPosture` (pure) and `DuoPostureReader`: `onHingeChange` at the app's root (SillApp) into the
+- `DuoPosture` (pure) and `DuoPostureReader`: `onHingeChange` at the app's root (SkopryApp) into the
   environment; the fold's `.division` region (`.includeInactive`) from each screen's own
   GeometryReader, in its space, and before the hinge's first report the region alone (active: partly
   open; inactive: flat); nothing before iOS 27.1, and a device without a hinge or fold reads
@@ -598,7 +602,7 @@ ONLY host picture aside).
 - Decisions (the plan's "The build: decisions", revised after the review; the status bar Noah's
   pick of 2026-10-09, option 1 of the three the mock canvas drew): the stream screen hides the
   status bar on the inner display in every pose (upright the picture keeps the 82 pt above the
-  fold; sideways Sill has all 951 pt), and every other screen keeps it in every pose, the cover its
+  fold; sideways Skopry has all 951 pt), and every other screen keeps it in every pose, the cover its
   strip; at 951 pt the book pose's bar keeps its regular size, its group beginning at 551, past the
   fold's 455.5–495.5, the strip ending 12 pt short of it (at 867 pt, the status bar shown, it would
   take the approved step to the compact width, Menus at 497); the laptop pose splits at 455 and
@@ -610,12 +614,12 @@ ONLY host picture aside).
   "Turn your iPhone on its side" for the keys and trackpad. The cover needed nothing.
 - Hooks, a few lines each: StreamScreen (also `duoStatusBar` and LinkLineView), PortraitStreamScreen,
   AddMacCard (`ConnectLayout`), ContentView (the connect screen's room; the harness), PairingOverlay,
-  TourPolicy and TourOverlay, SillApp; pbxproj AB01/FB01, AB02/FB02. The harness: `-SillLayout
+  TourPolicy and TourOverlay, SkopryApp; pbxproj AB01/FB01, AB02/FB02. The harness: `-SkopryLayout
   951x669`, `669x951`, `466x678`, `678x466` with the displays' safe areas as this build has them,
-  `-SillHinge closed|half|flat`. CI: the Mac side on Xcode 27 (not a beta), the iOS app alone on
+  `-SkopryHinge closed|half|flat`. CI: the Mac side on Xcode 27 (not a beta), the iOS app alone on
   27.1 (select-xcode's `allow-beta`: the image has only `Xcode_27.1_beta.app`, 27A9269); release-ios.sh
   refuses an Xcode before 27.1 and an app not built with the iOS 27.1 SDK, so TestFlight from
-  GitHub Actions waits for a 27.1 release there. `SILL_TEST_PATTERN=picture:<path>` (TEST ONLY): a
+  GitHub Actions waits for a 27.1 release there. `SKOPRY_TEST_PATTERN=picture:<path>` (TEST ONLY): a
   synthetic host's Desktop a still picture.
 - The review (2026-10-08, two lenses): eleven findings, two of them the same (the status bar).
   Eight fixed, one commit per theme (5c2188a the status bar and the fold before the report, 7db22a3
@@ -626,13 +630,13 @@ ONLY host picture aside).
 - Checks: `duo` 252,557 and 67 of 67 mutants; `tour` 51,840 and 72 of 72; `run-all.sh`, all 40;
   each fix commit builds and passes both. Builds: iOS Debug for the Duo simulator, Release for the
   simulator, Debug for a device, `swift build -c release`, only the known warnings.
-- Verified on a private simulator ("Sill duo", iOS 27.1, deleted after) folded by Tests/duorig
-  against `SillHost --synthetic` on loopback (software encoder, a Weather picture as the Desktop):
+- Verified on a private simulator ("Skopry duo", iOS 27.1, deleted after) folded by Tests/duorig
+  against `SkopryHost --synthetic` on loopback (software encoder, a Weather picture as the Desktop):
   the stream, connect and Settings screens in all six poses, the tour's cards, folds and turns
-  while Sill was in the background (six, each layout right on return, one connection) and slow
+  while Skopry was in the background (six, each layout right on return, one connection) and slow
   folds mid-stream (180→90→180→120→0→90); the harness's mock in every pose with the drawer, lights,
   pairing, Add a Mac, eight Macs, the link line and the Menus pull-down. Photos at App Store
-  Connect's Duo sizes in `~/Downloads/sill-handoff/duo/final/` (INDEX.md; `live/` private: this
+  Connect's Duo sizes in `~/Downloads/skopry-handoff/duo/final/` (INDEX.md; `live/` private: this
   Mac's windows and name). The harness at 46 earlier cases against main's build (05f2bb8): 39
   identical, 7 differing only as main's build differs from itself. The branch contains main: the
   pull request merges without a conflict. CI run by hand on the branch (37835771799): green, the
@@ -683,7 +687,7 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   suggesting Low · Standard.", "… nothing has got through for 3 s …", "…
   keeping up again." A report about a bitrate a pick has just replaced is left
   out of kind 16. No Stats key.
-- Sill.app: Settings › Streaming's "Away from home" section (saved as
+- Skopry.app: Settings › Streaming's "Away from home" section (saved as
   `awayBitrate`, `awayCaptureScale`); the menu's Quality subtitle "Away from
   home now: Low · Standard"; a device's card row "3 fps, the link can’t carry
   Pro · RTT 531 ms · through Tailscale" or "Nothing is getting through".
@@ -703,11 +707,11 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   session's), the fenced hand-over, the remote connection closed after;
   retries 10, 20, 40, then 60 s; a remote connection that dies meanwhile is
   carried by the move (held, adopted; picks not sent).
-- TEST ONLY and DEBUG (Build and run): SILL_TEST_REMOTE_ORIGIN (the remote
-  door alone counts loopback as a VPN or the internet), SILL_TEST_PATTERN=noise
+- TEST ONLY and DEBUG (Build and run): SKOPRY_TEST_REMOTE_ORIGIN (the remote
+  door alone counts loopback as a VPN or the internet), SKOPRY_TEST_PATTERN=noise
   (a square of noise, so a test stream's size follows its quality),
-  `-SillSettingsScript`, `-SillMoveHomeTest`, `-SillDialSaved remotely`,
-  `-SillLinkLine behind` and seven settings cases; `sillclient.py`'s `away=`,
+  `-SkoprySettingsScript`, `-SkopryMoveHomeTest`, `-SkopryDialSaved remotely`,
+  `-SkopryLinkLine behind` and seven settings cases; `skopryclient.py`'s `away=`,
   `link=` and `--expect` keys; the pacing harness's link verdicts and cases.
 - Verified (the plan's Results): every pure check (25), the new ones' mutants
   (away-wire 9, away-quality 16, link-judge 26, away-copy 17) and policy's
@@ -761,7 +765,7 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   the move home refuses that row (never #44's `newKey`: the session holds
   the Mac's key through the remote door); the kind 18 floor taken as the move
   starts (`DiscoveryPolicy.HomeMoveInfo`), which fixes the review's broadcast race. Host:
-  SILL_TEST_REMOTE_ORIGIN reaches `Door` (`remoteDoor: kind == .remote`) and
+  SKOPRY_TEST_REMOTE_ORIGIN reaches `Door` (`remoteDoor: kind == .remote`) and
   TestHooks; StreamCoordinator, StreamServer and HostConfig keep both sides;
   the pacing harness defines LINK_JUDGE by what its StreamServer has. Device:
   the link's line also stays away under the tour's card; `awayhome` is a TLS
@@ -770,12 +774,12 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   checks (`policy` 360); the mutants of the 27 checks whose files the merge
   changed, 952, every one caught (`policy`'s five new); H2 against main's CLI;
   H7 and H8 over the TLS doors, 16 of 16; on a private simulator against
-  `SillHost --synthetic --remote --pairing`, 28 of 28: S4 (moved over the TLS
+  `SkopryHost --synthetic --remote --pairing`, 28 of 28: S4 (moved over the TLS
   home door, one restart at the home quality), `refused`'s back-off, another
   key refused by the pin once, another launch once, S5, and S4race (the
   remote path cut mid-move: carried, the pick not sent); the pacing harness
   against main, every gate passing with main's figures and the link's
-  verdicts; Sill.app's previews main's but for the away section and the new
+  verdicts; Skopry.app's previews main's but for the away section and the new
   cards; photos of the panel and the stream's line, the phone's included.
 - The merge's review (2026-10-08; the plan's "The merge's review"): seven
   findings, two the same, each verified here and fixed in a commit of its own.
@@ -788,7 +792,7 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   refusal and tries forgotten once it is no longer listed; `moveHome` lost
   `refusedListing`. The kind 18 floor is a pure rule (`HomeMoveInfo`), checked:
   the broadcast race among `policy`'s cases, and mutant K1 the rule before the
-  fix. Docs: kind 16's `away` comes from a host with an identity (SillHost
+  fix. Docs: kind 16's `away` comes from a host with an identity (SkopryHost
   `--pairing` alone sends it, nobody ever away); the plan's §4.4, §7.3, §10,
   P13 and open question 10 say the move home goes only to a TLS home door (a
   plain one: no move, the session stays remote). The fence check's move home
@@ -800,20 +804,20 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
   refused at its pin, then the Mac's own row moving home 70 ms after it was
   listed; a plain row first, three launches; a row that never answers first,
   twice) and the merge's S4 to S4race again, 28 of 28; the kind 18 race staged
-  live (the bare SillMenuBar binary broadcasting a kind 18 every 0.25 s, the
+  live (the bare SkopryMenuBar binary broadcasting a kind 18 every 0.25 s, the
   home door 0.8 s away): this build moved home 2 of 2, the rule before the fix
   refused the Mac's own row 2 of 2; CI's "Build and check" passed on the
   fixes' head (ea4de23).
 - **Untested, for Noah (the plan's P4–P13; P1–P3 and P14 are PR A's and
-  still open):** with Sill.app built from this branch on the Mac and this
+  still open):** with Skopry.app built from this branch on the Mac and this
   build on the iPad mini, away on the iPhone 15 Pro's hotspot through
   Tailscale, then home:
   - P4, away starts on Low and Standard: at home set Pro · Retina in the Mac's
     menu, then leave for the hotspot. The session through Tailscale starts at
-    Low · Standard: Sill.log "Away from home: every connected device is away;
+    Low · Standard: Skopry.log "Away from home: every connected device is away;
     streaming at Low · Standard (4 Mbps per 60 fps, points). The home quality
     stays Pro · Retina.", the iPad's panel "Away: Low · Standard", and
-    `defaults read me.saffer.sill.mac bitrate` still 40000000.
+    `defaults read app.skopry.mac bitrate` still 40000000.
   - P5, the away choice: pick Balanced away: one restart at 15 Mbps,
     `awayBitrate` 15000000, the home bitrate unchanged; the next away session
     starts at Balanced.
@@ -836,7 +840,7 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
     comes, then goes about 5 s after the link recovers; no reconnect.
   - P10, coming home: streaming away through Tailscale, join the home Wi‑Fi.
     Within about 5 s of the network listing the Mac the session moves back by
-    itself over the Mac's TLS home door, pinned to its key: Sill.log "Client
+    itself over the Mac's TLS home door, pinned to its key: Skopry.log "Client
     connected: …%en0" (never "Home door refused", no pairing asked), "Home
     quality again", then "Client left" for the Tailscale address; the route
     line gives way to "Wi‑Fi", one restart; drag and type through it (no button
@@ -846,21 +850,21 @@ sessions are as they were (H2: the CLI's output and kind 16 unchanged).
     cable in: the move goes to the cable ("Wired"; the Mac logs `%en14` or
     `%anri0`).
   - P12: Connect Remotely at home stays remote.
-  - P13, mixed builds: PR #13's iPad against this Sill.app, away: Low ·
-    Standard, its Quality Low, no header line. This iPad against Sill for Mac
+  - P13, mixed builds: PR #13's iPad against this Skopry.app, away: Low ·
+    Standard, its Quality Low, no header line. This iPad against Skopry for Mac
     0.4.0 (main's: a TLS home door, no away quality): no header line, no
     callout, and the move home works, pinned; against 0.3.1 (a plain home
     door) the session stays remote.
-  It merged (05f2bb8, 2026-10-08) and ships as Sill for Mac 0.5.1 with Sill for
+  It merged (05f2bb8, 2026-10-08) and ships as Skopry for Mac 0.5.1 with Skopry for
   iPhone and iPad 0.5.1 (4), one version for both (the entry above; there is no
-  Sill for Mac 0.4.1): the release drafts' lines held back for it (sill-handoff's
+  Skopry for Mac 0.4.1): the release drafts' lines held back for it (skopry-handoff's
   `release-next/drafts/for-0.4.1.md`: the notes, What to Test, the site's support
   and index lines, the privacy page's date, the metadata) are on the release's
   branch, `release-0.5.1` (its privacy line was in since the merge's review).
 
 **A Mac set up again: the old saved record retires itself (2026-09-28, branch `stale-duplicate-fix`
 from main at 72d8d1d).** Noah: "When using Tailscale, it shows Noah's MacBook Pro and Noah's MacBook
-Pro (2) and only 2 works." Sill for Mac 0.4.0's new key made the device pair again (#44), and the old
+Pro (2) and only 2 works." Skopry for Mac 0.4.0's new key made the device pair again (#44), and the old
 record stayed (#44's known gap): away from home both were Remote rows, the old one's pin refused.
 Device only, no wire change:
 - A remote dial of a saved Mac also takes, at one address, the key of another saved record that
@@ -876,10 +880,10 @@ Device only, no wire change:
 - The Remote rows list one name's records together, newest first (`SavedMacs.remoteOrder`), so the
   one that works leads until the old one is tried.
 - Checks: remote-rules 123 (16 new) and 72 of 72 mutants (20 new; CI's mutants matrix has it already).
-- Verified on a private simulator ("Sill dupfix", deleted after) against loopback synthetic hosts
-  (software encoder, `--pairing --remote=47455`, `SILL_TEST_REMOTE_DIR` per identity): paired with
+- Verified on a private simulator ("Skopry dupfix", deleted after) against loopback synthetic hosts
+  (software encoder, `--pairing --remote=47455`, `SKOPRY_TEST_REMOTE_DIR` per identity): paired with
   identity A, then B at the same address and port, both saved as on Noah's devices ("Noah's MacBook
-  Pro (2)"); `-SillDialSaved 1` dials A as its Remote row does. Before (main's build): -9808 at
+  Pro (2)"); `-SkopryDialSaved 1` dials A as its Remote row does. Before (main's build): -9808 at
   127.0.0.1, both kept. After: "answered with the key of B …: A superseded", connected, one record,
   named without "(2)". Negatives: A and B at different ports, both running: A's dial reaches A, both
   kept; A reached after B was paired, then B at A's address: -9808, both kept. iOS Debug for the
@@ -893,7 +897,7 @@ Device only, no wire change:
 **A Mac set up again: pairing again, not "Connecting…" for ever (2026-09-27, branch
 `stale-pairing-fix` from main at d30fca8).** Noah, right after 0.4.0: "First pairing doesn't seem to
 work. When I click Wi-Fi, it says Connecting to Noah's MacBook Pro... and never updates. It does
-work when I click Add a Mac... manually". Sill for Mac 0.4.0 made the Mac a new key and a new
+work when I click Add a Mac... manually". Skopry for Mac 0.4.0 made the Mac a new key and a new
 recognition key (the data-protection keychain, no migration, #42). The iPad's row carried a tag no
 saved record resolves, under the saved Mac's Bonjour name, so `rowMac` took it as that Mac by name:
 it read "Wi-Fi" and a tap dialed pinned to the old key. The pin refused the new key, and a
@@ -914,43 +918,43 @@ against a loopback synthetic host set up again, 50 s of "Connecting…"). Device
   reconnect's row taken by its name alone is only skipped, as before. A pinned ask that meets
   another key does the same.
 - Every dial that is not the automatic reconnect's (a tap, the session after a pairing,
-  `-SillConnect`) ends after `DiscoveryPolicy.tapDialDeadline` (10 s) with `HomeCopy.noAnswer`'s words;
+  `-SkopryConnect`) ends after `DiscoveryPolicy.tapDialDeadline` (10 s) with `HomeCopy.noAnswer`'s words;
   the reconnect keeps its 5 s.
 - Checks: `home-device` 182 and 124 of 124 mutants, `home-model` 62 and 21 of 21 (the mutants whose
   lines moved follow them, in remote-rules too).
-- Verified on a private simulator ("Sill stalepair", deleted after) against `SillHost --synthetic
-  --pairing --remote` on loopback (software encoder, `SILL_TEST_SERVICE_TYPE=_silltest._tcp`, the
-  identity in `SILL_TEST_REMOTE_DIR`): paired at the home door, then a second host with a fresh
-  identity and the saved record's Bonjour name set to its name (`-SillTapRow`). Before: "Connecting
+- Verified on a private simulator ("Skopry stalepair", deleted after) against `SkopryHost --synthetic
+  --pairing --remote` on loopback (software encoder, `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp`, the
+  identity in `SKOPRY_TEST_REMOTE_DIR`): paired at the home door, then a second host with a fresh
+  identity and the saved record's Bonjour name set to its name (`-SkopryTapRow`). Before: "Connecting
   to…" for 50 s, nothing on the host. After: the row "Not paired", a tap asks, the host's pairing
   window opens. With the record's recognition key set to the new host's (a tag-named row, the old
   pin): the pin refused at once, the new-key words; the next tap asks, the code pairs, the old record
-  is gone. `-SillConnect 192.0.2.1:9`: "didn't answer" at 10 s.
+  is gone. `-SkopryConnect 192.0.2.1:9`: "didn't answer" at 10 s.
 - **Untested, for Noah:** on the iPad with 0.5 (3): the Mac's row reads "Not paired" while the old
   record is saved, a tap brings the pairing window up on the Mac, the code pairs and connects. Known:
   that pairing starts from an unsaved row, so the old record stays until it is forgotten (its Remote
   row says it is not the Mac this iPad paired with); only a re-pairing from a row marked `newKey`
   replaces the record it came from.
 
-**Sill for Mac 0.4.0 with Sill for iPhone and iPad 0.5 (2) (2026-09-27, branch `release-next` from
+**Skopry for Mac 0.4.0 with Skopry for iPhone and iPad 0.5 (2) (2026-09-27, branch `release-next` from
 main at 643af6b, main merged in once PRs #37, #38, #42 and #43 were on it; #39, away from home, deferred to 0.4.1;
 PR #41).** Noah: "Once all are
 merged I want to try the latest build", then the go. The first release that needs both apps at
 once: pairing at home (#37) made the home door TLS 1.3 with pairing, so a device from before it
 cannot connect to 0.4.0 at home (a plain dial, a failed handshake, and a redial at once while the
 Mac is listed, so a flicker that can come several times a second; the Mac's menu says "An iPhone
-or iPad Needs Sill Updated"), and 0.5 (2), a Release build, dials no plain door
-(Sill for Mac 0.3.1 and earlier: "Update Sill", nothing dialed). docs/release-checklist.md, "The
+or iPad Needs Skopry Updated"), and 0.5 (2), a Release build, dials no plain door
+(Skopry for Mac 0.3.1 and earlier: "Update Skopry", nothing dialed). docs/release-checklist.md, "The
 pairing release", has the order: the device build uploaded first, its What to Test as it shows,
 one device on it against a Mac with the release's code once it is processed, the site staged, the
 Mac release, the site pushed at once, and no external group or App Review before 0.4.0 is the
 download.
-- Versions: Sill for Mac 0.4.0 (the build number the commit count at the tag), Sill for iPhone and
+- Versions: Skopry for Mac 0.4.0 (the build number the commit count at the tag), Skopry for iPhone and
   iPad 0.5 (2) (0.5 was never submitted, so it stays the App Store's first version; App Store
   Connect takes each build number once per version), both in the release's pull request, so the
   annotated tag v0.4.0 names the commit both came from.
 - Docs (true on main at 643af6b, committed before the merges): the checklist brought up to date (the
-  record "Sill – Mac Streaming", Apple ID 6816359860; 0.5 (1) from b37f47a; the dmg page move and the
+  record "Skopry – Mac Streaming", Apple ID 6816359860; 0.5 (1) from b37f47a; the dmg page move and the
   first release done; notes over `--publish`'s one-line body; the check of what was published; What
   to Test per build; one device trying a device build before the Mac release it goes with; the
   site republished right after the release it describes, and hosted by GitHub itself since
@@ -969,9 +973,9 @@ download.
   code keeps a second key of one device from pairing by itself; the log names the gestures; no
   gesture claim for macOS 14 or 15 (never tried there); the liveness fix is the device's.
 - Rehearsed on main at 643af6b (2026-09-27): `release.sh --dry-run` 54 s (0.3.1 (391), the zip and
-  the image 3.0 MB each, spctl "Unnotarized Developer ID"), `release-ios.sh` 46 s (0.5 (1), Sill.ipa
+  the image 3.0 MB each, spctl "Unnotarized Developer ID"), `release-ios.sh` 46 s (0.5 (1), Skopry.ipa
   2.5 MB, Apple Distribution, the App Store profile, both required-reason APIs declared).
-- **Untested, for Noah:** the published pair on his devices (TestFlight's 0.5 (2) first, then Sill
+- **Untested, for Noah:** the published pair on his devices (TestFlight's 0.5 (2) first, then Skopry
   for Mac 0.4.0 from the download on another Mac or user account: the iPad paired for Remote Access
   pairs once more, as the iPhone does, with the code or over the cable), and the open
   device tests of #31, #35, #36, #37, #38, #42 and #43 that the App Store's claims wait for.
@@ -990,7 +994,7 @@ posted while this is built.
   what the modifier keys down hold, its up only what they hold; a modifier's
   own key is a flags-changed event with what is held; a key or text that no
   longer says a modifier lets go of that key first; a device that leaves, and
-  the host at its end (Sill.app's Quit, a Ctrl-C, kill or hangup; the CLI
+  the host at its end (Skopry.app's Quit, a Ctrl-C, kill or hangup; the CLI
   without --virtual-display then dies of the signal as before,
   `HostShutdown.installKeyRelease`), let go of every key and button. Input
   with nowhere to land (nothing streams, or a switch drops held input) is
@@ -1002,11 +1006,11 @@ posted while this is built.
   modifier the up should have taken out and the table still holds, that no
   key down holds and no key since carried, is counted, `in.keyModifiersLeft`,
   and said once with the key ("Keys: a quarter of a second after a device's
-  key 55 came up, …"). TEST ONLY `SILL_TEST_INPUT_LOG=1` (Build and run)
+  key 55 came up, …"). TEST ONLY `SKOPRY_TEST_INPUT_LOG=1` (Build and run)
   prints what a `--synthetic` host would post and each check it arms.
 - Device (`KeyChords`, pure): a shortcut goes out as a keyboard sends it, its
   modifiers' own keys around it (`KeyChord.press`: the Spotlight key, the key
-  row, a latched ⌘S), so Sill.app 0.3.x is left nothing held either; a
+  row, a latched ⌘S), so Skopry.app 0.3.x is left nothing held either; a
   hardware key's up follows its down (`ForwardedKeys`), a cancelled press
   comes up, and the overlay lets go of its keys when it stops taking them.
 - `Tests/checks/key-strokes` (329 checks, 72 mutants; CI and its mutants
@@ -1030,43 +1034,43 @@ posted while this is built.
   for command at key 55's up; a drag whose stream stops ends "left mouse up
   (none) at 454,285" and the moves after are moves, where 84ddd9c's are
   drags); SIGINT, SIGTERM and SIGHUP with ⌘ and the button held let go of both
-  and end with 84ddd9c's wait status; the app's `-SillInputTest` against that host, a
+  and end with 84ddd9c's wait status; the app's `-SkopryInputTest` against that host, a
   rotation rig and the touch rig (72 of 72 against main's) on a private
   simulator, deleted after.
-- **Untested, for Noah:** with this Sill.app and this iPad build, the Spotlight
+- **Untested, for Noah:** with this Skopry.app and this iPad build, the Spotlight
   key and then a tap on a file in Finder selects it (not a ⌘-click), and the
   same after the key row's ⌘esc, a latched ⌘S and a hardware ⌘C; a latched
   ⌘-click stays a ⌘-click and the next tap is plain; ⌘ held while Wi-Fi drops,
-  and Quit Sill.app while holding it: plain clicks after; a drag held on the
+  and Quit Skopry.app while holding it: plain clicks after; a drag held on the
   trackpad while the window is closed on the Mac (⌘W there), let go, then
-  another window picked: the pointer moves there, nothing drags. Sill.log
+  another window picked: the pointer moves there, nothing drags. Skopry.log
   should have no "Keys: … came up, this Mac's modifier keys still read" line;
-  if it has, note the key (55 is ⌘). With this iPad build against Sill.app
+  if it has, note the key (55 is ⌘). With this iPad build against Skopry.app
   0.3.1, the Spotlight key then a tap is a plain click.
 
 **Keychain hardening (2026-09-27, branch `keychain-hardening` from
 `home-pairing` (PR #37, not yet merged), PR #42 (a draft); the assessment, the
 decision, what was implemented and its proof with the real profile are in
-`docs/keychain-plan.md`).** Noah's pre-1.0 question: move Sill.app's
+`docs/keychain-plan.md`).** Noah's pre-1.0 question: move Skopry.app's
 remote-access identity (the Mac's key, recognition key, trust list and Require
 pairing) from the legacy login keychain, which does not authenticate who made
-an item (a process running before Sill's first launch can pre-create every item
-and Sill adopts it — the home-pairing security review), to the data-protection
+an item (a process running before Skopry's first launch can pre-create every item
+and Skopry adopts it — the home-pairing security review), to the data-protection
 keychain, which no other process can pre-create or read. Reproduced the risk
 and settled the cost with test items of own names in throwaway keychains only
-(never the login keychain, never Sill's real items): the legacy keychain's
-creator and ACL are attacker-set, so Sill's verbatim lookups adopt a planted
+(never the login keychain, never Skopry's real items): the legacy keychain's
+creator and ACL are attacker-set, so Skopry's verbatim lookups adopt a planted
 key (and a planted key signs a verifying require-pairing-off record); and the
 data-protection path needs a `keychain-access-groups` entitlement — a Developer
 ID binary that carries it without a provisioning profile is AMFI-killed at
 launch (exit 137, codesign still valid), while an ad-hoc build without it gets
 `-34018`. So the strong keychain is profile-or-the-app-won't-launch, and only
-Sill.app is affected (the CLI is memory, iOS is already data-protection).
+Skopry.app is affected (the CLI is memory, iOS is already data-protection).
 - Implemented (the recommended path): `IdentityStorePlan` (pure,
   `Tests/checks/keychain`, 13 cases, 7 mutants, in CI's matrix) chooses the
-  store from four launch facts — an entitled real Sill.app uses the
+  store from four launch facts — an entitled real Skopry.app uses the
   data-protection keychain and **never** the legacy one beside it (so no
-  planted legacy item is adopted), an unentitled real Sill.app uses the login
+  planted legacy item is adopted), an unentitled real Skopry.app uses the login
   keychain (the safe, profile-free fallback), a test host uses memory or the
   test directory. `AppModel.entitledKeychainAccessGroup()` reads the running
   binary's own `keychain-access-groups` (`SecTaskCopyValueForEntitlement`);
@@ -1074,7 +1078,7 @@ Sill.app is affected (the CLI is memory, iOS is already data-protection).
   ID build takes the strong path. `KeychainIdentityStore(accessGroup:)` is
   parameterised — nil is the legacy keychain byte-for-byte, a group adds
   `kSecUseDataProtectionKeychain` + the access group to every query.
-  `Packaging/SillRelease.entitlements` and `make-app.sh --release`: with a
+  `Packaging/SkopryRelease.entitlements` and `make-app.sh --release`: with a
   profile at `Packaging/embedded.provisionprofile` (gitignored) it verifies the
   profile authorises the access group and is not expired (refusing either, which
   would AMFI-kill or fail to launch the app), embeds it and signs with the
@@ -1098,18 +1102,18 @@ Sill.app is affected (the CLI is memory, iOS is already data-protection).
   while the Mac was locked and its owner away; every item is now
   `AfterFirstUnlockThisDeviceOnly` (readable after first unlock, never off this
   Mac). (3) **The release path could not build the hardened app at all —
-  fixed:** `SillRelease.entitlements` carried an XML comment, which codesign's
+  fixed:** `SkopryRelease.entitlements` carried an XML comment, which codesign's
   AMFI parser rejects for a restricted-entitlement file, so `--release` with a
   valid profile failed at signing (the draft's rehearsal had no valid profile
   to reach that step); the comment is removed (its rationale moved into
-  make-app.sh; `SillDebug.entitlements` keeps its comment — get-task-allow alone
+  make-app.sh; `SkopryDebug.entitlements` keeps its comment — get-task-allow alone
   does not trip AMFI's parser, verified). (4) **make-app.sh did not check the
   profile's expiry — fixed:** Gatekeeper checks a Developer ID profile at every
   launch, so an expired embedded profile stops the app launching; make-app.sh
   now refuses an expired profile (and warns within 30 days) before signing.
 - Verified before the profile existed (no notarization, no device; every keychain touch
   used throwaway keychains and test service names, never the login keychain or
-  Sill's real items): `swift build` clean; `Tests/checks/run-all.sh` all 28
+  Skopry's real items): `swift build` clean; `Tests/checks/run-all.sh` all 28
   pass, keychain's 7 mutants caught. The four `make-app.sh` paths, driven with
   throwaway CMS profiles and a real Developer ID signature into `.build` (the
   bundle deleted after, never installed or launched): default (Apple
@@ -1122,8 +1126,8 @@ Sill.app is affected (the CLI is memory, iOS is already data-protection).
   that the entitlements comment broke codesign and that stripping it signs and
   reads the entitlements back.
 - **Proved with the real profile (2026-09-27, `docs/keychain-plan.md` §9b).**
-  Noah registered the App ID `me.saffer.sill.mac` and made the Developer ID
-  profile "Sill Developer ID" (UUID 18e9509f-5498-4533-ba59-293461a61a0d,
+  Noah registered the App ID `app.skopry.mac` and made the Developer ID
+  profile "Skopry Developer ID" (UUID 18e9509f-5498-4533-ba59-293461a61a0d,
   macOS, team 9B2KKVM937, `keychain-access-groups` `9B2KKVM937.*`, only the
   Developer ID certificate 42424F38…, until 2044-09-22), at
   `Packaging/embedded.provisionprofile` (git-ignored; copies in
@@ -1131,7 +1135,7 @@ Sill.app is affected (the CLI is memory, iOS is already data-protection).
   Two findings with it, either of which stopped the hardened release, fixed: the
   draft keyed the application identifier as iOS's `application-identifier`, so
   make-app.sh refused the real profile (a Mac profile says
-  `com.apple.application-identifier`) and, worse, `SillRelease.entitlements`
+  `com.apple.application-identifier`) and, worse, `SkopryRelease.entitlements`
   with that key had the app killed at every launch (a probe signed so: exit
   137, taskgated "Unsatisfied entitlements: application-identifier", AMFI "No
   matching profile found"). Now the entitlements use
@@ -1145,17 +1149,17 @@ Sill.app is affected (the CLI is memory, iOS is already data-protection).
   profile byte for byte, carries exactly the three entitlements, the hardened
   runtime and a timestamp, and verifies `--deep --strict`; `release.sh
   --dry-run` exit 0 (check_signature, the zip, the signed image); the built
-  app's executable run only with `-SillRenderPreviews` exits 0 with 124
+  app's executable run only with `-SkopryRenderPreviews` exits 0 with 124
   previews, taskgated "allowing entitlement(s) … due to provisioning profile",
   no AMFI denial and no keychain call (then unregistered from LaunchServices and
-  removed); a probe app (bundle ID `me.saffer.sill.mac`, the same profile and
+  removed); a probe app (bundle ID `app.skopry.mac`, the same profile and
   entitlements, Developer ID, hardened) reads its group, makes a generic
   password and a P-256 key exactly as `KeychainIdentityStore` does (the group,
   `pdmn` `cku`, `sync` 0), a scratch copy of `KeychainIdentityStore` with only
   its three name constants changed makes all four items, and a rebuilt probe
   finds the same key (a rebuild keeps the Mac ID); the same probe ad hoc, or
   Developer ID without entitlements, gets -34018 and can plant nothing; every
-  test item deleted and confirmed gone, nothing of Sill's own touched, no
+  test item deleted and confirmed gone, nothing of Skopry's own touched, no
   prompt. Refusals checked with throwaway profiles (the iOS key, another app
   ID, team, group or certificate, none, a malformed one, expired, garbage) and
   the draft's entitlements against the real profile; the development build and
@@ -1207,10 +1211,10 @@ Noah: "Yes please lets add a pairing process for Wi-Fi/Direct connect,
 something easy to do but still secure, similar to how Tailscale is being
 paired. Wired should still pair automatically." He also decided it ships
 before 1.0 (the Compatibility floor below).
-- The Mac: Sill.app's home door, the Bonjour port, speaks the remote door's
-  TLS 1.3 with both keys pinned (the same identities, the ALPNs `sill/1` and
-  `sill-pair/1`, the trust list and the pairing window), and so does
-  `SillHost --pairing`; admission is one `Door` behind both listeners, its
+- The Mac: Skopry.app's home door, the Bonjour port, speaks the remote door's
+  TLS 1.3 with both keys pinned (the same identities, the ALPNs `skopry/1` and
+  `skopry-pair/1`, the trust list and the pairing window), and so does
+  `SkopryHost --pairing`; admission is one `Door` behind both listeners, its
   rules `DoorPolicy`'s. An unpaired device's tap sends one "pair me" request
   (kind 19 `ask`). Over the USB cable to an iPhone or iPad, while the Mac is
   unlocked and both ends agree the connection is the cable (the Mac: an IPv6
@@ -1219,7 +1223,7 @@ before 1.0 (the Compatibility floor below).
   link-local addresses), the Mac pairs it on the spot, one key per device by
   a hash of its USB serial, with a 10 s notice that has Remove. Anywhere else
   the Mac opens its pairing window by itself, in front but without activating
-  Sill or taking the keyboard, never for an ask from this Mac itself, at most
+  Skopry or taking the keyboard, never for an ask from this Mac itself, at most
   one at a time, three in 10 minutes, and none for 10 minutes to a device
   after the Mac's Cancel or five wrong codes; the device scans the QR code or
   types the 12 digits, as it pairs for remote access, over the home door. One
@@ -1229,9 +1233,9 @@ before 1.0 (the Compatibility floor below).
   trust list in the login keychain, its "off" signed by the Mac's key, never
   in UserDefaults), the paired devices moved from Remote Access (how each
   paired and last connected, Remove, rename) and Pair iPhone or iPad…. The
-  menu: "‹device› Wants to Pair", "An iPhone or iPad Needs Sill Updated" (a
+  menu: "‹device› Wants to Pair", "An iPhone or iPad Needs Skopry Updated" (a
   source's third plain try in a minute) and "Devices Can’t Connect" (the
-  keychain unusable: the home door stays closed). Sill.app takes no TEST ONLY
+  keychain unusable: the home door stays closed). Skopry.app takes no TEST ONLY
   hook that bears on the doors or pairing (TestHooks: one "ignored" line
   each). The CLI's default door stays plain (the parity baseline): `--pairing`
   opts in, `--print-cable` prints what the cable rule reads.
@@ -1240,25 +1244,25 @@ before 1.0 (the Compatibility floor below).
   included, and a session at home counts as connected at its first window
   list. Rows: a saved Mac's method word; "Not paired" (not saved, removed, or
   a Mac that lets any device in); "Wired" for an unpaired Mac over the cable,
-  which pairs by itself; "Update Sill" for a plain door in Release, and for a
+  which pairs by itself; "Update Skopry" for a plain door in Release, and for a
   Mac seen over TLS whose row lost its `p` (no downgrade). A tap on "Not
   paired" asks, then the home card (the scanner, or Enter Code Instead). A
   goodbye `removed` or `pairingRequired` ends the session with its words
   ("‹Mac› removed this ‹iPad›. Tap it to pair again.", "‹Mac› now asks
   devices to pair. Tap it to pair this ‹iPad›.") and no reconnect. A DEBUG
-  build still dials a plain door (the CLI's, a Sill.app from before this
-  branch) until it has seen that Mac over TLS (`-SillForgetHomeTLS 1`
+  build still dials a plain door (the CLI's, a Skopry.app from before this
+  branch) until it has seen that Mac over TLS (`-SkopryForgetHomeTLS 1`
   forgets); a device from before this branch can no longer connect to this
-  Sill.app at home.
+  Skopry.app at home.
 - Merged with main three times, not rebased. d11aa60 (cf05a78, PRs #16 to
   #28): the device gate in `Door` for both TLS doors, the hello first inside
-  TLS, `DoorPolicy.afterGate`, `SillProtocol` 1 as this door's `sill/1`, the
+  TLS, `DoorPolicy.afterGate`, `SkopryProtocol` 1 as this door's `skopry/1`, the
   pure checks into `Tests/checks` and CI. 691b93e (2b38179, PRs #29 to #33):
   the tick keeps both rules (a kind 26 stands in for a device's tick; a TLS
   client skips one right after a send, and one on the cable gets none); main's
-  `SILL_TEST_LOOPBACK` binds both TLS doors (`makeListener` takes the TLS
+  `SKOPRY_TEST_LOOPBACK` binds both TLS doors (`makeListener` takes the TLS
   options and the loopback flag) and is among TestHooks' door hooks; one
-  `SILL_TEST_SOFTWARE_ENCODER`, main's (`PointerTestHooks`), this branch's
+  `SKOPRY_TEST_SOFTWARE_ENCODER`, main's (`PointerTestHooks`), this branch's
   copy gone; the checks' lists united (27, 26 with mutants). The third
   (da43f6b: PRs #34 remote pacing, #35 the first-run tour, #36 the Mac's
   menus, #38 the trackpad gestures; the plan's Results, "The merge with main
@@ -1269,23 +1273,23 @@ before 1.0 (the Compatibility floor below).
   session connection, TLS at home included, with `MessageReader`; the tour's
   session starts in `markConnected` (a plain door's `.ready`, a TLS session's
   first window list), the menus subscribe after `homeSessionReady`; gestures
-  stay dry, and SILL_TEST_HOTKEYS read, on every host that does not advertise
-  (`synthetic`: `isTestHost` since this branch also leaves out Sill.app's own
+  stay dry, and SKOPRY_TEST_HOTKEYS read, on every host that does not advertise
+  (`synthetic`: `isTestHost` since this branch also leaves out Skopry.app's own
   executable, which would have posted a chord in test pattern mode); the
   Settings panel ends with Away from home, This iPad's gestures, then Take the
-  Tour; the floor names kinds 0–28 inside `sill/1`; `Scripts/pacing` builds
+  Tour; the floor names kinds 0–28 inside `skopry/1`; `Scripts/pacing` builds
   against the merged StreamServer (its host set has the Door's files, and
   main.swift calls `serve` either way, `PACING_SERVE_BEFORE_HOME_PAIRING` for
   an older base); the checks' lists united (33, 32 with mutants).
 - Review fixes (2026-09-27, ae2e228 to 1d95c6d, one commit per theme; the
   plan's Results, "The review fixes"). Three lenses confirmed 13 findings; a
   fourth, pairing's security, was read again from the code (one more). The
-  floor: a host offers `sill/1` and `sill-pair/1` for good and refuses a 1.0
-  device inside `sill/1` with "update"; it freezes the TXT keys, the pairing
+  floor: a host offers `skopry/1` and `skopry-pair/1` for good and refuses a 1.0
+  device inside `skopry/1` with "update"; it freezes the TXT keys, the pairing
   exchange, kind 19's `v` and kind 20's reasons, with an optional `message`
   for a reason a device does not know. The Mac: an expiry and a device's own
   Cancel (kind 19 "cancel") quiet nobody; "‹device› Wants to Pair" ends when
-  that key pairs; "An iPhone or iPad Needs Sill Updated" waits for the third
+  that key pairs; "An iPhone or iPad Needs Skopry Updated" waits for the third
   plain try; a device-opened window announces its first line; Require
   pairing's stored "off" is "0." and a signature by the Mac's key
   (`RequirePairingValue`), and the trust list exists from the first launch.
@@ -1294,7 +1298,7 @@ before 1.0 (the Compatibility floor below).
   paired"; kind 18 names the session's Mac only when the connection's own
   key signed it, and "removed" revokes only from a session pinned to that
   Mac; the reconnect ends at a door that now asks devices to pair; Pair This
-  iPad… asks on its own `sill-pair/1` connection and says what the Mac
+  iPad… asks on its own `skopry-pair/1` connection and says what the Mac
   answered; "Paired with ‹Mac› over the cable." stays until the session
   comes; `StreamClient+Home.swift` is A601/F601 in the project file.
 - Verified (the plan's Results, step by step: H0 to H18, S1 to S7, the
@@ -1304,10 +1308,10 @@ before 1.0 (the Compatibility floor below).
   `swift build -c release` clean from `git archive`, only the CaptureProbe
   warning; iOS Debug and Release for the simulator and Debug for a device,
   only the old `StreamClient` capture warning (StreamClient.swift:2861),
-  Release's Info.plist with `_sill._tcp` alone and none of the harness's
+  Release's Info.plist with `_skopry._tcp` alone and none of the harness's
   arguments in its binary; live on the merged CLI, 23 of 23: both TLS doors
   and Direct Wireless's rebuilt listener on 127.0.0.1 alone under
-  `SILL_TEST_LOOPBACK`, one software-encoder line, pairing by the link and by
+  `SKOPRY_TEST_LOOPBACK`, one software-encoder line, pairing by the link and by
   an ask and the code, the hello inside TLS, the remote door serving the key
   paired at home, input's ticks over TLS (33 a second) and on the plain door
   (34), a plain device refused; a private simulator against it, 6 of 6: an
@@ -1329,7 +1333,7 @@ before 1.0 (the Compatibility floor below).
   13 (pairing, "menus: none" over TLS, the tour 1.06 s after the first picture
   of a TLS session, two gestures through `sendGesture`). Every host on
   127.0.0.1 alone and the software encoder.
-- Noah tried PR #37 on his iPad and iPhone against its Sill.app (2026-09-27,
+- Noah tried PR #37 on his iPad and iPhone against its Skopry.app (2026-09-27,
   before the third merge): "home pairing looks good!", and asked for it to
   merge after PRs #34 and #38. The P1–P16 list below was not reported item by
   item.
@@ -1341,13 +1345,13 @@ before 1.0 (the Compatibility floor below).
   admits is TLS, as before). The device: the automatic reconnect's own dial
   that is not ready 5 s after it started is let go and the reconnect looks
   again (`StreamClient.reconnectDialWait`): a row dialed as its registration
-  went (Sill.app gone without a goodbye) left the Bonjour resolve waiting for
+  went (Skopry.app gone without a goodbye) left the Bonjour resolve waiting for
   good and held the reconnect, its remote dial included (on the branch before
-  the merge; main's guard is the same). Docs: `-SillPairURL` pairs at a link's
+  the merge; main's guard is the same). Docs: `-SkopryPairURL` pairs at a link's
   own addresses only; docs/app-store-metadata.md describes pairing at home
   (the download it needs, export compliance, the review notes, the
   description, the demo video, the screenshots); Pair This iPad… is in Away
-  from home; the floor's kinds 19 and 20 are `sill-pair/1`'s; the mutants' 32
+  from home; the floor's kinds 19 and 20 are `skopry-pair/1`'s; the mutants' 32
   jobs and their cost. Verified: `swift build -c release`; iOS Debug and
   Release for the simulator and Debug for a device, only the old
   `StreamClient` capture warning (StreamClient.swift:3011);
@@ -1359,7 +1363,7 @@ before 1.0 (the Compatibility floor below).
   build did both (7 of 7), the tour's reconnect rule holding across the let-go
   (9 of 9).
 - **Untested, for Noah:** the plan's §11, P1 to P16, on his devices, the iPad
-  build first (Debug, the usual route), then Sill.app: P1 the upgrade (the
+  build first (Debug, the usual route), then Skopry.app: P1 the upgrade (the
   iPad, paired for remote access on 2026-09-25, connects at home with no
   step; the log's "Home door: TLS, pairing required (1 paired)."); P2 the QR
   code over Wi-Fi (Remove it first; the window comes up in front while typing
@@ -1367,14 +1371,14 @@ before 1.0 (the Compatibility floor below).
   the "Wired" row: no code, the Mac's notice, "over the USB cable" in
   Devices; pull and plug while streaming); P5 locked (⌃⌘Q: "Unlock Mac mini,
   then tap it again."); P6 Direct at the café (the hotspot, `%awdl0`); P7 an
-  older build ("An iPhone or iPad Needs Sill Updated"; it retries, the known
+  older build ("An iPhone or iPad Needs Skopry Updated"; it retries, the known
   limit); P8 Remove while streaming; P9 the moves, each hop over TLS; P10 a
   stranger's taps (the Mac's Cancel, then 10 minutes of "didn’t show a
   code"); P11 the cost (rtt maxima on Wi-Fi, the cable without ticks,
-  Extreme at 120 fps, Sill.app's CPU); P12 remote after a home pairing; P13
+  Extreme at 120 fps, Skopry.app's CPU); P12 remote after a home pairing; P13
   Require pairing off, then on again; P14 VoiceOver (the rows, the card, the
   Mac's window); P15 a USB Ethernet adapter reads "Not paired"; P16 the
-  iPhone's hotspot over USB gets the code window. Also: Sill.app's first
+  iPhone's hotspot over USB gets the code window. Also: Skopry.app's first
   launch makes the trust list in the login keychain when it has none, and
   Require pairing off then on again saves (the keychain store's own writes
   ran nowhere else); Pair This iPad… over an open door says "…is showing a
@@ -1382,13 +1386,13 @@ before 1.0 (the Compatibility floor below).
   After the third merge, which no device has run: a fresh install's tour
   after pairing at home, and its reconnect rule (the tour's P13) across a
   TLS reconnect; the Mac's menus and a three-finger gesture over a paired
-  session at home; Force Quit Sill.app while the iPad streams (no goodbye),
+  session at home; Force Quit Skopry.app while the iPad streams (no goodbye),
   reopen it 10 s later: "Reconnecting to ‹Mac›…" meanwhile (the console:
   "reconnect: ‹Mac› not ready in 5.0 s …" about 5 s after the loss), and the
-  session back soon after Sill is; with Remote Access on and Sill left
+  session back soon after Skopry is; with Remote Access on and Skopry left
   closed, a remote dial about 10 s after the loss.
   When this ships: the site's words (privacy.html says connections at home
-  are not encrypted, as Sill for Mac 0.3.1's are; index.html and support.html
+  are not encrypted, as Skopry for Mac 0.3.1's are; index.html and support.html
   pair only for Remote Access), and the README's sentence on 0.3.1.
 
 **Three-finger trackpad gestures (2026-09-27, branch `trackpad-gestures` from
@@ -1431,7 +1435,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
   later a read of the table counts `in.gestureModifiersLeft` and says once
   "Gestures: after a gesture's shortcut this Mac's modifier keys still read …"
   if they are. A host that does not advertise posts none: "(not posted: a
-  test host)" and `in.gestureDry`; TEST ONLY `SILL_TEST_HOTKEYS` gives it a
+  test host)" and `in.gestureDry`; TEST ONLY `SKOPRY_TEST_HOTKEYS` gives it a
   table of its own.
 - Device: `TrackpadGestures` (pure). A stroke goes silent once three fingers
   are down before any finger moved 24 pt, with no button held, however slowly
@@ -1454,7 +1458,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
   iPhone's trackpad). The stream's overlay turns off iPadOS's three-finger
   editing gestures. Settings' This iPad (or iPhone) group, after the Mac's and
   before Take the Tour since the merge: Three-Finger Gestures
-  (`Sill.trackpadGestures`, on by default, never sent), the five
+  (`Skopry.trackpadGestures`, on by default, never sent), the five
   mappings while the Mac takes them, and a footnote; with VoiceOver on (which
   keeps three fingers) the footnote says the rows do the gestures, and each row
   is an accessibility action doing its gesture (the Spaces row one each way).
@@ -1484,7 +1488,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
   the view a gesture opened, as a click does; the Settings panel ends with This
   iPad's gestures, then Take the Tour (whose row no longer pads itself while
   the Mac's settings load); the portrait trackpad keeps `sendGesture` and the
-  tour's target; sillclient.py both sides' flags; the checks that read 28 as
+  tour's target; skopryclient.py both sides' flags; the checks that read 28 as
   unknown (`protocol`, `menus`, `pointer-control`) or 27 as free
   (`compatibility`) now read the gesture and the fetch, and four mutants that
   renumbered a kind onto one now taken (so they no longer compiled) use free
@@ -1496,7 +1500,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
   `StreamClient` capture warning; `Tests/checks/run-all.sh`, all 26; the
   mutants of the 15 checks that compile a file the merge changed, every one
   caught; on a loopback synthetic host on the software encoder, nothing
-  posted: sillclient's menus subscription and choice beside the gestures (a
+  posted: skopryclient's menus subscription and choice beside the gestures (a
   swipe up, a kind 25, a swipe down gives App Exposé, not "closes Mission
   Control"), and the app in a private simulator (deleted after) sending four
   gestures through `sendGesture` beside its menus subscription; photos of the
@@ -1509,7 +1513,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
 - **Untested, for Noah (the plan's P1–P13, beyond "the gestures work"):** new
   with the merge, a swipe up, then an item chosen from the Menus button, then
   a swipe down: App Exposé (with no choice in between, the swipe down closes
-  Mission Control). On the iPad and iPhone with this Sill.app: each gesture
+  Mission Control). On the iPad and iPhone with this Skopry.app: each gesture
   in portrait and landscape, with the Desktop and while a window streams (the
   Desktop first); which shortcut works (P2: that key 160 opens Mission
   Control and 131 Apps when posted, that ⌃→ switches Spaces
@@ -1522,7 +1526,7 @@ Tier 2 (tracking gestures through private IOHID events) is not built and
   with the Mac's Esc coming back at the second swipe up; with the keyboard
   up, no iPadOS undo or paste; the virtual display; the switch and a
   relaunch; the Magic Keyboard trackpad (unchanged); remote; four fingers with
-  iPadOS's gestures on and off; this iPad against main's Sill.app (the update
+  iPadOS's gestures on and off; this iPad against main's Skopry.app (the update
   note, nothing sent); VoiceOver (the footnote, the rows as actions).
 
 **Remote pacing (2026-09-27, branch `remote-pacing` from main at 150f781, with
@@ -1531,7 +1535,7 @@ docs/remote-bundle-plan.md, whose "Results: PR A" has every number).** Item 1
 of the away-from-home bundle Noah decided on 2026-09-25 ("a proven keyframe
 livelock"), its own PR ahead of items 2–4 (the away quality, the link report,
 the move home: PR B, the entry above).
-- The livelock (Sill.log 2026-09-25 14:13–14:36, the iPad on the iPhone's
+- The livelock (Skopry.log 2026-09-25 14:13–14:36, the iPad on the iPhone's
   hotspot through Tailscale at Extreme, then Pro · Retina): `paceRemote`
   dropped any frame while more than two messages were unacknowledged, so a
   keyframe the hotspot took in about half a second counted against the deltas
@@ -1564,7 +1568,7 @@ the move home: PR B, the entry above).
   both).
 - `Scripts/pacing/` (Layout, Build and run): the plan's encoder-free harness,
   base against new: the real StreamServer.swift fed fake frames, a shaped path
-  (bottleneck.py, or Scripts/sillrelay.py for the remote door's slow link), a
+  (bottleneck.py, or Scripts/skopryrelay.py for the remote door's slow link), a
   device stand-in and a table with each case's gate, all on 127.0.0.1. Not a
   pure check: it runs for minutes and waits while the Mac is busy.
 - Verified before the merge, on it and after the review (the plan's Results
@@ -1577,7 +1581,7 @@ the move home: PR B, the entry above).
   59.8–59.9), ext120 at 120.0 fps with nothing dropped (main 5.7 drops a
   minute), the review's restartkf (1.6 against 60.1 fps) and stillend (the
   last frame shown in 0 against 3 of 3 still spells), the remote door's slow
-  link (sillrelay.py at 2 Mbit/s and +150 ms for 90 s: no loss, eviction or
+  link (skopryrelay.py at 2 Mbit/s and +150 ms for 90 s: no loss, eviction or
   frameless second; a blackhole dropped 13.1 s after connecting on both
   builds), slowkfB's liveness by bytes (64.8 fps, no loss, where the old rule
   lost slowkf 5 times on either host), and home, low, switch and fastbig no
@@ -1618,17 +1622,17 @@ the move home: PR B, the entry above).
     reader. bottleneck.py's comment on its 64 KB receive buffer was wrong
     (macOS keeps loopback buffers at 340–590 KB whatever SO_RCVBUF says) and
     now says so; the relay is unchanged.
-- H2 and H4 (the plan's Results): until main brought `SILL_TEST_LOOPBACK` and
-  `SILL_TEST_SOFTWARE_ENCODER` (PR #31) no synthetic host could run here (its
+- H2 and H4 (the plan's Results): until main brought `SKOPRY_TEST_LOOPBACK` and
+  `SKOPRY_TEST_SOFTWARE_ENCODER` (PR #31) no synthetic host could run here (its
   doors listened on every interface, its stream shared the hardware encoder
-  with Sill.app), so H4 ran in the harness. H2 ran on the merge with both
+  with Skopry.app), so H4 ran in the harness. H2 ran on the merge with both
   hooks: main's CLI against this branch's, idle 35 s and with a test client,
   identical masked and sorted. PR B's gates can use the same two hooks.
 - The pull request's first CI run failed the reader check's slow case on
   GitHub's runner (its stand-in paced each write off a timer that fired late
   there); its writers now keep to the clock (4ca5124).
 - **Untested, for Noah:** the plan's P1 (on the hotspot through Tailscale, Pro
-  and then Extreme · Retina on a busy window, two minutes each: Sill.log has no
+  and then Extreme · Retina on a busy window, two minutes each: Skopry.log has no
   "net.dropped 1 net.sent 3 net.waitKey 5x" every 2 s, and the `client iPad`
   lines stay near what the hotspot carries), P2 (Network Link Conditioner on
   the iPad at 1 Mbit/s and 100 ms, Connect Remotely at Pro · Retina: slow
@@ -1652,7 +1656,7 @@ iPadOS 26 in the iPad's own menu bar, and behind a Menus button in the bar.
 Each menu is read from the Mac when it opens, and an item chosen there is
 pressed on the Mac through Accessibility. The Mac's shortcuts show as text,
 never as key commands (⌘S typed still reaches the Mac as a key). Never the
-Apple menu, never Sill's own. Built, reviewed (eleven findings, all fixed) and
+Apple menu, never Skopry's own. Built, reviewed (eleven findings, all fixed) and
 checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
 - Wire (additive; `MacMenu.swift`; the compatibility floor below): kind 24
   `macMenu` (host → device: a top level, or the answer to one request), 25
@@ -1667,7 +1671,7 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   subscription is served (older devices and test clients cost the Mac
   nothing); an older host skips 25 and 27, and no button shows.
 - Host (`MenuFormat`, `MenuPolicy`, `MenuReader`, `MenuMirror`,
-  `MenuSelfTest`; Layout): Accessibility on its own queue (`sill.menus`), a 1 s
+  `MenuSelfTest`; Layout): Accessibility on its own queue (`skopry.menus`), a 1 s
   timeout on each element, 1.5 s and 500 items a menu; one request at a time,
   and one that could no longer be answered in time for its device (its wait,
   from the connection's round trip) is not read, a choice that late refused; a
@@ -1684,7 +1688,7 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   from ‹device›: menufixture › Probe › Set Label A", and a line for a refusal,
   an app that stops or starts answering again, or a device over its rate;
   nothing else prints, and `menu.*` stats keys only while menus are used.
-- Device (`MacMenuState`, `MacMenuElements`, `MacMenuHub`, `SillAppDelegate`,
+- Device (`MacMenuState`, `MacMenuElements`, `MacMenuHub`, `SkopryAppDelegate`,
   `MacMenuButton`; Layout): the subscription at a connection's first window
   list and on a move's new connection; each menu an uncached deferred element
   (UIKit's placeholder while the Mac answers), its completion settled exactly
@@ -1704,7 +1708,7 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   Settings panel, it puts back the keyboard the panel took down when it goes.
   A refused choice: the warning haptic (iPhone) and a VoiceOver announcement,
   nothing on screen.
-- Sill.app: nothing on its screen changes (no setting, no menu item); its
+- Skopry.app: nothing on its screen changes (no setting, no menu item); its
   coordinator is the CLI's; `--menu-selftest` works in the bundle, and the
   "Menu from" lines are in Show Log….
 - Observed: iOS 27 rebuilds the main menu lazily, as the plan measured on 26:
@@ -1729,7 +1733,7 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   33 of 33 (155), protocol 20 of 20; `Scripts/menu-check/run.sh`, reader 40,
   budget 4 and mirror 69 (the shift, the walks, only subscribers, the
   deadline, a sweep's one top-level read); through synthetic hosts on loopback
-  with the fixture, one at a time, no device on Sill.app and the front never
+  with the fixture, one at a time, no device on Skopry.app and the front never
   changing: H2 against main at 2b38179 (the CLI byte for byte, masked and
   sorted, idle and with a client, with and without `--direct-wireless`), and
   H4–H11, H14 (the tree changed in place) and H15 (only subscribers), 99
@@ -1741,17 +1745,17 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   bundle's `--menu-selftest` against the fixture; in a private simulator,
   screenshots only: no button at 320x700 and 460x400, the phone's row at five
   widths, the note's own section, the bar empty with two windows, the
-  keyboard's console lines, and `-SillMacMenu none` pixel for pixel main's
+  keyboard's console lines, and `-SkopryMacMenu none` pixel for pixel main's
   build at the Duo's four sizes and the phone's 393x793; live against the
   fixture through a synthetic host (Probe asked by its title, Set Label A
-  chosen), and a renamed copy of it refused by `-SillMenuPress` and
-  `-SillMenusOpen`.
+  chosen), and a renamed copy of it refused by `-SkopryMenuPress` and
+  `-SkopryMenusOpen`.
 - Known: an app busier still (700 ms a call) answered the fourth menu at
   4.25 s, after the device's 4 s: the deadline is kept between Accessibility
   calls, not inside one. H12 (TextEdit through a host) was not run: TextEdit
   was not open, and none is started.
 - **For Noah:** the plan's open questions took their defaults (Q1 the Mac's
-  menus after the iPad's View, Sill's own kept; Q2 the button in every bar that
+  menus after the iPad's View, Skopry's own kept; Q2 the button in every bar that
   holds it; Q3 shortcuts as subtitles; Q4 no Apple menu; Q5 the app activated
   when a menu opens; Q6 Option alternates as rows of their own; Q7 the
   Desktop's frontmost app; Q8 ⌘W unchanged; Q9 no banner; Q10 no setting; Q11
@@ -1766,18 +1770,18 @@ checked; PR #36 merged (59c4ec8), and Noah's device tests below are still open.
   StreamClient's `handle` gains `.macMenu`, its first window list the
   subscription, a move's `finishMove` `menusMoved()` and `tearDown`
   `resetMenus()`; `TopBar`, the portrait `windowBar` and the phone's
-  thumbnails' row (`PhonePortraitLayout.menus`) the button; `SillApp` the
+  thumbnails' row (`PhonePortraitLayout.menus`) the button; `SkopryApp` the
   adaptor.
 - **Untested, for Noah (the plan's P1–P13, and the review's):** VS Code (its
   ten menus, Copy enabled with a selection, Themes, New Text File, "F5"),
   Weather (a ✓ toggled), Bambu Studio, Blender's two menus, the Desktop
-  following the frontmost app (at once in Sill.app), the virtual display (Save
+  following the frontmost app (at once in Skopry.app), the virtual display (Save
   As…'s sheet), ⌘S through a hardware keyboard with the menu showing it as
   text, the iPadOS 26 bar itself (a pointer at the top edge or a swipe down:
   the subtitles, the placeholder, ten or more menus, the lazy rebuild after a
   thumbnail tap), an app that stops answering, mixed builds, VoiceOver ("Code
   menus"), five minutes of use (frame age and rtt unchanged), an iPhone (the
-  button at the end of the thumbnails' row); two Sill windows (the bar shows
+  button at the end of the thumbnails' row); two Skopry windows (the bar shows
   none of the Mac's menus, each window's button its own); a Slide Over (no
   button); Menus over the Settings panel with a hardware keyboard (keys reach
   the Mac again once the pull-down goes); a menu whose parent changes while it
@@ -1808,9 +1812,9 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   session and layout, and a turn after it offers only what its layout has
   alone (the laptop card). The automatic reconnect's session goes on with the
   last one's decision (`StreamClient.tourSession`), unless that one ended
-  before it or mid-run. Next and Done save each step (`Sill.tourSeen`), so
+  before it or mid-run. Next and Done save each step (`Skopry.tourSeen`), so
   an ended session resumes at the first step not passed; Skip ends it for good
-  (`Sill.tourSkipped`), but in Take the Tour only closes it; the Settings
+  (`Skopry.tourSkipped`), but in Take the Tour only closes it; the Settings
   panel's last row, Take the Tour, shows every step of the layout again. While it shows the layouts take no touch and
   the keyboard is down (back after, but never under a pairing link), so no
   touch, Pencil, hover or key reaches the Mac, and the device's own pointer
@@ -1834,7 +1838,7 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   StreamScreen, TopBar and PortraitStreamScreen, the row in
   HostSettingsPanel, `lastInputAt`, `lastActionAt`, `inputPaused`,
   `tourSession` and a DEBUG tripwire in StreamClient, the harness's arguments
-  and `-SillOrientation` in ContentView; `Tests/checks/tour` (compiles
+  and `-SkopryOrientation` in ContentView; `Tests/checks/tour` (compiles
   PhonePortraitLayout.swift too; in CI's mutants matrix). pbxproj A401/F401,
   A402/F402.
 - Beyond the plan (its Results say why): the count goes on across a rotation
@@ -1843,7 +1847,7 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   for an active app in a headless simulator, so every decision passed); the
   strip's lit band takes in the active halo and the badge; the card's tail and
   frame come from its laid-out height (a GeometryReader in it saw the appear
-  animation's scale); `-SillTakeTourAt`. Found and fixed: Done wrapping to two
+  animation's scale); `-SkopryTakeTourAt`. Found and fixed: Done wrapping to two
   lines on the iPhone SE at accessibility-extra-large (the footer's line was
   measured with its words free to wrap); a run carried into the other layout
   left that layout's decision open; a card on a 3x screen fading its last
@@ -1863,18 +1867,18 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   of the layouts; the rule in the mock (fresh, landscape, done, skipped, the
   Apps list, a stand-in touch, the pairing overlay, Next through Done); with
   the real keys in the mock, shown, then "nothing owed", then back from
-  Settings. Live (03:28–03:40, once Noah's iPad had left Sill.app, which it
-  streamed from until then; `SillHost --synthetic` on loopback, the guard
-  before each host and a watchdog on Sill.log during, each host under 40 s,
+  Settings. Live (03:28–03:40, once Noah's iPad had left Skopry.app, which it
+  streamed from until then; `SkopryHost --synthetic` on loopback, the guard
+  before each host and a watchdog on Skopry.log during, each host under 40 s,
   none left running; the normal app on an iPhone 18 Pro Max with
-  `-SillConnect`): on a fresh install the first connection showed the touch
+  `-SkopryConnect`): on a fresh install the first connection showed the touch
   card 1.06 s after the picture and, the stand-in pressing Next, saved all
   four steps; the second connection said "nothing owed here"; the Settings
-  panel's Take the Tour (`-SillTakeTourAt 2`) showed it again from the first
+  panel's Take the Tour (`-SkopryTakeTourAt 2`) showed it again from the first
   step; a session cut at the third card went on next time with what was left
   (the laptop card alone, with its subtitle); a host refusing this version
-  (`SILL_TEST_MIN_DEVICE_VERSION=99`) gave its notice and no tour; every step
-  upright and sideways (`-SillOrientation landscape` turns the normal app) at
+  (`SKOPRY_TEST_MIN_DEVICE_VERSION=99`) gave its notice and no tour; every step
+  upright and sideways (`-SkopryOrientation landscape` turns the normal app) at
   the default size and accessibility-extra-large, each ring on its controls
   under the real safe areas; the tripwire never fired. Found there and fixed:
   upright on that 3x screen the Settings card faded its second row as if it
@@ -1890,7 +1894,7 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   turn put the keyboard back under a link's confirmation; a new frame size sent
   a pointer move under the tour. Found while verifying: the tour's delayed work
   acted on a gone stream screen (it now keeps to its session); DEBUG
-  `-SillTourActivityAt` touches in the first session only. Then main at
+  `-SkopryTourActivityAt` touches in the first session only. Then main at
   5c6a850 merged in (PRs #29 and #30; ci.yml, CLAUDE.md, DEVELOPMENT.md,
   HostSettingsPanel and PortraitStreamScreen conflicted; the targets on the
   views both arrangements share), and the phone's arrangement got its rules;
@@ -1912,14 +1916,14 @@ only: no wire change, nothing sent to the Mac, two UserDefaults keys.
   real safe areas; the tripwire never fired.
 - **Untested, for Noah (the plan's P1–P16, on the iPad mini and the iPhone 15
   Pro):** the automatic tour needs a Release or TestFlight build on a fresh
-  install, or Debug with `-SillTourState fresh` (Xcode's scheme). P1 a second
+  install, or Debug with `-SkopryTourState fresh` (Xcode's scheme). P1 a second
   after the Desktop shows, untouched: the tour; while it shows tap, hold and
   drag on the picture, type on a hardware keyboard, hover and touch with the
   Pencil, use a trackpad or mouse: nothing reaches the Mac (no `in.` counters
   in the host's `[1s]` lines) and the picture keeps moving; fresh again,
   touch the picture within the first second: no tour this session. P2 each
   step lights what it names in both layouts; held upright after a tour
-  sideways and left alone: the laptop card once. P3 quit Sill.app at the
+  sideways and left alone: the laptop card once. P3 quit Skopry.app at the
   third card, reopen: the next session starts at the first step not passed.
   P4 Take the Tour in both layouts with the keyboard up before Settings: the
   keyboard back after Done. P5 Skip on the first card: no tour at the next
@@ -1948,7 +1952,7 @@ e7307e6 and at 5c6a850 (PR #30, the iPhone's portrait layout) in e21ce1c, not
 rebased, PR #31; the plan and the results, host, device and the review's
 fixes, are in `docs/pointer-visibility-plan.md`).** Noah: "When the
 Mac is controlling the mouse pointer, it should show the real mouse pointer
-on the desktop on Sill. When Sill is controlling the Mac, continue to hide
+on the desktop on Skopry. When Skopry is controlling the Mac, continue to hide
 the real pointer and only render the client side one in portrait mode when
 the trackpad is used" (2026-09-25); the plan's defaults, but Q4: the pointer
 is sampled at the stream's frame rate while it moves. Built, reviewed and
@@ -1962,7 +1966,7 @@ still open.
   optional; older readers skip 26. 24, 25 and 27 are the Mac's menus (PR #36).
 - Host: one controller, the Mac or the device whose input the host read last
   (`PointerControl`, pure). Any kind 8 hands the pointer to its device; a
-  pointer or scroll input, and Sill's own post or warp (noted just before it),
+  pointer or scroll input, and Skopry's own post or warp (noted just before it),
   open a 0.25 s settle; a read 0.5 pt or more from the last position that
   counted, outside the settle, is the Mac's (a slow drag adds up, jitter never
   does); a read more than 0.25 s after the one before starts afresh.
@@ -1973,7 +1977,7 @@ still open.
   the source every device hears the same `inside: false`, and at 33 fps and
   below the tick samples as often); it judges the read against the streamed
   source (the Desktop's display, a staged window's crop or full-screen band, a
-  regular-mode window's bounds and on-screen flag, re-read on `sill.pointer` at
+  regular-mode window's bounds and on-screen flag, re-read on `skopry.pointer` at
   most every 0.1 s after a move while some device is sent the pointer, and
   every 2 s anyway), inside meaning 0 ≤ x < 1 and 0 ≤ y < 1 (the far edges are
   the next display's), and reads nothing while nothing streams. StreamServer
@@ -1982,9 +1986,9 @@ still open.
   tick). No line prints; `ptr.sent` and `ptr.mac` join the `[1s]` lines when
   they happen. A synthetic host never reads the real pointer and never posts
   input (`in.dry` instead, InputInjector's dry run, and no activation or
-  raise), and has a pointer only with the TEST ONLY `SILL_TEST_POINTER_PATH`;
-  `SILL_TEST_SOFTWARE_ENCODER=1` keeps a synthetic host off the hardware
-  encoder for good, and `SILL_TEST_LOOPBACK=1` puts both its doors on
+  raise), and has a pointer only with the TEST ONLY `SKOPRY_TEST_POINTER_PATH`;
+  `SKOPRY_TEST_SOFTWARE_ENCODER=1` keeps a synthetic host off the hardware
+  encoder for good, and `SKOPRY_TEST_LOOPBACK=1` puts both its doors on
   127.0.0.1 alone (Build and run).
 - Device: one sprite (`HEVCDisplayView.setPointer`, in the Mac's shape from
   kind 14) shows what `PointerPresence` (pure) says. Kind 26 is judged on the
@@ -2008,7 +2012,7 @@ still open.
   resting while the Mac's mouse moves carries on from the Mac's pointer
   whichever of the two had it when the finger landed. The layout reaches the
   client (`DuoLayout.isPortrait`); nothing shows while nothing streams. Q1's
-  linger timer is built and idle. DEBUG `-SillInputScript` runs only against
+  linger timer is built and idle. DEBUG `-SkopryInputScript` runs only against
   a test host on this Mac (a loopback address and no `hostVersion`).
 - Review (2026-09-27, the plan's "Review fixes"): eight findings, each
   reproduced before it was fixed (the seventh, a race, from the code and the
@@ -2019,8 +2023,8 @@ still open.
   at maxY read as inside; a finger that landed while the Mac had the pointer
   and rested while it moved on pulled it back to where it landed (P3's second
   order); a report landing just before a move's hand-over was never drawn;
-  `-SillInputScript` would have sent input to any host a session reached,
-  Sill.app included; a stale comment.
+  `-SkopryInputScript` would have sent input to any host a session reached,
+  Skopry.app included; a stale comment.
 - Verified (the plan's Results and "Review fixes"): `swift build -c release`;
   iOS Debug and Release for the simulator and Debug for a device (only the old
   `StreamClient` capture warning); `Tests/checks/run-all.sh`, all 19 on the
@@ -2034,12 +2038,12 @@ still open.
   three integration mutants of StreamServer's call each bringing one back; the
   host's synthetic gates on loopback-only hosts (H4–H9, H13, the remote door,
   new ones for the edge and for 24 and 30 fps) and, with no device connected
-  to Sill.app, H2 against the host step's base logs and the sampler at 120 fps
+  to Skopry.app, H2 against the host step's base logs and the sampler at 120 fps
   (8.0 ms apart); S1's 40 photos; live on a simulator of its own, 51 of 51 on
   the merge: S2–S7 as before (S5 across the move from AWDL) and S2b and S2c
   (the finger landing while the Mac has the pointer, the Mac's mouse moving it
   on, then a move and a click from where it went) and S8 (the input script
-  refused against a host that says it is Sill, run by 127.0.0.1, ::1 and
+  refused against a host that says it is Skopry, run by 127.0.0.1, ::1 and
   localhost against one that does not); H12, the bare app's 100 previews
   identical to main's. On the merge with PR #30 again: all 20 checks, the
   three iOS builds, S2–S8 (51 of 51), S9 (the phone's arrangement: the pad
@@ -2064,9 +2068,9 @@ still open.
   virtual display (the arrow over the staged window, a full-screen video's
   band); remote (the arrow trails by about the round trip, `net.dropped` no
   higher while the mouse moves); two devices (the iPhone shows the arrow the
-  iPad's trackpad moves); mixed builds (this iPad against PR #13's Sill.app: no
-  Mac arrow; PR #13's iPad against this Sill.app: as before); five minutes on
-  a still window (Sill.app's CPU as before, frame age and rtt unchanged,
+  iPad's trackpad moves); mixed builds (this iPad against PR #13's Skopry.app: no
+  Mac arrow; PR #13's iPad against this Skopry.app: as before); five minutes on
+  a still window (Skopry.app's CPU as before, frame age and rtt unchanged,
   `ptr.sent` only in seconds the mouse moved over the stream, the arrow never
   choppy enough to want Q4 undone); moves keep the device's control
   (streaming in landscape, tap, plug the cable in and later pull it: no arrow
@@ -2107,7 +2111,7 @@ display unchanged; no wire change.
   problem, a choice Noah can reverse (`DuoLayout`'s doc says how). An iPad
   window that narrow keeps the compact halves as on main, the key row's fold
   into two rows included: the idiom, read once in `DuoLayout.phoneArrangement`
-  (DEBUG `-SillIdiom pad|phone` swaps it). `PortraitMetrics.phone` (`.phone`)
+  (DEBUG `-SkopryIdiom pad|phone` swaps it). `PortraitMetrics.phone` (`.phone`)
   draws the phone's arrangement, `.compact` and `.regular` the halves.
 - `PortraitStreamScreen`: the picture pane, key row, trackpad, drawer and panel
   are built once for both arrangements; the phone's are placed by a small
@@ -2130,12 +2134,12 @@ display unchanged; no wire change.
   `tap(key)`.
 - DEBUG (ContentView's contract): the harness draws a fake screen larger than
   the simulator scaled down, laid out at its own size (the Duo's and the iPad's
-  sizes on iPhone simulators); `-SillKeyboard 1` raises the keyboard for real
-  in a live session; `-SillKeyboardToggle <s>[,<s>…]` toggles it as the
-  Keyboard button does; `-SillDrawer`, `-SillSettings` and `-SillScaleOpen`
+  sizes on iPhone simulators); `-SkopryKeyboard 1` raises the keyboard for real
+  in a live session; `-SkopryKeyboardToggle <s>[,<s>…]` toggles it as the
+  Keyboard button does; `-SkopryDrawer`, `-SkoprySettings` and `-SkopryScaleOpen`
   open theirs 1.5 s into a live session; `viewport: 386×241 pt, scale none,
-  60 fps` on the console; `-SillInputTest 1` (loopback only) runs the key
-  row's and the trackpad's own code once; `-SillIdiom pad` draws an iPad
+  60 fps` on the console; `-SkopryInputTest 1` (loopback only) runs the key
+  row's and the trackpad's own code once; `-SkopryIdiom pad` draws an iPad
   window's arrangement on an iPhone simulator.
 - Verified at the first build (2026-09-27, 01:05–02:15, d44c132, on private
   simulators of the iPhone 18 Pro Max, 18 Pro and 17e, deleted after; `simctl
@@ -2148,9 +2152,9 @@ display unchanged; no wire change.
   normal app on each phone against a stand-in Mac: the viewport, the keyboard
   from row 1 up and down (its top at 636, 573 and 543 pt: 320 and 301 pt tall,
   no suggestions bar, which the check's table uses), the drawer, the panel,
-  the ruler, AX-XL, `-SillInputTest`; a 16:10 picture filling the pane and a
+  the ruler, AX-XL, `-SkopryInputTest`; a 16:10 picture filling the pane and a
   16:9 one with bars of 13.2, 11.9 and 11.3 pt above and below, everything
-  under the picture the same for both. Not run then: `SillHost --synthetic`,
+  under the picture the same for both. Not run then: `SkopryHost --synthetic`,
   which no-device.sh blocked from 01:00 to 02:48 (Noah's iPad mini streaming).
 - Review fixes (2026-09-27, after d44c132; the plan's "Review fixes"): row 1
   back in the mockup's band (it sat 6 pt high and everything under it 12, the
@@ -2163,19 +2167,19 @@ display unchanged; no wire change.
   window narrower than 600 pt back on the compact halves (the approval was for
   iPhones). Verified (04:40–05:10, the same simulators, one at a time, deleted
   after): the check 149 cases and 28 of 28 mutants; 81 harness photos of every
-  other layout, the iPad's narrow windows included (`-SillIdiom pad`), against
+  other layout, the iPad's narrow windows included (`-SkopryIdiom pad`), against
   the base: 56 identical at once, the compact halves' ruler value changed as
   intended, the rest the held thumbnail's wiggle and Δ1–2 anti-aliasing that
   retakes reproduce; 60 harness photos of the phone layout at seven sizes
   measured against the rule (rows within a pixel at 3x, label tops within
   2 px, the panels' edges on row 1's, the ruler's value 2.3 pt inside, the
-  lights below the strip); the normal app against `SillHost --synthetic` behind
+  lights below the strip); the normal app against `SkopryHost --synthetic` behind
   a relay that drops input, no-device.sh passing before, during and after, each
   host under 55 s: on the Pro Max the viewport 424×265, Apps at 359–409 pt and
   the trackpad 412×389, the keyboard's top 95 pt under row 3, the panels, the
   ruler, a 16:9 picture's 13.3 pt bars with row 1, the keys and the pad pixel
   for pixel the same as at 16:10, with the keyboard up and at AX-XL,
-  `-SillInputTest` (every event dropped at the relay); on the 18 Pro 386×241,
+  `-SkopryInputTest` (every event dropped at the relay); on the 18 Pro 386×241,
   374×331 and 56 pt; on the 17e 374×233, 362×324 and 49 pt; S3's text sizes.
   Merged with main at 676b362 (PR #29, the disk image; merge e73f231): only
   ci.yml's mutants matrix and CLAUDE.md conflicted. After it
@@ -2207,7 +2211,7 @@ display unchanged; no wire change.
   keyboard's arrows; the trackpad (a diagonal at the finger's angle, one
   stroke down crossing the picture, two-finger scrolling at about today's
   speed, tap, two-finger tap, hold and drag); Aa (the ruler over row 1; on
-  release the Mac window resizes to 16:10, Sill.log's "Resized … for a 377×235
+  release the Mac window resizes to 16:10, Skopry.log's "Resized … for a 377×235
   panel"); the drawer and Settings under a live row 1, as wide as it (Apps
   again closes, a tap on the picture closes and clicks nothing); a held
   thumbnail's lights below the strip; rotation both ways with the drawer, the
@@ -2219,15 +2223,15 @@ display unchanged; no wire change.
   before.
 
 **The Mac download in a disk image (2026-09-27, branch `mac-dmg` from main at
-cf05a78, PR #29).** Noah: "Sill should open in a .dmg and be draggable into
+cf05a78, PR #29).** Noah: "Skopry should open in a .dmg and be draggable into
 applications folder like regular apps". `Scripts/release.sh` now makes
-`Sill.dmg` beside `Sill.zip`, from the same notarized, stapled app. Nothing was
-notarized, published or tagged here; Sill 0.3.1 (PR #32, 2026-09-27) is the
+`Skopry.dmg` beside `Skopry.zip`, from the same notarized, stapled app. Nothing was
+notarized, published or tagged here; Skopry 0.3.1 (PR #32, 2026-09-27) is the
 first release with the image, and the download page links it (PR #33).
-- The image (`Scripts/make-dmg.sh`, Layout): Sill.app, a link to
+- The image (`Scripts/make-dmg.sh`, Layout): Skopry.app, a link to
   /Applications, a white background with an arrow from one to the other
   (`design/DMGBackground.svg`, 660 x 400 points, the arrow in the app icon's
-  greys, "To install Sill, drag it to Applications." under them), and the
+  greys, "To install Skopry, drag it to Applications." under them), and the
   app's icon as the volume's. Its window: 660 x 432 points at (200, 120), the
   picture and macOS 27's 32-point title bar, icon view, no toolbar, sidebar,
   path or status bar, 128-point icons at (170, 180) and (490, 180). HFS+ and
@@ -2248,19 +2252,19 @@ first release with the image, and the download page links it (PR #33).
   goes to Apple); a real run, after the zip's checks, makes the image of the
   stapled app, signs it with the same identity, sends it to Apple on its own
   (`notarize`, the zip's code as a function; its answer and log
-  `.build/Sill-<version>-dmg-notary*`), staples it and checks it
+  `.build/Skopry-<version>-dmg-notary*`), staples it and checks it
   (`check_disk_image`: hdiutil verify, stapler validate, spctl's open context
   as "Notarized Developer ID", mounted `-nobrowse` in `$TMPDIR` with the
-  Sill.app inside through `check_gatekeeper`, detached on failure too); it
-  prints both SHA-256s, and `--publish` uploads Sill.dmg, Sill.dmg.sha256,
-  Sill.zip and Sill.zip.sha256, the notes naming both hashes. A dry run makes
+  Skopry.app inside through `check_gatekeeper`, detached on failure too); it
+  prints both SHA-256s, and `--publish` uploads Skopry.dmg, Skopry.dmg.sha256,
+  Skopry.zip and Skopry.zip.sha256, the notes naming both hashes. A dry run makes
   the image from the app before stapling, signed with the identity.
 - The zip stays in every release for now, for older links; the download page
   moved to the image once a release carried it, as docs/release-checklist.md,
   part 2, says (the release first, the link checked, then the page, then the
-  site republished): Sill 0.3.1, then PR #33 and sill-site on 2026-09-27. The
+  site republished): Skopry 0.3.1, then PR #33 and skopry-site on 2026-09-27. The
   release workflow's verify job makes
-  `Sill-<version>-adhoc.dmg` (`make-dmg.sh --sign -`) and keeps it as a second
+  `Skopry-<version>-adhoc.dmg` (`make-dmg.sh --sign -`) and keeps it as a second
   artifact; the publish job keeps both submissions' answers and logs as the
   artifact `notary-v<version>`.
 - Review fixes (2026-09-27; one review of the branch, each finding checked
@@ -2282,7 +2286,7 @@ first release with the image, and the download page links it (PR #33).
   - The publish job's notary logs were never kept. The pinned upload-artifact
     (v7.0.1) skips every file and folder whose name starts with a dot, the
     search's root included, unless `include-hidden-files` is true, so
-    `.build/Sill-*-notary*` found nothing and the step passed without an
+    `.build/Skopry-*-notary*` found nothing and the step passed without an
     artifact, on main as well (the zip's log). Now `include-hidden-files:
     true` and `if-no-files-found: warn`. Checked with the action's own
     `dist/upload/index.js` under node, the step's inputs read from the YAML,
@@ -2299,22 +2303,22 @@ first release with the image, and the download page links it (PR #33).
     arguments (the script sourced) or the SVG's size and white fill move
     without it.
 - Verified after the fixes (2026-09-27, 03:13-03:17): the rehearsal again,
-  `SILL_SIGN_IDENTITY='Developer ID Application: NOAH WILLIAM SAFFER
+  `SKOPRY_SIGN_IDENTITY='Developer ID Application: NOAH WILLIAM SAFFER
   (9B2KKVM937)' Scripts/release.sh --dry-run`, exit 0 in 17 s (the build
-  cached, the layout tool compiled) with no keychain prompt: Sill-0.3.0.dmg
+  cached, the layout tool compiled) with no keychain prompt: Skopry-0.3.0.dmg
   2.9 MB (the zip 2.8 MB, the app 6.0 MB), UDIF read-only compressed (lzfse),
   its CRC32 valid, signed by that identity with a timestamp, identifier
-  me.saffer.sill.dmg; `spctl -a -vv -t open --context
+  app.skopry.dmg; `spctl -a -vv -t open --context
   context:primary-signature` rejects it as "Unnotarized Developer ID", which
-  notarization changes. Mounted: an HFS+ volume "Sill", 21.0 MB with 6.3 MB
+  notarization changes. Mounted: an HFS+ volume "Skopry", 21.0 MB with 6.3 MB
   used, exactly the five items, Applications a link to /Applications, the
   custom-icon flag, .VolumeIcon.icns the app's, the TIFF 660x400 at 72 dpi
   and 1320x800 at 144, white at every corner and edge in both, the
   `.DS_Store` read back by the tool and by the scratch tests' own decoder
   (10,244 bytes in Finder's blocks, bounds {{200, 120}, {660, 432}}, the
   view's colour white, the icons' places, the alias's IDs the folder's and
-  the file's), the alias resolving to the picture on that mount, and Sill.app
-  byte for byte `.build/Sill.app`, passing codesign --deep --strict (the
+  the file's), the alias resolving to the picture on that mount, and Skopry.app
+  byte for byte `.build/Skopry.app`, passing codesign --deep --strict (the
   image stays there for Noah's look). `Tests/checks/run-all.sh`, all 16
   (130 s), and `dmg-layout --mutants`, 43 of 43. In the session's scratchpad
   (`mac-dmg/tests`, removed at the end): make-dmg.sh for real (hdiutil,
@@ -2335,12 +2339,12 @@ first release with the image, and the download page links it (PR #33).
 - **Untested, for Noah:** the `notary-v<version>` artifact on a signed run
   (0.3.1 was released by hand with `release.sh --publish`: the image signed,
   notarized and stapled, the four assets; its verify job ran on GitHub and
-  kept `Sill-0.3.1-adhoc.dmg`; the page moved, PR #33); the window in the Finder
+  kept `Skopry-0.3.1-adhoc.dmg`; the page moved, PR #33); the window in the Finder
   on macOS 27 (the whole picture, a scroll settles back, the names under the
   icons readable in Dark Mode on the white picture, the volume icon): the
   checklist's part 1 §2 has the look; on macOS 14 or 15, the 4 points of white
   below the picture; the image on another Mac (downloaded, so quarantined: it
-  opens, the drag, Sill opens, also offline).
+  opens, the drag, Skopry opens, also offline).
 - Known: files written from a Claude session carry `com.apple.provenance`,
   which `xattr -d` can't remove, so the rehearsal image's files carry it
   (Claude.dmg's have none); the zip has always carried the same attributes in
@@ -2351,7 +2355,7 @@ first release with the image, and the download page links it (PR #33).
 Connect record, screenshots, the 0.5 archive and upload, the placeholder and
 the site). This branch makes those minutes of work: the upload tooling and
 the record field by field. Nothing was uploaded and no record was created
-here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
+here; on 2026-09-26 the record was made ("Skopry – Mac Streaming", Apple ID
 6816359860, PR #27), and 0.5 (1), built from b37f47a, was uploaded.
 - `Scripts/release-ios.sh` (Layout): archive (Release, generic/platform=iOS,
   automatic signing, `-allowProvisioningUpdates`), export with
@@ -2371,8 +2375,8 @@ here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
   cloud-managed Apple Distribution certificate (a POST for
   DISTRIBUTION_MANAGED; "Apple Distribution: NOAH WILLIAM SAFFER
   (9B2KKVM937)", until 2027-09-26; no private key in the keychain) and the
-  profile "iOS Team Store Provisioning Profile: me.saffer.sill" (until
-  2027-09-26); the App ID is Xcode's "XC me saffer sill". An archive made
+  profile "iOS Team Store Provisioning Profile: app.skopry" (until
+  2027-09-26); the App ID is Xcode's "XC me saffer skopry". An archive made
   with `CODE_SIGNING_ALLOWED=NO` exports the same way with the same
   entitlements, so CI needs no certificate or profile, only an App Store
   Connect key with the Admin role (cloud signing refuses others). Uploading
@@ -2380,11 +2384,11 @@ here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
   signs, so the notary key (Developer) can't run the script.
 - `.github/workflows/testflight.yml` (Layout): by hand only. Without the key
   `--unsigned` and that .ipa as the artifact; with the secrets
-  `SILL_TESTFLIGHT_KEY_ID`, `SILL_TESTFLIGHT_ISSUER_ID` and
-  `SILL_TESTFLIGHT_KEY_P8`, `--sign-at-export` and the signed .ipa; with the
-  variable `SILL_TESTFLIGHT_IN_CI` true too, `--upload`.
+  `SKOPRY_TESTFLIGHT_KEY_ID`, `SKOPRY_TESTFLIGHT_ISSUER_ID` and
+  `SKOPRY_TESTFLIGHT_KEY_P8`, `--sign-at-export` and the signed .ipa; with the
+  variable `SKOPRY_TESTFLIGHT_IN_CI` true too, `--upload`.
 - docs/release-checklist.md, "TestFlight": the record field by field (§1),
-  the App Store address (§2), the site (§3: sill-site holds main's `site/`
+  the App Store address (§2), the site (§3: skopry-site holds main's `site/`
   but for download.html, kept at "being prepared" on purpose, so TestFlight
   needs no republish; a later one leaves out download.html, `.nojekyll` and
   `.github`), the build (§4),
@@ -2393,7 +2397,7 @@ here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
   metadata §9) and TestFlight from GitHub Actions. docs/app-store-metadata.md:
   the version record says 0.5 (App Store Connect proposes 1.0).
 - Verified: the rehearsal on this Mac, archive and export in 49 s (the plan's
-  numbers are in the checklist's §4), Sill.ipa 2.0 MB, App Store profile,
+  numbers are in the checklist's §4), Skopry.ipa 2.0 MB, App Store profile,
   `beta-reports-active` true, get-task-allow false, 0.5 (1),
   `ITSAppUsesNonExemptEncryption` false, the Local Network and camera
   strings, `PrivacyInfo.xcprivacy`, no keychain or Apple Account prompt (no
@@ -2416,10 +2420,10 @@ here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
   docs had App Manager, and a notary key that could do neither). The
   workflow's key step names a secret that isn't base64 (it ended at
   base64's own complaint). The checklist's republish (§3, and part 1 §3's)
-  deleted sill-site's own `.nojekyll` and `.github/FUNDING.yml` (tried with
+  deleted skopry-site's own `.nojekyll` and `.github/FUNDING.yml` (tried with
   this Mac's openrsync on a copy), part 2's first release pointed at the
   rsync below, which leaves out download.html, and §3 said the published
-  pages lacked the email_off comments (Cloudflare strips them; sill-site
+  pages lacked the email_off comments (Cloudflare strips them; skopry-site
   has them). Verified: the offline checks, 150 (123 and 27 new), and 39 of
   39 mutants (27 and 12 new); the key step under bash 3.2 with a good, a
   raw, a garbled and an empty secret; the export options against Xcode
@@ -2430,13 +2434,13 @@ here; on 2026-09-26 the record was made ("Sill – Mac Streaming", Apple ID
 
 **Before going public (2026-09-26, branch `public-sweep` from main at 150f781,
 with main at a550e27 merged in, PR #24).** Noah's four steps for the first Mac
-release end with making Saffsanity/sill public, which publishes its whole
+release end with making jeanpfs/skopry public, which publishes its whole
 history, so a sweep read the tree, every branch's history, the v0.3.0 release
 and the repository's settings first. The branch fixes what the tree can:
 docs/menu-bar-app-plan.md without the Apple Account's address (in the Apple
 Development identity's name) or the name in that certificate's O field; made-up
 Tailscale values in place of this Mac's in DebugHooks' long-name preview
-(compiled into Sill.app: a person's Mac on the real tailnet), three comments,
+(compiled into Skopry.app: a person's Mac on the real tailnet), three comments,
 the addresses, pairing-address and origin checks and the remote access plan; the
 README and the site say the Mac download is out and the iPhone and iPad app is
 on its way to the App Store (the site's steps sent visitors to a listing that
@@ -2447,7 +2451,7 @@ the keys from outside the repository; release docs after v0.3.0 and with
 immutable releases (a deleted immutable release's tag can never be used again);
 SECURITY.md and issue forms; the ledger check's fix, which main's PR #22 also
 made (the merge keeps main's lines). Verified: a clean `swift build -c release`,
-whose SillMenuBar holds none of the old values; `Tests/checks/run-all.sh`, all
+whose SkopryMenuBar holds none of the old values; `Tests/checks/run-all.sh`, all
 15; the three changed checks' output equal to main's once the replaced values
 are masked; the four address checks' mutants, 74 of 74; the preview name 291.5
 pt wide with its port against 291.6.
@@ -2461,7 +2465,7 @@ pt wide with its port against 291.6.
   open source", support.html's issues link, the checklist's private-repository
   lines). The sweep's report has the commands. Since: public on 2026-09-26
   with its history as it is (Noah), Apache-2.0 kept, and PR #26 made the
-  held-back edits (sill-site republished with them). On 2026-09-27 the
+  held-back edits (skopry-site republished with them). On 2026-09-27 the
   repository has secret scanning, push protection, private vulnerability
   reporting and the Actions allow-list (selected actions, pinned by SHA) on;
   still open: rulesets for main and the v* tags (none yet) and immutable
@@ -2471,32 +2475,32 @@ pt wide with its port against 291.6.
 `remote-access` at cb0ec55, PR #13, with main merged in at 1f3072a and again
 at 32d532b, not rebased; the plan, its open questions with the defaults taken,
 and the results are in `docs/update-notice-plan.md`).** Noah's
-request: an update check in Sill.app with Apple frameworks only (GitHub's
+request: an update check in Skopry.app with Apple frameworks only (GitHub's
 releases feed, not Sparkle), and a host-to-device notice so a later Mac can tell
 an old device to update instead of failing silently. The first public builds
 set the compatibility floor for good (the section before Conventions).
 - Wire (additive; `Compatibility.swift`): kind 23 `Hello {appVersion, build,
   protocol, device}`, the first message of every session connection a device
-  makes (never a pairing connection; older hosts skip it); `SillVersion` (tags,
+  makes (never a pairing connection; older hosts skip it); `SkopryVersion` (tags,
   bundles and the wire's versions: "v" dropped, the digits-and-dots prefix,
-  compared part by part, "0.10" > "0.9"); `SillProtocol.current` 1. Kind 22
+  compared part by part, "0.10" > "0.9"); `SkopryProtocol.current` 1. Kind 22
   gains `message`, `minimumVersion`, `reconnect` and the reason "update" (nil
   fields left out: the five goodbyes of today are byte for byte what they were).
-  Window lists carry `hostVersion` (Sill.app's; nil from SillHost) and
+  Window lists carry `hostVersion` (Skopry.app's; nil from SkopryHost) and
   `protocol`.
 - Host: `DeviceGate.minimumDeviceVersion` is "0": nobody is refused and nothing
-  waits. Above it (only `SILL_TEST_MIN_DEVICE_VERSION` on a host that does not
+  waits. Above it (only `SKOPRY_TEST_MIN_DEVICE_VERSION` on a host that does not
   advertise, in this build), both doors hold a ready connection unregistered
   until its first message: a hello the floor admits is served; a lower version,
   no hello, another kind, the end or 2 s of silence gets kind 22 "update" ("Update
-  Sill on your iPad to keep using ‹Mac›. It needs version 1.2 or later.",
+  Skopry on your iPad to keep using ‹Mac›. It needs version 1.2 or later.",
   `"reconnect":false`) and this side's FIN, what it still sends is read and
   dropped until it closes (at most 1 s: cancelling at once answered its later
   messages with a reset, which can beat the notice), and it is never registered
   (no "Client connected", no "Client left", no "Remote client connected"). One Refused line per source a
   minute, then a count line; a source refused 5 times in 60 s hears it 2 s late.
-  `SILL_TEST_GOODBYE` sends another kind 22 instead. A hello is logged ("Client
-  hello: iPad (iPad14,1), Sill 1.0 (42), protocol 1 (…)") and names the Mac
+  `SKOPRY_TEST_GOODBYE` sends another kind 22 instead. A hello is logged ("Client
+  hello: iPad (iPad14,1), Skopry 1.0 (42), protocol 1 (…)") and names the Mac
   card's row before its stats. Pairing is never refused for age. What changed
   while the gate held a connection is judged again as it admits it: the remote
   door re-reads its trust snapshot (`serve`'s recheck, `RemoteServer.stillAdmits`:
@@ -2514,25 +2518,25 @@ set the compatibility floor for good (the section before Conventions).
   line, spoken, a reconnect only with `"reconnect":true`, looked at before a
   remote dial's failure rules (before, an unknown reason showed "disconnected"
   and redialled at once: a loop against a Mac that refuses). "update" adds
-  "Update Sill in the App Store" under it once `SillLinks.appStoreText` holds
-  the App Store address (the record's since PR #27; DEBUG `-SillAppStoreURL`). The
+  "Update Skopry in the App Store" under it once `SkopryLinks.appStoreText` holds
+  the App Store address (the record's since PR #27; DEBUG `-SkopryAppStoreURL`). The
   hello goes out first on a tap's, a reconnect's, a wired dial's and its
-  fallback's, a move's and a remote winner's connection (`-SillHelloVersion`),
+  fallback's, a move's and a remote winner's connection (`-SkopryHelloVersion`),
   written to a home dial's connection as it is made, before it is the
   session's (a send made before `.ready` then follows it), and a tear-down
   forgets the session's viewport and a pointer re-send still waiting;
   `hostVersion`/`hostProtocol` are kept, shown nowhere. A refused home session
   shows the stream screen for a frame or two first (connected at `.ready`;
   accepted, open question 10).
-- Sill.app: `UpdateChecker` (+ pure `UpdatePolicy`) asks
-  https://api.github.com/repos/Saffsanity/sill/releases/latest 30 s after launch
+- Skopry.app: `UpdateChecker` (+ pure `UpdatePolicy`) asks
+  https://api.github.com/repos/jeanpfs/skopry/releases/latest 30 s after launch
   when due, then every 24 h plus 0–30 min, an hour after a check with no answer,
   re-armed at wake, and at Check Now: an ephemeral URLSession, `User-Agent:
-  Sill/‹version›`, GitHub's Accept and API version, `Accept-Language: en` (it would
+  Skopry/‹version›`, GitHub's Accept and API version, `Accept-Language: en` (it would
   otherwise send the Mac's languages), If-None-Match; no cookies, cache or
   credentials; redirects only to api.github.com; 1 MB, 10 s. A published release
   (not a draft or prerelease, its page on github.com) whose tag is newer than
-  CFBundleShortVersionString is offered as "Sill 0.4 Is Available…" after the
+  CFBundleShortVersionString is offered as "Skopry 0.4 Is Available…" after the
   card (the glyph stays) and in Settings › General ("Check for updates
   automatically", on by default, wired to the checker from launch; Check Now's
   result until GitHub answers an automatic check, else the offer or the last
@@ -2546,12 +2550,12 @@ set the compatibility floor for good (the section before Conventions).
   GoodbyePolicy 42 (16 of 16), UpdatePolicy 124 (18 of 18); cb0ec55's
   StreamProtocol reads the new payloads and skips kind 23; the CLI's stdout,
   idle 35 s and with a Desktop pick, masked and sorted, equals cb0ec55's;
-  UpdateChecker alone against `sillfeed.py` (every answer of §6.4, the headers
+  UpdateChecker alone against `skopryfeed.py` (every answer of §6.4, the headers
   and nothing else, the timeout, the retry, Check Now joining); the bare app end
   to end (the live menu item, the pane, 304, 404 silent, off, test pattern
   mode); previews differ from cb0ec55's only in General, menu.txt's new sample
   and the new update states; the gate on the CLI (both doors, the loop
-  slowdown, the count line, SILL_TEST_GOODBYE) and on StreamServer alone (no
+  slowdown, the count line, SKOPRY_TEST_GOODBYE) and on StreamServer alone (no
   resets); the simulator against real hosts: the notice at home and through
   the remote door, no reconnect, redials only when asked, an older host, and
   photos at eight sizes.
@@ -2582,12 +2586,12 @@ set the compatibility floor for good (the section before Conventions).
   included: `startMove` (from AWDL, to the cable, to Wi-Fi, a rescue's
   reconnect, each fallback) writes it as the connection is made, as
   `connect(to:)` does, and a remote winner says it in `adopt`; main's `rescue`
-  reads `goodbye`. `SillLinks` is one enum (the site's addresses and the App
+  reads `goodbye`. `SkopryLinks` is one enum (the site's addresses and the App
   Store one), once in the project file. The public README stays main's; this
   branch's Updates, tag and hello paragraphs are in docs/DEVELOPMENT.md. The
   pointer plan's Mac menu bar kinds move to 24, 25 and 27 (23 is the hello).
   Fix-ups: `release.sh --dry-run` builds an untagged commit again
-  (`SILL_RELEASE_DRY_RUN=1`) while a real run names the missing tag in its
+  (`SKOPRY_RELEASE_DRY_RUN=1`) while a real run names the missing tag in its
   preflight, and the checklist gains the tag and the App Store address
   (184d902); the privacy policy's Update check section, and the download page
   (05d9d3a). Verified on the merge: clean builds (only the CaptureProbe and
@@ -2600,7 +2604,7 @@ set the compatibility floor for good (the section before Conventions).
   protocol 188); the hello first on the merged SessionLink (the review's check,
   and a new one for #12's hold and fenced hand-overs: the move's connection
   says hello first, one without it is caught; the source: two connections
-  made, three hellos sent); the checker alone against sillfeed.py (42, and the
+  made, three hellos sent); the checker alone against skopryfeed.py (42, and the
   stale-result check); the bare app's H8 runs 1 and 2; previews from the bundle
   against origin/main's: only General, menu.txt's `update-available` sample and
   the 20 new update states differ; the CLI's stdout against origin/main's,
@@ -2608,24 +2612,24 @@ set the compatibility floor for good (the section before Conventions).
   the merged CLI (H5, H6 a–h with the remote door, the slowdown and its count
   line) and origin/main's host skipping the hello; a simulator of its own
   (deleted after): at floor 99 the notice, no reconnect, no second connection
-  in 60 s; at floor 0.1 admitted and streaming, and with `-SillMoveTest 1` the
+  in 60 s; at floor 0.1 admitted and streaming, and with `-SkopryMoveTest 1` the
   move's own connection admitted with its hello and the session moved to it;
   the update and notice cases at four sizes above main's footer.
 - Review fixes after the merge (2026-09-25; the plan's "Review fixes after the
   merge"): `release.sh --publish` refuses, before building, unless origin's tag
   v‹version› names HEAD (gh would make a missing tag from the default branch's
-  tip), passes gh `--verify-tag` in Saffsanity/sill, and warns when
-  `SILL_RELEASE_REPO` is elsewhere, since every update check reads only
-  Saffsanity/sill (the checklist's sill-site fallback publishes a download no
-  Sill.app offers); the tag match is `grep -Fx`. A goodbye on a move's
+  tip), passes gh `--verify-tag` in jeanpfs/skopry, and warns when
+  `SKOPRY_RELEASE_REPO` is elsewhere, since every update check reads only
+  jeanpfs/skopry (the checklist's skopry-site fallback publishes a download no
+  Skopry.app offers); the tag match is `grep -Fx`. A goodbye on a move's
   connection before its window list ends a session whose own connection has
   gone with the Mac's words (a rescue refused by a newer Mac: the notice, no
   reconnect), and a live session's move up no longer retries the listing that
   refused it. The privacy policy says the device tells the Mac its version
   "when it connects" (no VPN outside the Remote Access markers), and its short
   version names the fixed "en" and the IP address. §13 of the plan is the floor
-  as written here; getsill.app and support@getsill.app read as confirmed in
-  SillLinks, the checklist and the metadata. Verified: the builds; release.sh
+  as written here; skopry.app and support@skopry.app read as confirmed in
+  SkopryLinks, the checklist and the metadata. Verified: the builds; release.sh
   and make-app.sh against scratch repositories (60 checks, 13 of 13 mutants;
   d4abceb's fail 40) and `publish_release` against a fake GitHub API; the
   simulator against Python stand-ins, before and after; the site's cut gate;
@@ -2635,13 +2639,13 @@ set the compatibility floor for good (the section before Conventions).
   "Merged with main again"). No host source changed on main since 1f3072a.
   Where they met: `sessionEnded` keeps GoodbyePolicy's rule and passes #16's
   `afterQuit` after goodbye "quit" (a notice never sets it); release.sh keeps
-  both sides' checks, main's `SILL_RELEASE_TAG`, `--check-tag`, icon check and
+  both sides' checks, main's `SKOPRY_RELEASE_TAG`, `--check-tag`, icon check and
   `gh api` preflight (`gh auth status`, which the Actions token can't answer,
   is gone) and this branch's tag rule, and the release workflow
-  (`GITHUB_ACTIONS` with `SILL_RELEASE_TAG`) does not ask origin for the tag
+  (`GITHUB_ACTIONS` with `SKOPRY_RELEASE_TAG`) does not ask origin for the tag
   (`in_release_workflow`: its checkout is origin's tag and keeps no
   credentials); the checklist says a pushed tag starts the release workflow,
-  which publishes when `SILL_SIGN_IN_CI` is on, so `--publish` by hand then
+  which publishes when `SKOPRY_SIGN_IN_CI` is on, so `--publish` by hand then
   does not. `Tests/checks`: protocol's kind 23 case is the hello, and this
   branch's four pure checks moved in (662a70e): `compatibility` 74,
   `device-gate` 58, `goodbye` 42 and `update-policy` 124, with 61 mutants, in
@@ -2657,26 +2661,26 @@ set the compatibility floor for good (the section before Conventions).
 - **Untested, for Noah:** the plan's V1–V7: V1 the real check while the
   repository had no release (moot since it went public with v0.3.0 on
   2026-09-26: within a minute "Update check failed: GitHub has no release of
-  Sill (HTTP 404)." once, no menu item, Check Now says "Couldn’t check: GitHub
-  has no release of Sill yet.", `updateLastCheck` set), V2 now that it has a
-  newer release (0.3.1 for a 0.3.0 Sill.app), V3 a refusal on the iPad (its
-  Debug build, `-SillConnect <this Mac>:P`, against
-  `SILL_TEST_MIN_DEVICE_VERSION=99 SillHost --synthetic`; VoiceOver speaks it; no
+  Skopry (HTTP 404)." once, no menu item, Check Now says "Couldn’t check: GitHub
+  has no release of Skopry yet.", `updateLastCheck` set), V2 now that it has a
+  newer release (0.3.1 for a 0.3.0 Skopry.app), V3 a refusal on the iPad (its
+  Debug build, `-SkopryConnect <this Mac>:P`, against
+  `SKOPRY_TEST_MIN_DEVICE_VERSION=99 SkopryHost --synthetic`; VoiceOver speaks it; no
   reconnect in 2 minutes), V4 mixed builds (PR #13's iPad build against this
-  Sill.app and this iPad build against PR #13's: as before), V5 VoiceOver on the
+  Skopry.app and this iPad build against PR #13's: as before), V5 VoiceOver on the
   Mac, V6 the first two notarized builds (permissions kept across the update;
   `--release` refuses an untagged HEAD, `release.sh --dry-run` only warns,
   `--publish` refuses until the tag is pushed), V7
   the privacy policy's Update check section (site/privacy.html) on the
-  published site (Saffsanity/sill-site republished with it on 2026-09-26).
+  published site (jeanpfs/skopry-site republished with it on 2026-09-26).
 
 **GitHub Actions (2026-09-25, branch `github-actions` from main at 1f3072a).**
 Noah: the download link still fails; a new release should be checked by
 GitHub, and does that cost money. The link fails twice over: there is no
 release (`release.sh --publish` has never run; `gh release list` is empty), and
-Saffsanity/sill is private, so its release files are a 404 to anyone not signed
+jeanpfs/skopry is private, so its release files are a 404 to anyone not signed
 in with access (docs/release-checklist.md, "Releasing from GitHub Actions",
-has both ways out: go public, or publish in sill-site; it went public on
+has both ways out: go public, or publish in skopry-site; it went public on
 2026-09-26, and v0.3.0 and v0.3.1 are published there). Added:
 - `.github/workflows/ci.yml` (Layout): pull requests and pushes to main that
   touch more than documents, the site or design files, and by hand; one job on
@@ -2697,18 +2701,18 @@ has both ways out: go public, or publish in sill-site; it went public on
   pinned by commit (checkout v7.0.1, cache v6.1.0, upload-artifact v7.0.1, the
   newest on 2026-09-25).
 - `.github/workflows/release.yml`: a pushed tag `v*` or by hand with a tag
-  (`SILL_RELEASE_TAG`); checkout with the whole history (make-app.sh's build
-  number is the commit count). Repository variable `SILL_SIGN_IN_CI` not
+  (`SKOPRY_RELEASE_TAG`); checkout with the whole history (make-app.sh's build
+  number is the commit count). Repository variable `SKOPRY_SIGN_IN_CI` not
   `true`: verify (the tag, the checks, `make-app.sh` signed ad hoc, the icon
-  there, `Sill-<version>-adhoc.zip` as an artifact for 14 days). `true`:
+  there, `Skopry-<version>-adhoc.zip` as an artifact for 14 days). `true`:
   the checks, a check that the five secrets are set, the .p12 into
-  `$RUNNER_TEMP/sill-release.keychain-db` (random password, masked; first in
+  `$RUNNER_TEMP/skopry-release.keychain-db` (random password, masked; first in
   the search list and the default keychain, where notarytool keeps profiles),
-  `notarytool store-credentials sill-notary --keychain` (validates the key),
+  `notarytool store-credentials skopry-notary --keychain` (validates the key),
   `release.sh --publish` with `GH_TOKEN` (the run's token, `contents: write`,
-  or `SILL_RELEASE_TOKEN` for `SILL_RELEASE_REPO`), the notary log as an
+  or `SKOPRY_RELEASE_TOKEN` for `SKOPRY_RELEASE_REPO`), the notary log as an
   artifact, and an always() step that deletes the keychain and key files.
-- `Scripts/release.sh`: `SILL_RELEASE_TAG` in the preflight (the tag must be
+- `Scripts/release.sh`: `SKOPRY_RELEASE_TAG` in the preflight (the tag must be
   `v<CFBundleShortVersionString>` and, when it is here, name HEAD);
   `--check-tag` checks only that. It refuses a build without Assets.car and
   AppIcon.icns (make-app.sh only warns when Quick Look or actool fail). Publish
@@ -2739,7 +2743,7 @@ has both ways out: go public, or publish in sill-site; it went public on
   release.sh's `--check-tag` on a match, a mismatch, unset, a tag on another
   commit and an annotated tag (a scratch clone), and a dry run with a wrong
   tag stopping before it builds; the Xcode rule on two fake image layouts; `gh
-  api repos/Saffsanity/sill` answers.
+  api repos/jeanpfs/skopry` answers.
 - Review fixes (one pass: triggers and permissions, secrets, the Xcode step,
   the cache, injected failures, costs, docs):
   - The Xcode step would have failed every job: the image's `bash` is 3.2 (its
@@ -2786,9 +2790,9 @@ has both ways out: go public, or publish in sill-site; it went public on
   branch's pull request: a draft counts too). The keychain and notary steps
   never ran (they change the keychain search list and the default keychain,
   which is not for this Mac), nor make-app.sh's Quick Look icon, spctl or
-  notarytool on a runner. The steps: decide public or sill-site; set the secrets
+  notarytool on a runner. The steps: decide public or skopry-site; set the secrets
   (`gh secret set`, the checklist); push a tag with the variable unset and
-  try the artifact; then set `SILL_SIGN_IN_CI` and push the next tag. Costs:
+  try the artifact; then set `SKOPRY_SIGN_IN_CI` and push the next tag. Costs:
   free once public; private, about 10 minutes a CI run against roughly 200
   included macOS minutes a month on GitHub Free (a macOS minute counts ten),
   then $0.062 a minute with a payment method on file, and nothing without one.
@@ -2796,7 +2800,7 @@ has both ways out: go public, or publish in sill-site; it went public on
   release workflow's verify job ran for v0.3.0 and v0.3.1 (make-app.sh's Quick
   Look icon on the runner included); the repository is public, so the runs
   cost nothing. The sign job never ran (no secrets are set, and
-  `SILL_SIGN_IN_CI` is not), so both releases were published by hand with
+  `SKOPRY_SIGN_IN_CI` is not), so both releases were published by hand with
   `release.sh --publish`.
 
 **Public README (2026-09-25, branch `public-readme` from main at b50e224,
@@ -2827,14 +2831,14 @@ plainly.
   app-store-readiness's release paragraph under Releasing (its Layout list
   fits the Overview), encoder-two-in-flight's stats-line bullet and its
   Resolution note under What to try if it's slow, and update-notice's (local,
-  not pushed) Updates paragraph under Sill.app, the menu bar host, its
+  not pushed) Updates paragraph under Skopry.app, the menu bar host, its
   Distribution text under Releasing and its device-hello paragraph after the
   gear paragraph of The iOS app. A change the public README describes (pairing
   at home, say) also updates README.md's How it works and Good to know.
 
 **App Store readiness (2026-09-25, branch `app-store-readiness` from main at
 76366e8; main at ba91136, PR #13 remote access, merged in, not rebased).** What
-a first upload of the iOS app and the first Developer ID download of Sill.app
+a first upload of the iOS app and the first Developer ID download of Skopry.app
 need, after the App Store audit. `docs/app-store-metadata.md` has the reasons,
 Apple's sources and every text to paste into App Store Connect;
 `docs/release-checklist.md` the order of work, once and on every release.
@@ -2848,12 +2852,12 @@ Apple's sources and every text to paste into App Store Connect;
   screen's footer (Layout, `ContentView`), for guidelines 1.5, 2.1 and
   5.1.1(i); the website in `site/` and `Scripts/release.sh` (Layout); the two
   docs, with the Remote Access switch (the cuts for a 1.0 without it).
-- Confirmed by Noah on 2026-09-25 (the site is live): the site at `https://getsill.app`
-  (`site/CNAME`, `SillLinks.swift`, both docs), the contact address
-  `support@getsill.app` (the privacy and support pages, the README and the
+- Confirmed by Noah on 2026-09-25 (the site is live): the site at `https://skopry.app`
+  (`site/CNAME`, `SkopryLinks.swift`, both docs), the contact address
+  `support@skopry.app` (the privacy and support pages, the README and the
   metadata; Cloudflare Email Routing forwards it to Noah), and the Mac download
   at `/download` (`site/download.html`, which links the newest GitHub Release's
-  `Sill.dmg`, `Sill.zip` until 0.3.1, and is never edited per release). The
+  `Skopry.dmg`, `Skopry.zip` until 0.3.1, and is never edited per release). The
   checklist's Placeholders table has the commands that change each everywhere.
 - The merge: the footer sits under main's connect screen (Add a Mac…, the
   Remote rows, the card, the leading anchor, the Duo's top half, the column at
@@ -2919,10 +2923,10 @@ Apple's sources and every text to paste into App Store Connect;
   under it), and a phone held sideways, which only the harness drew here
   (956x440). The release: the Developer ID
   certificate, notary credentials, release.sh for real, a first launch on a
-  Mac that never had Sill, the site on GitHub Pages with its DNS record, the
+  Mac that never had Skopry, the site on GitHub Pages with its DNS record, the
   App Store Connect record (the checklist's part 1). The description's claims
   not yet seen on a device: the cable on an iPhone, Pencil hover, 120 fps.
-  Done since: the domain and the address (2026-09-25), the site at getsill.app,
+  Done since: the domain and the address (2026-09-25), the site at skopry.app,
   the Developer ID certificate, the notary credentials and release.sh for real
   (v0.3.0 and v0.3.1), and the App Store Connect record (2026-09-26).
 
@@ -2946,7 +2950,7 @@ says; remote access works as its entries say. Where the two meet:
   "quit" at home: the session ends at once with its words, not after a
   rescue's dial to a Mac that is going; the reconnect waits too, see the
   review fixes below) and when this device closed the connection itself
-  (`end`: a message no Sill sends). #13's `reconnectIfListed` never runs
+  (`end`: a message no Skopry sends). #13's `reconnectIfListed` never runs
   beside a move (`moveUnderWay`: a move, or a session one carries on, which
   stays `connected` until the move takes over or ends it). #13's liveness (no
   byte for 6 s) now ends a stranded cable connection too; the rescue then
@@ -2959,7 +2963,7 @@ says; remote access works as its entries say. Where the two meet:
   `wiredDial`, or this branch's `wifiDial`), both for network rows only now
   that a row has a route (a Remote row is not Direct either) and an optional
   endpoint. `FoundMac.wifi` joined #13's initializer; `adopt` (a remote dial's
-  winner) forgets the path state as `connect` does; `-SillPathTest`'s
+  winner) forgets the path state as `connect` does; `-SkopryPathTest`'s
   addresses go through #13's address parser first, then the split at the last
   colon.
 - `SessionLink` is this branch's (hold, adopt, unhold, the chained fences):
@@ -2976,7 +2980,7 @@ says; remote access works as its entries say. Where the two meet:
   a 12,288-case grid, a model) and 9 mutants of it, 70 of 70 with the 61;
   remote access's rules check 64 of 64 and 35 of 35; the fence check's 12
   modes and 16 of 16 mutants. On a simulator of its own against the merged
-  `SillHost --synthetic`, one host at a time (21 hosts, the longest 49 s):
+  `SkopryHost --synthetic`, one host at a time (21 hosts, the longest 49 s):
   this branch's 18 scenarios as before the merge (refused-cable's other
   launch now a Python stand-in, so one real host suffices); remote access's
   pairing by link, a remote session by address that the plan keeps where it
@@ -2987,10 +2991,10 @@ says; remote access works as its entries say. Where the two meet:
   ends 7.5 s later with #13's words), 66 of 66 checks. close-slow on the merge
   commit's own build printed "connection silent for 6 s: lost" seven times,
   0.25 s apart, until the move ended; with the fix-up, never. The first run
-  stopped after four scenarios when Noah's iPad connected to Sill.app: that
+  stopped after four scenarios when Noah's iPad connected to Skopry.app: that
   host had passed the check before it started and ran 24 s beside his stream,
   so the runner (`scratchpad/integrate-12/sim/simmerge.py`) now also kills its
-  host the moment Sill.log shows a device connecting.
+  host the moment Skopry.log shows a device connecting.
 - Then main at b50e224 (PR #11, encoder recovery) merged at f863c74. Only
   CLAUDE.md conflicted: both Current-step entries kept, the best-path ones
   first; README merged by itself. Sources, Package.swift, Scripts and
@@ -3002,21 +3006,21 @@ says; remote access works as its entries say. Where the two meet:
   check 286 of 286 and 70 of 70 mutants, main's 187 of 187 and 25 of 25, the
   20 older mutants; remote access's rules check 64 of 64 and 35 of 35; the
   fence check's modes and 19 of 19 mutants. Not run on it: Release and device
-  builds, and the simulator scenarios against its `SillHost --synthetic`,
+  builds, and the simulator scenarios against its `SkopryHost --synthetic`,
   which now has b50e224's encoder recovery (the 21 hosts above ran ba91136's).
 - Review fixes after the merges. After goodbye "quit" the reconnect no longer
   dials the Mac's row at once. The row outlives the goodbye by about a second
   (a receiver keeps a record 1 s past its goodbye, RFC 6762 §10.1; a stand-in
-  for Sill.app's Quit, browsed on this Mac: gone 1.05–1.22 s after the
+  for Skopry.app's Quit, browsed on this Mac: gone 1.05–1.22 s after the
   connection ended, 11 of 11), and `sessionEnded` ran `reconnectIfListed` in
   the same main-queue turn, which took it (over the cable for a Wired row):
-  "Reconnecting to ‹Mac›…" replaced "‹Mac› quit Sill." before it was drawn,
+  "Reconnecting to ‹Mac›…" replaced "‹Mac› quit Skopry." before it was drawn,
   and the dial waited on a Mac that was going (#13 alone did the same at
   home). Now a row listed since before the goodbye is left alone for 3 s
   (`DiscoveryPolicy.quitWait`; `reconnectRow`'s `quitAt` and `networkSince`,
   from `Reconnect.afterQuit` and `sightings`): the words stay; the row listed
-  again (Sill is back) is taken at once by the usual rules (a Direct row after
-  its own 6 s), and one still listed at 3 s (Sill relaunched within that
+  again (Skopry is back) is taken at once by the usual rules (a Direct row after
+  its own 6 s), and one still listed at 3 s (Skopry relaunched within that
   second, a lost goodbye packet) is taken then. Any other end is as before.
   Verified: the policy check 310 of 310 (the merge's 286, and 24 for the
   rule: its cases, a grid of 17,820 against the old rule, a model of the
@@ -3024,26 +3028,26 @@ says; remote access works as its entries say. Where the two meet:
   `StreamClient` capture warning. No simulator scenario can show it: the
   synthetic hosts do not advertise, so no row lingers after their goodbye,
   and a session by address has no Bonjour name to reconnect by. DEBUG:
-  `-SillMoveTest to:HOST:PORT` split HOST:PORT at its last colon itself, so
+  `-SkopryMoveTest to:HOST:PORT` split HOST:PORT at its last colon itself, so
   `to:[::1]:P` listed the name "[::1]", which never connected (each try given
-  up after 5 s); it now reads it as `-SillConnect` does (`address(_:)`: the
+  up after 5 s); it now reads it as `-SkopryConnect` does (`address(_:)`: the
   address parser, then the split), and Build and run below names `other:PORT`
-  and `-SillWiredTest` too. Verified on a simulator of its own against
-  `SillHost --synthetic` built from the same tree (b50e224's host code), one
+  and `-SkopryWiredTest` too. Verified on a simulator of its own against
+  `SkopryHost --synthetic` built from the same tree (b50e224's host code), one
   host at a time (9 hosts, the longest 18 s;
   `scratchpad/integrate-12/apply-fixes/sim/simapply.py`): `to:[::1]:P`,
   `to:::1:P` and `to:fe80::…%en0:P` from 127.0.0.1 each list the address and
   move (the host sees the second connection; the scoped one reads its route
-  again at the hand-over), and, as before, `-SillMoveTest 1`, a move's wired
+  again at the hand-over), and, as before, `-SkopryMoveTest 1`, a move's wired
   test, a plain session, close-slow (#13's words) and remote access's host
   gone and back (the session's end and the remote redial, which the quit fix
   runs through): 32 of 32 checks. The runner's app is signed to run locally:
   unsigned, the simulator gives it no keychain, and pairing stops at the
   device key (-34018) before it prints anything. Comments and docs: the
-  harness contract in `ContentView` names `-SillSettingsEnd 1`,
-  `-SillDeviceKeySE 1` and `-Sill.directWirelessMacs`, says the pairing
-  arguments run under `-SillLive 1` too, and which remote settings cases are
-  away from home (no route word) and which at home (Wi-Fi); `-SillWiredTest`'s
+  harness contract in `ContentView` names `-SkoprySettingsEnd 1`,
+  `-SkopryDeviceKeySE 1` and `-Skopry.directWirelessMacs`, says the pairing
+  arguments run under `-SkopryLive 1` too, and which remote settings cases are
+  away from home (no route word) and which at home (Wi-Fi); `-SkopryWiredTest`'s
   comment says network rows (a Remote row is not Direct either);
   `address(argument:)` no longer repeats `address(_:)`'s paragraph. Left as
   it is here: README's "four source files", which main's PR #15 replaced
@@ -3059,10 +3063,10 @@ says; remote access works as its entries say. Where the two meet:
   after PRs #14 and #15) without a conflict.
 - **Untested, for Noah:** the entries below on the merged build, and: a remote
   session at home with the cable plugged in stays remote (the console's "path:
-  kept: a remote session…", the card's "through Tailscale"); Sill.app's Quit
-  while the iPad streams over the cable gives "‹Mac› quit Sill." at once and
+  kept: a remote session…", the card's "through Tailscale"); Skopry.app's Quit
+  while the iPad streams over the cable gives "‹Mac› quit Skopry." at once and
   keeps it, with no "dialing ‹Mac› on anpi0 (wired)" on the console before
-  the row is listed again or 3 s have passed, and reopening Sill reconnects
+  the row is listed again or 3 s have passed, and reopening Skopry reconnects
   over the cable.
 
 **The session follows the best path (2026-09-25, branch `follow-best-path` from
@@ -3103,12 +3107,12 @@ DEBUG console: "path: the cable appeared: moving the session to anpi0", "path:
 the cable went away: moving to Wi-Fi on en0", "path: the cable went away with
 the connection: reconnecting over Wi-Fi on en0 now", "path: kept: …", and what
 iOS said ("path: the session's connection is not viable…", "path: iOS says the
-session's path is unsatisfied…"); `-SillPathTest` drives it in the simulator
+session's path is unsatisfied…"); `-SkopryPathTest` drives it in the simulator
 (ContentView's contract). Verified: the policy check at 253 (187 plus 66: the
 plan at every boundary, a 20,480-case grid, a model of plugs, pulls, blinks,
 silence and a loose cable), 48 of 48 mutants caught (25 plus 23); the fence
 check's eight modes (new: hold, holdclosed, unhold, adoptfence), six mutants of
-the new SessionLink code caught; in the simulator against `SillHost
+the new SessionLink code caught; in the simulator against `SkopryHost
 --synthetic`, dialling this Mac's own `fe80::…%en0` ("Wi-Fi") and
 `fe80::…%en14` (the USB cable to the iPad, "Wired"): the cable listed at 3 s,
 moved about 2 s later with the fence down in 1–2 ms; the path reported gone,
@@ -3126,7 +3130,7 @@ over Wi-Fi (`%en0`, or the iPad's Wi-Fi IPv4 address; the cable's connection
 leaves by itself, at the latest by eviction 4 s on); and which signal iOS gave
 first (the console's "path:" lines), since a pull's own signals have never
 been seen on a device. And on the cable, another app for over 4 s (the Mac
-evicts the suspended iPad), then back to Sill: "path: the connection went
+evicts the suspended iPad), then back to Skopry: "path: the connection went
 away, the cable did not", the host's "Client connected" over the cable again,
 and no hop to Wi-Fi.
 
@@ -3150,7 +3154,7 @@ a dead path), and a connection ready again after waiting clears `waiting` and
 starts no second read loop. A listing of the cable that reached another Mac
 or launch is not tried again while it lasts (`refusedCable`), and moves up
 that do not complete wait 10, 20, 40, then 60 s (`upWait`), where before they
-went every 5 s for as long as the cable stayed in. `-SillPathTest` gained
+went every 5 s for as long as the cable stayed in. `-SkopryPathTest` gained
 `close` (the connection closed, the row as it is) and `direct` (the session
 counts as one over AWDL). Verified: the policy check at 277 (the 253, whose
 grid now also spans refused listings and failed moves up, plus 24: the
@@ -3162,7 +3166,7 @@ three: 27 inputs lost with 41 inversions, and two holds refused), 16 of 16
 mutants of the new code caught; iOS Debug for the simulator and the iPad
 (build only) and Release for the simulator, only the old `StreamClient`
 warning; in a simulator of its own (another agent's UI tests had the shared
-one) against `SillHost --synthetic`: the connection closed over the cable,
+one) against `SkopryHost --synthetic`: the connection closed over the cable,
 reconnected over the cable in 10 ms with no Wi-Fi hop; the cable's dial never
 answering, on Wi-Fi 2.5 s later, then moves up 5, 15 and 35 s after, each
 given up; a cable that connects but sends no list, and one refused at once,
@@ -3180,7 +3184,7 @@ of Noah's home streams at 40 Mbps (7,445 of 22,081 seconds with 50 or more
 frames captured and none idle), and nearly always over Tailscale at 4 and 15
 Mbps; every such second read like
 `cap.complete 56 enc.mailboxDrop 24 enc.out 33 net.sent 33`. An investigation
-and a verifier (read-only: Sill.log and the kernel's AppleAVE2 log) found:
+and a verifier (read-only: Skopry.log and the kernel's AppleAVE2 log) found:
 - The network held nothing back (`net.dropped` 0, `net.sent` = `enc.out`);
   nothing after the encoder waits. The whole loss was the mailbox.
 - The hardware encoder falls into a slow state, often after a few seconds of
@@ -3208,7 +3212,7 @@ alone reads like the slow state in the stats line: in those runs a synthetic
 Retina stream with one inside, beside the panel alone (15:43:39–15:44:09),
 read ~32 fps with ~27 drops a second, and Noah's Retina Desktop beside it
 33–36 fps (the operational rule in "The hardware encoder: busy, not stuck").
-The HeartBeat tells them apart: it lists the panel's session beside Sill's,
+The HeartBeat tells them apart: it lists the panel's session beside Skopry's,
 and its C/F, the engine's figure, read 9.5–10.6 ms there against 14.0 for the
 slow state alone. The deciding run had the engine alone:
 
@@ -3224,7 +3228,7 @@ interposer on `VTCompressionSessionEncodeFrameWithOutputHandler`
 motion, then 5, 10 or 20 s still (or 15 s with a step every 0.3 s), then 35 s
 of motion (90 s once), for the slow state; 35 s of motion from the start for
 the fast state. One and two frames inside (the switch,
-`SILL_TEST_ENCODER_IN_FLIGHT=2`), in alternating pairs.
+`SKOPRY_TEST_ENCODER_IN_FLIGHT=2`), in alternating pairs.
 - What the slow state is. A fresh session's turnaround (submit to output) is
   8.7–9.2 ms for its first ~4 s, then ~16.2 ms at the same 57 fps, just under
   the frame interval, with C/F 9.0 throughout. About a second into a quiet
@@ -3248,7 +3252,7 @@ the fast state. One and two frames inside (the switch,
   ms a frame (40–45 fps), in 6 of 8 runs (one was on the faster step from its
   first second, one never stepped: 35.5 fps), which one inside never did. It
   cost 17–27 ms from capture to output per pair (median 39.7 → 59.4 ms, p95 51
-  → 68.5; the turnaround 28.9 → 45–56 ms), which Sill's frame age, taken after
+  → 68.5; the turnaround 28.9 → 45–56 ms), which Skopry's frame age, taken after
   the encoder, cannot show. In the fast state it gained and lost nothing
   (57.3–57.5 fps either way, +0.2 ms at the median). The harness (the real
   `HEVCEncoder` with synthetic frames, no ScreenCaptureKit: 3 s at 60 fps, 6 s
@@ -3267,14 +3271,14 @@ the fast state. One and two frames inside (the switch,
   motion never moved it); the engine paces itself to the rate it sees (9 → 16
   ms at 57 fps with C/F unchanged); at the slow levels the turnaround is about
   twice C/F. In two runs discarded for sharing, another agent's independent
-  3024×1904 session on the engine lifted Sill's one-inside session to 49–57
+  3024×1904 session on the engine lifted Skopry's one-inside session to 49–57
   fps at C/F ~6 ms, and it fell back to ~34 when that load paused: load, not a
   second frame of the same stream, moves the engine. Next to try: the engine's
   power state or rate control (`EnableLowLatencyRateControl`, "The hardware
   encoder: busy, not stuck" below), not pipelining. Tried first instead, and
   kept: a new session (below). Resolution: Standard avoids the plateau too
   (57 fps with no drops at 1512×982).
-- Not measured: Sill.app (the CLI only), 120 fps, other bitrates, a device,
+- Not measured: Skopry.app (the CLI only), 120 fps, other bitrates, a device,
   other chips (a Max has two encode engines), real content beyond the
   scrolling window.
 
@@ -3319,18 +3323,18 @@ What the branch keeps:
   30 ms 33.3 fps with 26.7 mailbox drops a second and a latency median of
   36.7 ms; 40 ms 25 fps; random turnarounds with refusals, second notices,
   rate-control drops and keyframe requests, every frame settled once; a stuck
-  frame, `SILL_TEST_ENCODER_HANG`, slow and blocked encode calls, `abandon`,
+  frame, `SKOPRY_TEST_ENCODER_HANG`, slow and blocked encode calls, `abandon`,
   the teardown, keyframes and timestamps), and its mutants (`mutants.py`, each
   must fail it); the probe check, the real `EncoderProbe.swift` against a
   stand-in encoder in real time (one frame inside at most, 33 fps at 30 ms a
-  frame, a stuck frame counted and reported back, `SILL_TEST_PROBE_HOLD=0.08`
+  frame, a stuck frame counted and reported back, `SKOPRY_TEST_PROBE_HOLD=0.08`
   ~11 fps); the encoder check, the real `HEVCEncoder.swift` against
   `encoder/FakeVT.swift` in real time (every kind of session holds one frame at
   most and prints nothing when made, what a stuck encoder keeps, the order
   race, the keyframe's second look). `verify-hardware.sh` runs the hardware
   steps (parity, stream, harness, probe, keyframe) against 4fe37d4 built from
   `git archive`, each only while `no-device.sh` finds no device connected to
-  Sill.app.
+  Skopry.app.
 - Verified after the two-inside paths were removed (2026-09-25, 21:30–22:05):
   a clean `swift build -c release` from `git archive` (only the old
   CaptureProbe warning); the mailbox check, 38,256 checks, and 27 of 27 mutants
@@ -3403,13 +3407,13 @@ whose session has settled in it gets a new session in place, on by default
   stalled. A waiting new session is dropped when the stream's session dies
   (the watchdog, `abandon`), with the encoder, or when it is made after the
   encoder went.
-- `SILL_TEST_ENCODER_RECYCLE=1` or `0` overrides the constant for one process
+- `SKOPRY_TEST_ENCODER_RECYCLE=1` or `0` overrides the constant for one process
   (an A/B from one binary; a "TEST:" line says so).
 
 Measured alone on the engine with the solo measurement's method (its scripts,
 guards and motion window, copied): the CLI built from c27d6df by `git
 archive`, the real Desktop at 3024×1964, 60 fps and 40 Mbps to a loopback
-test client, this M2 Pro on AC power. No device connected (Sill.log's last
+test client, this M2 Pro on AC power. No device connected (Skopry.log's last
 connect 18:50:52; the guard before and after every run), no user input
 (HIDIdleTime rising through every run), and each run's HeartBeat listing only
 its own sessions (the stream's and, switched on, its replacement, both
@@ -3466,7 +3470,7 @@ two runs each. Figures are the resumed motion less its first 2 s:
   in the seconds after a start that fell 80 ms before a stats tick, by one
   mailbox drop, and by `cursor.shape` in two seconds (the Mac's cursor
   changed).
-- Not measured: Sill.app (the CLI only; the same core), a device (the keyframe
+- Not measured: Skopry.app (the CLI only; the same core), a device (the keyframe
   over Wi-Fi, its decode), 120 fps, other bitrates, a shared engine (a new
   session there should be judged no faster and kept: the checks only), a size
   the engine is slow at (never replaced: the checks only; since the review
@@ -3536,10 +3540,10 @@ two runs each. Figures are the resumed motion less its first 2 s:
     Mbps, 12 s of motion from the start: no replace (24.64 ms at best, 32.8 at
     the median, the engine slowing to ~33 ms after about 4.5 s, as the review
     saw).
-  - Not measured: the order fix or the new rule in Sill.app or SillHost with
+  - Not measured: the order fix or the new rule in Skopry.app or SkopryHost with
     ScreenCaptureKit and real content, the iPad's decoder at a swap, other
     sizes, rates and bitrates.
-- **Untested, for Noah:** stream the Retina Desktop from Sill.app to the iPad,
+- **Untested, for Noah:** stream the Retina Desktop from Skopry.app to the iPad,
   leave the screen still for a few seconds, then scroll: about 2 s into the
   scroll the log shows one "Encoder (hardware HEVC …): frames took 29 ms each
   …; a new session takes 9 ms …" line and `enc.out` climbs back to
@@ -3552,7 +3556,7 @@ two runs each. Figures are the resumed motion less its first 2 s:
 
 **The hardware encoder: busy, not stuck (2026-09-24; fixed 2026-09-25, branch
 `encoder-recovery` from main at 76366e8, with main at ba91136 merged in: the
-bullet before the last).** Sill.app's watchdog fired twice on 2026-09-24 and
+bullet before the last).** Skopry.app's watchdog fired twice on 2026-09-24 and
 both times the host stayed on the software encoder until it relaunched, which
 was Noah's poor frame rate (~3 h at 1512×982, 46–55 fps with motion, 6–46 fps
 at the end, through 18 settings changes the fallback's caps made useless). The
@@ -3562,14 +3566,14 @@ frames submitted | completed) shows neither was a wedge:
 - 19:00:21 (40 Mbps, the Retina desktop at 60 fps, a 61 s old session): the
   iOS Simulator's screen recorder (SimRenderServer, what `simctl io
   recordVideo` drives: H.264 2064×2752 of the iPad Pro 13" simulator, 38 Mbps,
-  priority 80) shared the one encoder engine with Sill and an agent's `SillHost
-  --synthetic` (both priority 0). Sill fell to 7–8 fps, then its frame waited
+  priority 80) shared the one encoder engine with Skopry and an agent's `SkopryHost
+  --synthetic` (both priority 0). Skopry fell to 7–8 fps, then its frame waited
   ~8.6 s; the invalidate blocked 7.06 s, off-thread, and the frame completed
-  0.3 s after the other SillHost process died. A fresh 256×256 probe answered
+  0.3 s after the other SkopryHost process died. A fresh 256×256 probe answered
   within 270 ms with the recorder still running, while the next stream-size
   sessions stalled again (0.3–9.5 s).
 - 23:30:04 (150 Mbps, a 36 s old session, running 57–58 fps alone): the
-  recorder opened a session at 23:29:45.2 and Sill fell from 58 to 22 fps in
+  recorder opened a session at 23:29:45.2 and Skopry fell from 58 to 22 fps in
   that second, then ran 13–45 fps; a frame waited ~1.8 s and completed (the
   invalidate took 0.17 s). A near miss at 23:27:54 (57 → 2–34 fps) came from
   the same recorder. The render and the benchmarks named at the time ran later.
@@ -3585,7 +3589,7 @@ frames submitted | completed) shows neither was a wedge:
   HEVC and H.264 0, not real-time 0, `EnableLowLatencyRateControl` 60 (RCMode
   20), the recorder 80. No public key sets it. One engine on this M2 Pro:
   unthrottled HEVC 3024×1968 runs ~105–115 fps (~650 MP/s), so the Retina
-  desktop at 60 fps takes 55–65 % of it and any other encode costs Sill frames
+  desktop at 60 fps takes 55–65 % of it and any other encode costs Skopry frames
   without a hang (a 3024×1904 test beside Noah's 1512×982 desktop: both at
   57–60 fps for ~4 s, then both at ~50, 2026-09-25). A Retina desktop at 120 fps
   (~713 MP/s) exceeds it alone (untested).
@@ -3636,15 +3640,15 @@ What the host does now:
   test that ends with no device left is dropped without a line or a backoff.
 - Why a rate at the stream's size and not one small frame: at 03:26 on
   2026-09-25, with another agent's Simulator recording (priority 80) and a
-  second SillHost on the engine, a 256×256 frame answered in 72 ms, the
+  second SkopryHost on the engine, a 256×256 frame answered in 72 ms, the
   stream went back to the hardware and ran at 12 fps there (it had run at ~57
   on the software encoder), and no watchdog fires for a slow stream. Noah's
-  own Sill.app sat at 8–18 fps in the same minutes, and at 03:32:02 it fell
+  own Skopry.app sat at 8–18 fps in the same minutes, and at 03:32:02 it fell
   back once more (16, then 2 fps, then the watchdog), which the old build
   keeps until it relaunches.
 - Why the bar follows the size (review, 2026-09-25): a fixed 45 fps asked more
   than a free engine gives a large frame. Measured with the engine free (Noah's
-  Sill.app on the software encoder), as the probe was (frames drawn inside the
+  Skopry.app on the software encoder), as the probe was (frames drawn inside the
   timing, utility QoS) and as it is: 6016×3384, a Retina 6K Desktop, 37 and
   39 fps; 5120×2880 50 and 53; 3024×1904 115 and 121. So a host streaming a 6K
   Desktop read "busy" at every check and stayed on the software encoder for
@@ -3672,12 +3676,12 @@ What the host does now:
   run at up to 60 fps at Standard." (it said "until the Mac restarts"; it
   promises neither now, as hosts before this change keep the fallback until
   they relaunch), and goes away by itself when the host clears the flag.
-- Test hooks, read once and inert without them: `SILL_TEST_ENCODER_HANG=N`
+- Test hooks, read once and inert without them: `SKOPRY_TEST_ENCODER_HANG=N`
   (the first N hardware stream sessions hold frame 90 for 3 s before it goes
-  in: a busy engine; it prints a "TEST:" line), `SILL_TEST_PROBE_HOLD=S` (every
+  in: a busy engine; it prints a "TEST:" line), `SKOPRY_TEST_PROBE_HOLD=S` (every
   frame of every probe waits S s: 0.08 a starved engine, 2 a busy one, a huge
-  S a stuck one), `SILL_TEST_RECHECK_SECONDS=N` (intervals N to 10 N instead
-  of 30 to 300) and `SILL_TEST_PROBE_SIZE=WxH` (the re-check tests that size,
+  S a stuck one), `SKOPRY_TEST_RECHECK_SECONDS=N` (intervals N to 10 N instead
+  of 30 to 300) and `SKOPRY_TEST_PROBE_SIZE=WxH` (the re-check tests that size,
   as for a Retina 5K or 6K Desktop on a smaller screen).
 - Diagnosis: `/usr/bin/log show --start '2026-09-24 18:55' --end '2026-09-24
   19:05' --style compact --predicate 'sender == "AppleAVE2" AND (eventMessage
@@ -3688,39 +3692,39 @@ What the host does now:
   "VTEncoderXPCService" AND eventMessage CONTAINS "videoencoder.peer"` to map
   sessions (the next "AVE : open") to client PIDs.
 - Operational rule, from the same logs: while Noah streams, agents do not run
-  `simctl io recordVideo`, SillHost streams, ReelRenderer or encoder benchmarks;
-  each shares the one engine, and the recorder outranks Sill. The Claude app's
+  `simctl io recordVideo`, SkopryHost streams, ReelRenderer or encoder benchmarks;
+  each shares the one engine, and the recorder outranks Skopry. The Claude app's
   iOS Simulator panel counts too: `claude-ios-sim` encodes the simulator's
   screen at priority 60 (~62 fps at 2064×2752), and Noah's Retina Desktop fell
   from 57 to 33–36 fps beside it (33–34 for its first 40 s), and to 11–18 fps
   while another agent's priority-80 recording of that simulator ran as well
-  (8–17 with a SillHost besides; 2026-09-25, 15:14–15:24).
-- Not in this change: `EnableLowLatencyRateControl` would put Sill at priority
+  (8–17 with a SkopryHost besides; 2026-09-25, 15:14–15:24).
+- Not in this change: `EnableLowLatencyRateControl` would put Skopry at priority
   60 (above every default session, still below the recorder's 80) and follows
   live bitrate changes, but it changes the bitstream and rate control (frames
   dropped at 8 Mbps in the rate test): a flagged experiment with iPad tests.
 Verified headless (the synthetic host; hardware runs kept to seconds, Noah's
-Sill.app streaming beside them): clean build (only the old CaptureProbe
+Skopry.app streaming beside them): clean build (only the old CaptureProbe
 warning); the CLI against 76366e8 built from `git archive`, masked and
 sorted: idle identical, and with a client and a bitrate change identical but
 for `enc.mailboxDrop` counts, which follow the other encoder users of the
-moment (either build had them); `SILL_TEST_ENCODER_HANG=1` with a client: the
+moment (either build had them); `SKOPRY_TEST_ENCODER_HANG=1` with a client: the
 hang at 1.5 s, the fallback, 1512×948, "came back after 3.0 s", back 30.0 s
 later (114 fps in the test) and 3024×1898 on the hardware at 60 fps for 67 s,
 the client getting frames every second but the hang's; `=2`, while another
-agent's Simulator recording and SillHost came and went: the check at 30 s
+agent's Simulator recording and SkopryHost came and went: the check at 30 s
 "busy (25 fps …); next check in 60 s", back 60 s later at 114 fps, the
 second hang 3 s after the return and "next check in 120 s"; with
-`SILL_TEST_PROBE_HOLD=0.08` while the recorder and another SillHost really
+`SKOPRY_TEST_PROBE_HOLD=0.08` while the recorder and another SkopryHost really
 shared the engine (the test's own hardware stream ran at 16 fps): "busy
 (7 fps …)" at 30 s and "(8 fps …)" 60 s later, no return; the client leaving
 during a fallback: no session from the host in the kernel log for 40–45 s
 (the next check was due after 30), then a client again: the test at the
 Desktop's size (112 fps) and back ~100 ms after its stream started on the
-software encoder; `SILL_TEST_PROBE_HOLD=100000 SILL_TEST_RECHECK_SECONDS=1`
+software encoder; `SKOPRY_TEST_PROBE_HOLD=100000 SKOPRY_TEST_RECHECK_SECONDS=1`
 with a client picking nothing: the launch fallback, then checks 1, 2, 4, 8,
 10, 10 and 10 s apart, all unanswered, and the stuck line after the 8th
-unanswered probe (the launch one and 7 checks); `SILL_TEST_PROBE_HOLD=2`:
+unanswered probe (the launch one and 7 checks); `SKOPRY_TEST_PROBE_HOLD=2`:
 unanswered probes, each back 2 s later, never stuck; previews against
 76366e8: only menu.txt (the copy and a new `software-encoder-stuck` sample,
 its cards equal to the busy one's) and the General pane's "Running from" path
@@ -3733,31 +3737,31 @@ mutants caught (the fixed 45, the engine term without its share, no 60 fps
 cap, an assumed rate above this engine); the CLI against 76366e8 (`git
 archive`), masked and sorted: idle identical, with a client and a bitrate
 change identical (a first pair differed by one `enc.mailboxDrop` in the
-base's first second); `SILL_TEST_ENCODER_HANG=1`: back 30.1 s after the
+base's first second); `SKOPRY_TEST_ENCODER_HANG=1`: back 30.1 s after the
 fallback ("121 fps at 3024×1896 in a test, 45 needed"), the client getting
 frames every second but the hang's (40–57 fps on the software encoder, 60 on
-the hardware); `=2` with `SILL_TEST_PROBE_SIZE=6016x3384
-SILL_TEST_RECHECK_SECONDS=5`: "39 fps at 6016×3384 in a test, 15 needed", the
+the hardware); `=2` with `SKOPRY_TEST_PROBE_SIZE=6016x3384
+SKOPRY_TEST_RECHECK_SECONDS=5`: "39 fps at 6016×3384 in a test, 15 needed", the
 second hang and "next check in 10 s", then "39 fps …, 29 needed"; the
-verifier's overlap run (`SILL_TEST_PROBE_HOLD=1000
-SILL_TEST_RECHECK_SECONDS=4`, a device leaving during a test and another
+verifier's overlap run (`SKOPRY_TEST_PROBE_HOLD=1000
+SKOPRY_TEST_RECHECK_SECONDS=4`, a device leaving during a test and another
 arriving): one line, "next check in 8 s" (it was two, 8 then 16 s), none when
 nobody comes back, and the second device's own check 8 s later;
-`SILL_TEST_PROBE_HOLD=70 SILL_TEST_RECHECK_SECONDS=1`: the stuck line at
+`SKOPRY_TEST_PROBE_HOLD=70 SKOPRY_TEST_RECHECK_SECONDS=1`: the stuck line at
 65.0 s, the launch probe's frame back at 70.2 s, "a check's frame came back
 after 70.0 s, so it is not stuck; checks resume" and a check at once; with
 the device gone by then, the same line at 70.2 s and the next device checked
 the moment it connected.
 - Merged with main at ba91136 (2026-09-25: PR #13, remote access; one merge
-  commit, not a rebase). Git stopped only on `Scripts/sillclient.py`, and both
+  commit, not a rebase). Git stopped only on `Scripts/skopryclient.py`, and both
   sides stay: main's remote-door flags and LINK line, this branch's `kB=` each
   second. Checked by hand in every file both sides changed: `StreamCoordinator`
-  has main's routes, kind 21, the kind 17 cap, Sill's own windows kept off the
+  has main's routes, kind 21, the kind 17 cap, Skopry's own windows kept off the
   Desktop and the goodbye at quit beside the fallback and the re-check; the
   re-check runs while any device is connected, at home or through the remote
   door (both register in `StreamServer.clients`, which `onClientCountChanged`
   counts), and a return restarts the stream through `select` like any other
-  restart (`switching` is set before main's new wait for Sill's own app). The
+  restart (`switching` is set before main's new wait for Skopry's own app). The
   menu lists the encoder's item (Busy or Stuck) before main's "Remote Access
   Can’t Start"; `HostStatus`, `HostSettings.swift` (the `softwareEncoder` doc
   beside the seven presets), `SettingsPanes`, `DebugHooks` (both sides'
@@ -3772,9 +3776,9 @@ the moment it connected.
   Responding, and the `software-encoder-stuck` sample) and that sample's two
   cards, equal to the busy one's. Not run at the merge: the CLI's output
   against main's (idle 35 s and a Desktop pick, masked and sorted) and the
-  `SILL_TEST_ENCODER_HANG=1` run (the fallback, the stalled-frame line, the
+  `SKOPRY_TEST_ENCODER_HANG=1` run (the fallback, the stalled-frame line, the
   return ~30 s later), both kept off the hardware encoder because Noah's iPad
-  was streaming from Sill.app the whole time.
+  was streaming from Skopry.app the whole time.
 - **Untested, for Noah:** a build of this branch in /Applications
   (`Scripts/make-app.sh --install --open` from this branch, which now carries
   remote access too, or from main, which has it since b50e224; only a new
@@ -3824,7 +3828,7 @@ two meet:
   sightings by Mac ID); every row dial, a tap's or the reconnect's, goes
   through `dial`, so a "Wired" row dials the cable first. The move to the
   network keeps its SessionLink fence and sets the session's route to network.
-  `-SillConnect` takes `[::1]:P` (the address parser) and
+  `-SkopryConnect` takes `[::1]:P` (the address parser) and
   `fe80::…%en0:P` (split at the last colon). In the project file main's
   SessionLink keeps A015/F015 and DeviceIdentity moved to A01D/F01D.
 - Verified without devices: `swift build` (only the CaptureProbe warning), iOS
@@ -3851,10 +3855,10 @@ two meet:
   disconnects a home client on this Mac's en0 link-local address and not a
   remote session from the same address, and the remote door's port never
   changes (a build without the remote-session guard fails this); the home
-  door's caps and origin gate; the bare app's `-SillSetAfter` bitrate, Direct
+  door's caps and origin gate; the bare app's `-SkoprySetAfter` bitrate, Direct
   Wireless and Remote Access (one Settings line each, one restart in all),
   saved across a relaunch. On a simulator of its own: by address, the route
-  word read; `-SillMoveTest 1` moved and fenced; `-SillPairURL` pairing and a
+  word read; `-SkopryMoveTest 1` moved and fenced; `-SkopryPairURL` pairing and a
   remote session; the host gone and back, redialled remotely.
 - Review of the merge (2026-09-25, after 3a7b501). Fixed: a lost saved Mac's
   automatic remote dial counts `networkGrace` from the moment its network row
@@ -3875,23 +3879,23 @@ two meet:
   listed) with 35 of 35 mutants (two new, on the leave), main's policy check 187
   with its 25 and the 20 old mutants; an event model of the reconnect on these
   files: with the row gone at the loss the first remote dial moves from +3.2 s
-  to +10.0 s (Sill quitting: +8.0 to +11.0 s), what the by-name sightings give;
-  the probe copied verbatim into a loopback harness: Sill's traffic probed as
+  to +10.0 s (Skopry quitting: +8.0 to +11.0 s), what the by-name sightings give;
+  the probe copied verbatim into a loopback harness: Skopry's traffic probed as
   before, an SSH banner and a 1.7 GB frame header closed at once (before, both
   held the move until its 5 s ran out, the second with the harness at 534 MB), a
   window list cut short and then the stream's end no longer taken as the Mac's;
   the CLI's output idle and with a client, masked and sorted, main's; on a
-  simulator of its own `-SillMoveTest 1` and `to:` this Mac's `fe80::…%en0`
+  simulator of its own `-SkopryMoveTest 1` and `to:` this Mac's `fe80::…%en0`
   (moved and fenced, the second gaining "Wi-Fi" at the hand-over),
-  `-SillPairURL` pairing, a remote session and its automatic redial; 63 photos
+  `-SkopryPairURL` pairing, a remote session and its automatic redial; 63 photos
   of the route line (seven layouts, three text sizes) identical to 3a7b501's but
   for the six at xxLarge on the 340 pt panels, and long VPN names wrap at the
   route's words, never inside one. The review's reruns on 3a7b501, none failing:
   on the simulator S4 and S5 13 of 13, S7 against a9cc248's host, S8 in short
   host runs (typed pairing through the relay, 60 fps through a VPN route and 120
   by address, the 300 ms callout), testS3OutsideLink and the three RF2 UI tests
-  (the link test's Mac A a stand-in, not a second host), `-SillConnect` by this
-  Mac's `fe80::…%en0` ("Wi-Fi") and `-SillMoveTest to:` it; the host gates
+  (the link test's Mac A a stand-in, not a second host), `-SkopryConnect` by this
+  Mac's `fe80::…%en0` ("Wi-Fi") and `-SkopryMoveTest to:` it; the host gates
   H7–H12, H10(f) on the bare app, H15, H17 and a variant with `--remote` through
   Direct Wireless off (a fresh tag, only the scoped home client disconnected,
   the remote session streaming on), H18 and H19, and H14 (no base run), H16 and
@@ -3904,7 +3908,7 @@ two meet:
   real menu (the label on the source row is a merge decision), a "Wired" row's
   reconnect after a loss (it goes through `dial` now), and the move to the
   network with remote access on. The grace: at home with a paired Mac and
-  Remote Access on, quit Sill.app while the iPad streams and reopen it 7–10 s
+  Remote Access on, quit Skopry.app while the iPad streams and reopen it 7–10 s
   later; the iPad should come back on the home door (the host logs no remote
   client).
 
@@ -3920,14 +3924,14 @@ fixes of step 9's first review round (below); the branch merged as PR #13
   Wireless (`OriginPolicy`), with caps (1 MiB messages, 4 kind-17 changes a
   second, a clean device name). The remote door (`RemoteServer`, port 7455) is
   TLS 1.3 only, both ends self-signed P-256 keys pinned by SPKI SHA-256, ALPN
-  `sill/1` for a paired key, `sill-pair/1` only while a pairing window is
+  `skopry/1` for a paired key, `skopry-pair/1` only while a pairing window is
   open; pre-auth caps (8 pending, 2 per source, backoff after 5 of its own
   refusals), 8 sessions, remote clients evicted after 8 s of silence, forced
   keyframes at least 2 s apart. Kinds 18 (the signed MacInfo: Mac ID, name,
   addresses), 19/20 (one pairing request and its answer), 21 (Pair This iPad…,
   home door only) and 22 (goodbye) are skipped by older readers; the TXT record
   carries a recognition tag (`r`) only paired devices can read.
-- Pairing: the Mac's window shows a QR code (`sill://pair?…`, pinned to the
+- Pairing: the Mac's window shows a QR code (`skopry://pair?…`, pinned to the
   Mac's key) and a 12-digit code (Damm check digit; PBKDF2 600k), 5 minutes,
   single use, five wrong tries, and the address to type with the code:
   Tailscale's MagicDNS name and its IPv4 under it ("or 100.101.102.103"), else a
@@ -3939,11 +3943,11 @@ fixes of step 9's first review round (below); the branch merged as PR #13
   address answered nothing, the Tailscale name and address both paired;
   checked with swiftc, 80 checks and 35 of 35 mutants, and photographed as the
   previews' `pairing-novpn`, `pairing-othervpn` and `pairing-longname`).
-  Sill.app: Settings › Remote Access (a fifth tab: the switch, the addresses,
+  Skopry.app: Settings › Remote Access (a fifth tab: the switch, the addresses,
   the port, paired devices, the internet switch with the router's answer, the
   address name, sleep), the menu's Remote Access… and Pair iPhone or iPad…,
-  identity in the login keychain (`KeychainIdentityStore`; label "Sill Remote
-  Access", service `me.saffer.sill.remote`), idle sleep held off while a
+  identity in the login keychain (`KeychainIdentityStore`; label "Skopry Remote
+  Access", service `app.skopry.remote`), idle sleep held off while a
   device is connected remotely. The CLI's `--remote` uses a throwaway identity
   per run.
 - iOS: `DeviceIdentity` (a Keychain key, this device only), `SavedMacs`,
@@ -3951,7 +3955,7 @@ fixes of step 9's first review round (below); the branch merged as PR #13
   apart, every failure's words), Remote rows after the network's 3 s, the
   reconnect order after a loss, liveness on every route; the connect screen's
   "Add a Mac…" card (the VisionKit scanner or the typed address and code),
-  `sill://pair` links only ever confirmed, Pair This iPad… as an overlay over
+  `skopry://pair` links only ever confirmed, Pair This iPad… as an overlay over
   the stream, the panel's route line ("Connected through Tailscale · 48 ms"),
   its Away from home group and the slow-link callout; the Low preset (4 Mbps,
   first of the seven on both sides) and 60 fps away from home.
@@ -3965,8 +3969,8 @@ fixes of step 9's first review round (below); the branch merged as PR #13
   every failure's words, an older host, and a slow link (60 fps through a VPN
   route; the callout at +300 ms).
 - Review fixes (step 9, the plan's "Review fixes (step 9)"): a pick never
-  streams Sill's own windows (the virtual display's lookup skips them; the
-  Desktop looks for Sill among every window when the on-screen look missed it);
+  streams Skopry's own windows (the virtual display's lookup skips them; the
+  Desktop looks for Skopry among every window when the on-screen look missed it);
   the internet switch counts only while Remote Access is on; Remove changes
   nothing when the keychain cannot be written, and the pane says so; a spent
   code shows no QR; kind 18 lists no addresses before the Mac's first look,
@@ -3990,8 +3994,8 @@ fixes of step 9's first review round (below); the branch merged as PR #13
   VoiceOver and a hardware keyboard (Esc never reaches an app in the iPadOS 27
   simulator; only ⌘. was tested); R13 mixed builds. Also the pairing window's
   Address row, live (only its offscreen previews were seen): with this build's
-  Sill.app, Pair iPhone or iPad… reads this Mac's MagicDNS name with "or" and
-  its Tailscale IPv4 muted under it (what `SillHost --print-reachability`
+  Skopry.app, Pair iPhone or iPad… reads this Mac's MagicDNS name with "or" and
+  its Tailscale IPv4 muted under it (what `SkopryHost --print-reachability`
   lists); with the window open, Tailscale off on the Mac gives 10.128.0.34
   alone and a window 18 pt shorter, and back on the name and the "or" line
   return (the IPv4 alone for a few seconds, until MagicDNS answers, is
@@ -4034,9 +4038,9 @@ still gets double, so Extreme at 120 fps is 300 Mbps); no Unlimited.
   `StreamClient` warnings); the CLI's synthetic output, idle and with a client,
   equals ad7fba2's (masked and sorted; unmasked only timings and ports
   differ); a test client's Extreme then Ultra restart the stream at 150 and 80
-  Mbps ("Settings from sillclient: bitrate 15 → 150 Mbps per 60 fps"), Extreme
+  Mbps ("Settings from skopryclient: bitrate 15 → 150 Mbps per 60 fps"), Extreme
   at 120 fps runs at 300 Mbps, and 200 and 250 Mbps are refused with the value
-  unchanged in the answer; the bare app runs `-SillSetAfter` and `-bitrate`
+  unchanged in the answer; the bare app runs `-SkoprySetAfter` and `-bitrate`
   250 Mbps at 200 ("Settings: bitrate 15 → 200 Mbps per 60 fps", devices told
   200) and saves a device's Extreme across a relaunch; the hardware encoder
   takes and reads back AverageBitRate up to 400 Mbps at 3024×1898; previews
@@ -4068,7 +4072,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   16/17 stay compatible both ways (old device: ignores the key; old host: the
   device sees nil).
 - Host: `HostConfig.directWireless`, off in `standard` (the CLI and a fresh or
-  updated Sill.app), accepted from a device on every host, and absent from
+  updated Skopry.app), accepted from a device on every host, and absent from
   `restartNeeded`: it is the listener's. `StreamServer` builds the listener
   with `makeListener(peerToPeer:port:)`, with the setting when it is given
   before `start()`; after that `setPeerToPeer` replaces the listener live on
@@ -4093,7 +4097,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   exits 1), and the next toggle retries. CLI: `--direct-wireless` prints one
   startup line; without it the output is the branch point's byte for byte
   (masked and sorted).
-- Sill.app: Settings › General "Direct wireless connection" right after
+- Skopry.app: Settings › General "Direct wireless connection" right after
   "Visible on your network as", and a "Direct Wireless Connection" item at the
   top of the status menu's second group, absolute like Virtual Display. Saved
   under `directWireless`; an existing install has no key, so it comes up off.
@@ -4120,7 +4124,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   count's own digits change it (16 layouts, all without a word; with "nothing
   changing" 198 did); the `still-window` preview is the widest case the menu
   offers. Verified: the link check at 89 (PR #6's 40 plus 49;
-  `swiftc -package-name sill`), 14 mutants caught; the real host in a scratch
+  `swiftc -package-name skopry`), 14 mutants caught; the real host in a scratch
   package (loopback, `fe80::1%lo0` and `::1` clients: no word; with the lo0
   stand-in, Direct on the device rows and on the source row only while one is
   connected); previews: only the five cards with a device, the new
@@ -4129,7 +4133,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
 - iOS: the network browser and connections to the Macs it lists never use
   peer-to-peer. A nearby (peer-to-peer) browser runs only while not connected,
   and only when a Mac this device last saw with the setting on
-  (`Sill.directWirelessMacs`, from each state, keyed by the Bonjour name the
+  (`Skopry.directWirelessMacs`, from each state, keyed by the Bonjour name the
   connection was made to, which is what the browsers list: the window list's
   "Mac" stays "Mac" when Bonjour renames a clash "Mac (2)"; a connection by
   address teaches nothing) is missing from the network 3 s after the connect
@@ -4146,7 +4150,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   Ethernet interface, else "Wi-Fi" on a Wi-Fi one that is not peer-to-peer,
   "Direct" for a Direct row, else no word; never the Wi-Fi network's name,
   which needs the Access Wi-Fi Information entitlement and Location access,
-  and Sill asks for neither. The word follows the browser as interfaces come
+  and Skopry asks for neither. The word follows the browser as interfaces come
   and go (the cable in or out), and the DEBUG console says what it was read
   from ("discovery: <Mac>: Wired, seen on …"). A row that says "Wired" is
   dialled over the cable (Noah, 2026-09-25, branch `prefer-cable`: unpinned,
@@ -4159,7 +4163,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   waiting (at once), gives way to the row as listed, unconstrained, once,
   which can take Wi-Fi (DEBUG console: "dialing <Mac> on anpi0 (wired)",
   "wired dial did not connect in 2.5 s; dialing unconstrained";
-  `-SillWiredTest HOST:PORT` runs that fallback in the simulator). The route
+  `-SkopryWiredTest HOST:PORT` runs that fallback in the simulator). The route
   is the Settings panel's (branch
   `connection-route-in-settings`): its readout ends in how this session's own
   connection reaches the Mac, "… · 15 Mbps · Wi-Fi", "Wired" or "Direct"
@@ -4183,14 +4187,14 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   header's "Connected directly" line (the footer's warning and the switch's
   hint stay), and a no-break space before each "·" makes a wrap at larger
   text fall after one. The Mac's card names its own side the same way (see
-  Sill.app above), so the two can differ (an iPad on Wi-Fi, a Mac on
+  Skopry.app above), so the two can differ (an iPad on Wi-Fi, a Mac on
   Ethernet). Verified: the policy check at 155 (138 plus 17 for the route),
   eight mutants of it caught; photos of the panel cases `default` (Wi-Fi),
   `wired`, `directlink` (Direct), `noroute` and `vdstream` at 1000x710 and
   500x710, and at accessibility-extra-large also at 710x500 (the readout wraps
   after a "·", never truncates, never splits "Wi-Fi"); live against a
   synthetic host: by 127.0.0.1 no word, by this Mac's `fe80::…%en0` "Wi-Fi",
-  and `-SillMoveTest to:` from the first to the second gains "Wi-Fi" at the
+  and `-SkopryMoveTest to:` from the first to the second gains "Wi-Fi" at the
   hand-over. What each end calls the cable (2026-09-25): iPadOS names its ends
   anpi0 and en2 and types both as wired Ethernet (the connect screen's row
   says "Wired", seen on anpi0, en2 and en0, and a session over it reads the
@@ -4199,7 +4203,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   The fix for the updates above, verified on the iPad: the policy check at 174
   (155 plus 19), 18 mutants caught (the route's 8 plus 10); "session: Wired,
   read from the Mac's address on en2" at `.ready` (a row resolved on en2 and
-  tapped by a scratch build, and `-SillConnect` to the Mac's en14 address) and
+  tapped by a scratch build, and `-SkopryConnect` to the Mac's en14 address) and
   at a move's hand-over from awdl0, the host on `%en14` each time; a row's
   unscoped updates after
   `.ready` logged as ignored with the word kept (that session ran over Wi-Fi,
@@ -4219,7 +4223,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   Pro" and "MacBook Pro (2)" are two Macs) and take the network row at once, a
   Direct row only once it has stayed Direct for 6 s and the network last listed
   that Mac 10 s ago or more (`NetworkSightings`): a listener swap makes the
-  network row blink for a few seconds, a Mac back on the shared network (Sill
+  network row blink for a few seconds, a Mac back on the shared network (Skopry
   relaunched, the Mac awake) registers there and on AWDL together and the
   nearby browser can report awdl0 first, and mDNS is lost to radios that leave
   the channel. A tap is never held back. A session over AWDL moves to the
@@ -4248,7 +4252,7 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   15:43:17) after an eviction on en0 and stayed there for minutes at rtt maxima
   ~265 ms. Local Network access denied (the network browser waits with
   PolicyDenied): the status says "To find your Mac, allow Local Network for
-  Sill in Settings.", with no hint and no nearby search. The panel's last group
+  Skopry in Settings.", with no hint and no nearby search. The panel's last group
   is the row (never disabled), after the closing footer, with "Direct" ending
   the header's readout while this device's own connection runs over AWDL,
   and then, while the switch shows on, a warning in its footer and hint
@@ -4257,9 +4261,9 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   sideways when a row or the hint appears; it is still centred vertically, so
   it moves up by half of what they add.
 - Verified without permissions (the plan's H0–H15 and S1–S4): the kernel's
-  AWDL service count (ValidSvc, baseline 2 from Noah's PR #4 Sill.app) rises by
+  AWDL service count (ValidSvc, baseline 2 from Noah's PR #4 Skopry.app) rises by
   2 exactly for a registration made with the AWDL flag: `dns-sd -includeAWDL -R`
-  and `SillHost --synthetic --direct-wireless` (test type) both 2 → 4, while
+  and `SkopryHost --synthetic --direct-wireless` (test type) both 2 → 4, while
   `dns-sd -R`, the suffix form `dns-sd -R … -includeAWDL` (a TXT record, no
   flag) and the default host stay at 2; off, the test registration never
   appears on awdl0 (index 16), on it does 1.1 s after launch and leaves no
@@ -4267,8 +4271,8 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   frames every second, no restart, the awdl0 record added 2.6 s after on and
   removed 1.3 s after off; 55 connections across a replacement all accepted;
   five toggles in 0.4 s give one replacement; mixed with a bitrate change, one
-  restart and one replacement; the fallbacks (SILL_TEST_SWAP_FAIL); the bare
-  app saves it from -SillSetAfter and from a device and relaunches with it on;
+  restart and one replacement; the fallbacks (SKOPRY_TEST_SWAP_FAIL); the bare
+  app saves it from -SkoprySetAfter and from a device and relaunches with it on;
   previews: only the General pane and menu.txt changed (one unchecked item per
   sample); the ledger check (43 checks, 5,000 random runs, 1,227 against a host
   without the field, three mutants caught) and the policy check (40); iOS
@@ -4304,13 +4308,13 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   survives it (only Settings › Wi-Fi or another network ends the shared
   route). Verified headless: the CLI identical to 22209db; `ClientLink` 40
   checks, five mutants caught; end to end with a link-local en0 client standing
-  in for awdl0 (`SILL_TEST_PEER_TO_PEER_INTERFACE`): disconnected 1.5 s after
+  in for awdl0 (`SKOPRY_TEST_PEER_TO_PEER_INTERFACE`): disconnected 1.5 s after
   off with one line, the loopback client streaming on, untouched without the
   variable, nobody disconnected by an off-on burst, disconnected also when the
   app's replacement fails; the policy check at 98 (blinks of 1.5, 4 and 7 s
   never take Direct, absent 10 s takes it at 10.0 s, the move at exactly 2 s,
   the café at 6 s, a 15:43 replay), seven mutants caught; on the simulator
-  (`-SillMoveTest 1|refused`) the move hands over with the host streaming
+  (`-SkopryMoveTest 1|refused`) the move hands over with the host streaming
   throughout (1 → 2 → 1 clients, no Desktop restart), a panel change after it
   is answered, and a refused network row leaves the session direct. Review
   fixes (the plan's "Review fixes of the move"): the hand-over fenced
@@ -4328,12 +4332,12 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   installed, `/usr/bin/log stream --style compact --predicate 'process ==
   "kernel" AND (eventMessage CONTAINS "abling AWDL" OR eventMessage CONTAINS
   "ValidSvc")'` shows "Disabling AWDL due to no services and no active
-  sockets" once the old Sill is gone (unless AirDrop, Sidecar or Universal
+  sockets" once the old Skopry is gone (unless AirDrop, Sidecar or Universal
   Control hold it), and five minutes on a still window with trackpad strokes
   keep the `rtt m/M` maxima near the LAN's, with no ~100 ms spikes. W2 on from
   the iPad panel while streaming: no restart, one "listening on port N again"
   (same N), the Mac's Settings and menu follow, `defaults read
-  me.saffer.sill.mac directWireless` is 1, "Enabling AWDL due to Mdns" and the
+  app.skopry.mac directWireless` is 1, "Enabling AWDL due to Mdns" and the
   maxima rise; off from the menu two minutes later and they fall back. W3 with
   it on, the iPad on the iPhone's hotspot and the Mac at home: within 3–5 s a
   "Direct" row; connected, the host logs `%awdl0`, and the panel's readout
@@ -4355,29 +4359,29 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
   readout goes from "Direct" to "Wi-Fi" (the plan: the header loses "Connected
   directly"), and the Mac's card shows the iPad twice for a moment (Direct,
   Wi-Fi), then once, Wi-Fi (drag and type through the move: no button stays
-  down, no letters swap); and relaunching Sill.app at home, the iPad
+  down, no letters swap); and relaunching Skopry.app at home, the iPad
   reconnects over the network (the host logs no `%awdl0`). The blink: at home
-  with it on and the iPad streaming, quit and reopen Sill.app a few times, at
+  with it on and the iPad streaming, quit and reopen Skopry.app a few times, at
   once and after 15 s: the iPad comes back on `%en0` (on `%awdl0` only if the
   network takes over 6 s to list the Mac, and then it moves to `%en0` ~2 s
   after it does). Control Center: connected directly with its Wi-Fi switch
-  off, the session goes on; off on the Mac then ends it. W7 relaunch Sill.app
-  with it on: `dns-sd -t 3 -includeAWDL -B _sill._tcp local` lists one
+  off, the session goes on; off on the Mac then ends it. W7 relaunch Skopry.app
+  with it on: `dns-sd -t 3 -includeAWDL -B _skopry._tcp local` lists one
   instance on awdl0, no "(2)". W8 the CLI with and without
   `--direct-wireless`. W9 mixed builds (PR #4 iPad with this host, this iPad
-  with PR #4's Sill.app: both connect on the LAN, the latter with no row) and
+  with PR #4's Skopry.app: both connect on the LAN, the latter with no row) and
   VoiceOver ("Mac mini, Direct", the hint, Search Nearby and its announcement,
   the row).
 - Known, not fixed here: the simulator's browsers run in the Mac's
   mDNSResponder, so a nearby search on the simulator turns the Mac's AWDL on:
   never measure latency with a simulator sitting on the connect screen.
-  Security: with it on, anyone within radio range running Sill can
+  Security: with it on, anyone within radio range running Skopry can
   find and connect to the Mac until pairing (M5); the host-settings plan's §9
   payload cap and a kind 17 rate limit matter more with it on. It is the first
   device-writable setting that widens who can reach the Mac, against that
   plan's "a device sets stream quality, never network exposure": revisit it
   with pairing. A Mac is known by its Bonjour name for a reconnect, so another
-  Mac of the same name running Sill on the device's network would be joined
+  Mac of the same name running Skopry on the device's network would be joined
   (pairing again; the move checks the launch ID, which a reconnect cannot, as
   the host may have relaunched). The host can print "Client left" twice for a
   connection that ends with a reset, as the direct one after a move may.
@@ -4385,10 +4389,10 @@ its Wi-Fi channel up to ~97 ms every 524 ms (see the trackpad-stutter section).
 **iPad host settings (2026-09-23, branch `ipad-host-settings` from
 `menu-bar-app`, rebased onto its e89add6; the plan and its reasoning are in
 `docs/ipad-host-settings-plan.md`).** A device changes the Mac's five streaming
-settings the way the Sill menu does: Quality (bitrate), Resolution (capture
+settings the way the Skopry menu does: Quality (bitrate), Resolution (capture
 scale), Frame Rate limit, Prioritize Speed, Virtual Display. Defaults taken for
 the plan's open questions: Settings replaces Leave in every bar's last slot and
-Disconnect moves to the panel's pinned foot (Q1); Sill.app saves a device's
+Disconnect moves to the panel's pinned foot (Q1); Skopry.app saves a device's
 change like a menu click (Q2); the virtual display has full menu parity, so
 turning it off from a device brings the window home and forward (Q3).
 - Wire: kind 16 `.hostSettings` (host → device, JSON `HostSettingsState`: the
@@ -4417,11 +4421,11 @@ turning it off from a device brings the window home and forward (Q3).
   (`pickArrivedWhileSwitching`, newest wins, the restarted source itself
   dropped); during a switch to another source it is still dropped (the device's
   automatic Desktop request must not override a pick).
-- Sill.app: `HostSettings.onChange` calls `setTarget` synchronously, so the
+- Skopry.app: `HostSettings.onChange` calls `setTarget` synchronously, so the
   target equals `settings.config` at every main-actor turn, and
   `onDeviceSettingsChange` lays a device's change over `settings.config`: saved
   (only the keys it changed), shown live in Settings and in the menu when it
-  next opens. The CLI sets no hook: a device's change lasts until SillHost quits
+  next opens. The CLI sets no hook: a device's change lasts until SkopryHost quits
   (`persistent: false` says so on the device).
 - iOS: `HostSettingsLedger` (pure logic) holds the Mac's last state on this
   connection with this device's unanswered picks over it: a pick sends only what
@@ -4440,15 +4444,15 @@ turning it off from a device brings the window home and forward (Q3).
 - Verified without permissions (the plan's H0–H21, S1, S2, S5, S6): clean
   builds (only the old CaptureProbe warning; iOS Debug and Release only the old
   `StreamClient` capture warning); the CLI's output masked and sorted equals
-  the branch point and its idle stdout is unchanged; `sillclient.py` shows one
+  the branch point and its idle stdout is unchanged; `skopryclient.py` shows one
   kind 16 after the first window list and one when the Desktop starts, accept /
   no-op / refusals / partial / a burst of three (one restart) / two clients /
   rapid pairs 0–300 ms (at most two restarts) / reconnect / malformed and
   tokenless changes / 20 s idle (two states, CPU as before) / the toggle on the
   `--virtual-display` host (no restart); the bare app saves a device's change,
-  keeps it across a relaunch, sends a `-SillSetAfter` change to the device,
+  keeps it across a relaunch, sends a `-SkoprySetAfter` change to the device,
   lets the device and the Mac change different keys at once, and every
-  `-SillSetAfter` change still gives one "Settings:" and at most one restart;
+  `-SkoprySetAfter` change still gives one "Settings:" and at most one restart;
   previews byte-identical; the ledger check (28 scenarios, 5,000 random runs
   with two mutants caught); the queued pick with a race client that sends the
   pick while the restart runs (before: 8 of 8 picks lost; now 24 of 24 stop the
@@ -4473,7 +4477,7 @@ turning it off from a device brings the window home and forward (Q3).
   undoes that change; in the panel the readout wraps instead of cutting off and
   "On the virtual display" is a line of its own, Done's tap area is 44 pt tall,
   and the speed switch is "Prioritize Encoding Speed" (the Mac's name) in its
-  own group under the Mac's explanation; `sillclient.py` checks every argument
+  own group under the Mac's explanation; `skopryclient.py` checks every argument
   before connecting; HostSettings.swift lists every place a new setting must
   go. Verified: the CLI's output against e89add6's (masked; idle, 35 s idle,
   the Desktop, `--virtual-display`); H4–H21 again, previews byte-identical;
@@ -4488,9 +4492,9 @@ turning it off from a device brings the window home and forward (Q3).
 - **Untested, for Noah:** D1–D11 (the plan's §7.4): the panel's values
   against the Mac's menu and status card with a real window; every control from
   the iPad (one restart each; the Mac's Settings window follows; saved in
-  `me.saffer.sill.mac` and after a relaunch); the virtual display on and off
+  `app.skopry.mac` and after a relaunch); the virtual display on and off
   from the iPad, also full screen; a Mac-menu change showing in the open panel;
-  two devices at once; `SillHost` without and with `--virtual-display`;
+  two devices at once; `SkopryHost` without and with `--virtual-display`;
   reconnecting after a change made while away; the 60 fps note and Low Power
   Mode on the iPad mini; a Magic Keyboard (keys stop while the panel is open,
   Esc closes it and does not reach the Mac, keys come back); VoiceOver (modal,
@@ -4509,7 +4513,7 @@ turning it off from a device brings the window home and forward (Q3).
   old checkmarks until reopened (every item sets the value it shows, so a
   click there never inverts a device's change).
 
-**Sill.app, the menu bar host (2026-09-23, branch `menu-bar-app`; the plan and
+**Skopry.app, the menu bar host (2026-09-23, branch `menu-bar-app`; the plan and
 its background are in `docs/menu-bar-app-plan.md`).** The same host as the CLI,
 as an LSUIElement app. A status item whose glyph (drawn from AppIcon.svg:
 idle, connected, streaming, attention) and menu card show the network, each
@@ -4518,17 +4522,17 @@ Display, Frame Rate, Quality, Resolution, Launch at Login (SMAppService),
 Permissions, Show Log…, Settings… and Quit. Settings is an AppKit window with
 four SwiftUI panes (General, Streaming, Virtual Display, Permissions), kept off
 the virtual display; the Log window shows HostLog's last 5,000 lines, and
-`~/Library/Logs/Sill/Sill.log` has them all. SwiftPM builds the `SillMenuBar`
+`~/Library/Logs/Skopry/Skopry.log` has them all. SwiftPM builds the `SkopryMenuBar`
 executable; `Scripts/make-app.sh` wraps it (Packaging/Info.plist, an icon
 compiled by actool from design/AppIcon.svg), signs it with the Apple Development
-identity and, with `--install`, replaces /Applications/Sill.app. Bundle ID
-`me.saffer.sill.mac`. Settings persist (`defaults read me.saffer.sill.mac`)
+identity and, with `--install`, replaces /Applications/Skopry.app. Bundle ID
+`app.skopry.mac`. Settings persist (`defaults read app.skopry.mac`)
 and apply live: `StreamCoordinator.setTarget` hands a new `HostConfig` to the next
 `select`, which takes it between pipelines; a change restarts the stream once,
 or not at all when nothing running depends on it (the virtual display toggle
 restarts only a window stream, and sends a staged window home first). Virtual
 display off by default in both the CLI and the app.
-- Rules. Host code is the `SillHostCore` library (folder `Sources/SillHost`),
+- Rules. Host code is the `SkopryHostCore` library (folder `Sources/SkopryHost`),
   reached with `package` access; make it `public` only if an Xcode target ever
   needs it (M5 CloudKit). Never `MainActor.assumeIsolated` in core code: under
   the CLI's dispatchMain the main queue drains on a worker thread and it traps;
@@ -4544,7 +4548,7 @@ display off by default in both the CLI and the app.
   (identifier + Apple anchor + the certificate's CN), so rebuilds signed with
   the same Apple Development identity keep it; ad hoc would lose it on every
   rebuild. Terminal's grants for the CLI don't carry over, and running
-  Contents/MacOS/Sill from Terminal makes Terminal responsible. The app asks
+  Contents/MacOS/Skopry from Terminal makes Terminal responsible. The app asks
   for nothing at launch (no Accessibility alert, no window list before Screen
   Recording is granted); Settings opens on Permissions until both are allowed
   or the user closes it. Allow… shows each system alert once
@@ -4555,7 +4559,7 @@ display off by default in both the CLI and the app.
   executables record the deployment target as their SDK (`xcrun vtool
   -show-build`: sdk 14.0), and macOS 26+ draws such an app in the pre-26 look.
   make-app.sh writes the bundle's executable with vtool, recording the SDK in
-  use (27.0 here) as Xcode would; the CLI and the bare SillMenuBar keep 14.0.
+  use (27.0 here) as Xcode would; the CLI and the bare SkopryMenuBar keep 14.0.
   It signs by the identity's SHA-1 hash (a renewed certificate with the same
   name makes the name ambiguous to codesign), and `--release` refuses anything
   but a Developer ID Application signature. NSTabViewController selects its
@@ -4567,7 +4571,7 @@ display off by default in both the CLI and the app.
 - Verified without permissions: clean build (only the old CaptureProbe
   warning); the CLI's output matches the pre-change baseline line for line
   (sorted, digits masked) at 60 fps, exits 130/143 on the flag path; the bare
-  app streams the test pattern at 60 fps, each `-SillSetAfter` change gives one
+  app streams the test pattern at 60 fps, each `-SkoprySetAfter` change gives one
   "Settings:" line and at most one restart (virtual display on while the
   Desktop streams: none), Quit exits 0 through `releaseForQuit`, a saved setting
   survives a relaunch, idle CPU 0.0 %; the Settings and Log windows open and
@@ -4588,7 +4592,7 @@ display off by default in both the CLI and the app.
   look that the SDK fix turned on (only offscreen renders were checked), and
   Settings reopening on the last tab after a relaunch.
 - Known, not fixed here: the CLI's synthetic mode still prints "Advertising
-  _sill._tcp" although it no longer advertises.
+  _skopry._tcp" although it no longer advertises.
 
 Milestone 3, scaling and the virtual display. Two paths exist; adopt the second.
 
@@ -4601,14 +4605,14 @@ Milestone 3, scaling and the virtual display. Two paths exist; adopt the second.
   that scale on the device. Until the slider is first touched the scale is nil
   and the Mac window is left alone (the control shows 1×). Since 2026-10-14
   (issue #57) the window goes back to its own frame when it stops streaming
-  (`WindowRestore`; Current step, "A window Sill sized goes back"). Harness:
-  `-SillScaleOpen 1` photographs the unfolded state.
+  (`WindowRestore`; Current step, "A window Skopry sized goes back"). Harness:
+  `-SkopryScaleOpen 1` photographs the unfolded state.
 - **Virtual display (implemented 2026-09-22 behind `--virtual-display`, off by
-  default; Noah flips the default after trying it).** With the flag, SillHost
+  default; Noah flips the default after trying it).** With the flag, SkopryHost
   runs `NSApplication.run()` (activation policy `.prohibited`: no Dock icon,
   never activatable) instead of `dispatchMain()`, because only under the AppKit
   loop does the creating process see the display's modes. `select(.window)`
-  asks `VirtualStage` to create one `CGVirtualDisplay` ("Sill", 2×, at the
+  asks `VirtualStage` to create one `CGVirtualDisplay` ("Skopry", 2×, at the
   stream's rate),
   move the window onto it with Accessibility (`WindowSizer.placement/move/
   restore`; AX writes never activate or raise anything), and capture it with
@@ -4691,14 +4695,14 @@ Milestone 3, scaling and the virtual display. Two paths exist; adopt the second.
   as a refusal, and its old frame stays the crop until a catalog poll (2 s;
   one that lands mid-switch is ignored) re-selects.
   **Untested, for Noah** (Screen Recording + Accessibility on the terminal):
-  (a) `swift run -c release SillHost --virtual-display`, pick a window: the
+  (a) `swift run -c release SkopryHost --virtual-display`, pick a window: the
   log shows "Virtual display … created", "Moved …", "Capturing … of virtual
   display", and the frame fills the panel edge to edge at Aa 1× with the title
-  bar as the top edge; System Settings › Displays shows one "Sill" display.
+  bar as the top edge; System Settings › Displays shows one "Skopry" display.
   (b) Cover the window's old spot, switch Spaces, open Mission Control: the
   device keeps updating. (c) Deselect, pick Desktop, quit the iOS app, Ctrl-C
   mid-stream: each prints "Restored …" then "Removed virtual display", the
-  window is back within 2 pt, no "Sill" display remains. (d) Rotate and cycle
+  window is back within 2 pt, no "Skopry" display remains. (d) Rotate and cycle
   Aa while staged: one "Capture started" per change, no new display created.
   (e) The 1Password Aa step that showed the stale crop (staged at Aa 0.5,
   then 1×): the first "Moved … to" shows the asked 1117×610 and "Capture
@@ -4721,7 +4725,7 @@ streaming (at most every 10 s), so a fresh connection starts on the Desktop and
 the drawer no longer opens by itself. When the watched window has closed it
 waits 2 s first, and asks for nothing if the user picked or launched something
 meanwhile (the host cannot tell that request from a Desktop tap). Harness:
-`-SillWindowMenu 1` keeps the first thumbnail's lights open.
+`-SkopryWindowMenu 1` keeps the first thumbnail's lights open.
 
 **Frame rate follows the device (2026-09-22).** `Viewport.fps` carries the
 device's wanted rate: `UIScreen.maximumFramesPerSecond` (120 on ProMotion, 60
@@ -4768,18 +4772,18 @@ Dead-client eviction is time-based (no frame drained for 4 s, none in the first
 8 s after connect): the frame-count rule evicted the simulator at full Retina.
 A client evicted while the Mac is still advertised now retries on a timer.
 Learned (2026-09-23; this replaces the caveat on (1)): the RTT spikes left with
-ticks flowing come from AWDL, and Sill turns AWDL on itself. `includePeerToPeer
+ticks flowing come from AWDL, and Skopry turns AWDL on itself. `includePeerToPeer
 = true` on the host's NWListener (`StreamServer`) and the iPad's NWBrowser and
 NWConnection (`StreamClient`), there since the first commit, makes the kernel
-enable AWDL as `_sill._tcp` registers ("Enabling AWDL due to Mdns"; off ~3 s
-after Sill quits). The Mac's one radio then leaves the Wi-Fi channel on a
+enable AWDL as `_skopry._tcp` registers ("Enabling AWDL due to Mdns"; off ~3 s
+after Skopry quits). The Mac's one radio then leaves the Wi-Fi channel on a
 512 TU schedule (kernel: infra 72 % while streaming, 48 % or 0 % around
 switches). A 20 Hz ping from the Mac to its gateway stalls up to ~97 ms once
 every 524 ms (p90 48 ms, 17 % over 10 ms; with AWDL off, p90 4 ms and max
 13 ms). The same Bonjour service registered with the AWDL flag gave p90
 67.5 ms with 32 % of pings delayed, against 3.9 ms without the flag. An rtt
 sample that lands in a stall reads baseline plus 0–100 ms. AWDL carries none
-of Sill's data (the connection is on en0). Ticks keep the radio awake but not
+of Skopry's data (the connection is on en0). Ticks keep the radio awake but not
 on the channel, and every earlier RTT reading, those in (1) and (2) included,
 ran with AWDL on. The fix is applied (2026-09-24, Direct Wireless Connection
 in the current step): `includePeerToPeer` is off by default on both sides and
@@ -4805,7 +4809,7 @@ value), and the menu's device row and the HUD show "–" the same way.
 
 **Frozen stream, 2026-09-22 evening — the Mac's hardware video encoder wedged.**
 Every new HEVC session (and later H.264) accepted one frame and never returned
-it, even from a fresh process with synthetic frames (`SillHost
+it, even from a fresh process with synthetic frames (`SkopryHost
 --encoder-selftest`, `CaptureProbe --synthetic`). The old encoder called
 VideoToolbox synchronously on the capture queue, so the stuck call froze
 ScreenCaptureKit, then `stopCapture`, then the coordinator's `switching` flag,
@@ -4887,7 +4891,7 @@ good.
   one heartbeat line per 30 s and no ScreenCaptureKit calls; connected with
   nothing selected 0.0–0.1 %; streaming a Retina window ~3 %. Capture stops when
   the last client leaves.
-- Diagnostics: `-SillHUD 1` (DEBUG) overlays fps · frame age · rtt · frame size
+- Diagnostics: `-SkopryHUD 1` (DEBUG) overlays fps · frame age · rtt · frame size
   on the device; the client reports the same to the host every second and the
   host prints `client <device>: …`.
 - Learned: `_AXUIElementGetWindow` is private, so AX windows are matched by
@@ -4898,7 +4902,7 @@ good.
 - Mac host builds and runs from `swift build -c release`: window listing,
   ScreenCaptureKit capture, VideoToolbox HEVC encode, Bonjour advertisement,
   TCP fan-out to clients.
-- iOS client is a real Xcode project (`iOSClient/Sill.xcodeproj`), builds
+- iOS client is a real Xcode project (`iOSClient/Skopry.xcodeproj`), builds
   clean, runs on Noah's iPad Mini (the test device: iPad scalability plus a
   Duo-like aspect ratio).
 - End to end verified on Wi-Fi: ~58 fps captured, encoded and sent with zero
@@ -4921,8 +4925,8 @@ good.
 ## Layout
 
 - `Package.swift` — SwiftPM. Products: `StreamProtocol` (shared wire format,
-  iOS + macOS), `SillHost` (the CLI, target `SillHostCLI`) and `SillMenuBar`
-  (Sill.app's executable). `SillHostCore` (the host, folder `Sources/SillHost`)
+  iOS + macOS), `SkopryHost` (the CLI, target `SkopryHostCLI`) and `SkopryMenuBar`
+  (Skopry.app's executable). `SkopryHostCore` (the host, folder `Sources/SkopryHost`)
   is a library target with no product, so the iOS project never sees it.
 - `Sources/StreamProtocol/StreamMessage.swift` — 14-byte header + payload framing,
   message kinds in both directions, HEVC parameter set encoding. Shared by both
@@ -4943,7 +4947,7 @@ good.
   certificate, keys), `Pairing.swift` (`PairingCode`, `PairingProof`,
   `RecognitionTag`, `PairLink`, and `HomeDoorTXT`, the home door's TXT key
   `p`), `AddressParser.swift`, `SafeText.swift`.
-  `Compatibility.swift` — `SillProtocol.current` (1), `SillVersion` (tags,
+  `Compatibility.swift` — `SkopryProtocol.current` (1), `SkopryVersion` (tags,
   bundles and the wire's versions, compared part by part) and `Hello` (kind 23,
   the device's first message); `Goodbye` (Remote.swift) carries `message`,
   `minimumVersion` and `reconnect` too, and `WindowList` the host's
@@ -4964,7 +4968,7 @@ good.
   while macOS allows every read (`MacAccess`); the device's subscription,
   which text from the Mac it writes, a Paste's receipt, the chip and its time,
   every word; pure, `Tests/checks/clipboard`).
-- `Sources/SillHost/` — the `SillHostCore` library. `StreamCoordinator` (main
+- `Sources/SkopryHost/` — the `SkopryHostCore` library. `StreamCoordinator` (main
   actor; owns the pipeline, switches sources on client request, raises the
   picked window in regular mode (never on the virtual display), applies
   viewports, falls back to the software encoder on a hang and re-checks the
@@ -4987,8 +4991,8 @@ good.
   while one has and macOS allows every read, a device's text written
   `.currentHostOnly` with this launch's marker and passed to the others, one
   line a subscription and none per copy; a synthetic host's own pasteboard,
-  the TEST ONLY SILL_TEST_PASTEBOARD, SILL_TEST_CLIPBOARD_LOG and
-  SILL_TEST_CLIPBOARD_ACCESS; `MacClipboard`, macOS's paste privacy for the
+  the TEST ONLY SKOPRY_TEST_PASTEBOARD, SKOPRY_TEST_CLIPBOARD_LOG and
+  SKOPRY_TEST_CLIPBOARD_ACCESS; `MacClipboard`, macOS's paste privacy for the
   look and for Settings › General's `ClipboardSection`),
   `AwayPolicy` (who counts as away, when the away quality is the target, its
   two lines; pure, `Tests/checks/away-quality`), `LinkJudge` (each device's
@@ -5006,8 +5010,8 @@ good.
   framework, and never through a link inside a scanned folder (one given that
   is itself a link is followed), #76; pure, `Tests/checks/installed-apps`),
   `WindowCapture` (ScreenCaptureKit), `SyntheticCapture` (test pattern for
-  `--synthetic`; SILL_TEST_PATTERN=noise adds a square of noise,
-  SILL_TEST_PATTERN=picture:<path> shows a still picture instead), `HEVCEncoder` (VideoToolbox with one frame inside, a
+  `--synthetic`; SKOPRY_TEST_PATTERN=noise adds a square of noise,
+  SKOPRY_TEST_PATTERN=picture:<path> shows a still picture instead), `HEVCEncoder` (VideoToolbox with one frame inside, a
   one-slot mailbox behind it and a hang watchdog; hardware or software; says
   whether a stalled frame came back; gives a stream whose session settled in
   the slow state a new one), `EncoderSlowState` (when that is, and whether the
@@ -5019,21 +5023,21 @@ good.
   the stream's size, one frame at a time like a stream, the rate it keeps and
   the rate a return needs), `EncoderSelfTest`
   (`--encoder-selftest`), `CursorShapeWatcher` (NSCursor.currentSystem →
-  `.cursorShape`), `StreamServer` (Network.framework + Bonjour `_sill._tcp`, both
+  `.cursorShape`), `StreamServer` (Network.framework + Bonjour `_skopry._tcp`, both
   directions, keepalive, dead-client eviction, ping echo, client-stats print;
   a remote client's frames paced by the bytes its connection has not taken
   (`paceRemote`, docs/remote-bundle-plan.md §3); one sweep a second closing
   every client's second into its LinkJudge (`onClientLinkChanged`), the judges
   reset only at another quality (`resetLinks`, apart from `resetForNewStream`);
   `send(each:)`, kind 16 per connection; the test-only
-  SILL_TEST_REMOTE_ORIGIN;
+  SKOPRY_TEST_REMOTE_ORIGIN;
   the listener built with or without peer-to-peer and replaced live when Direct
   Wireless changes, and turned off, the devices on peer-to-peer Wi-Fi
-  disconnected; the test-only SILL_TEST_SERVICE_TYPE, SILL_TEST_SWAP_FAIL,
-  SILL_TEST_PEER_TO_PEER_INTERFACE and SILL_TEST_LOOPBACK), `ClientLink`
+  disconnected; the test-only SKOPRY_TEST_SERVICE_TYPE, SKOPRY_TEST_SWAP_FAIL,
+  SKOPRY_TEST_PEER_TO_PEER_INTERFACE and SKOPRY_TEST_LOOPBACK), `ClientLink`
   (which route a client came by, from its endpoint's scope, and the menu card's
   word for it: Wired, Wi-Fi, Direct or none; pure, checked on its own with
-  `swiftc -package-name sill`, which its `package` access needs),
+  `swiftc -package-name skopry`, which its `package` access needs),
   `InputInjector` (CGEvents: pointer, scroll with phases, text with modifier
   flags cleared explicitly (a ⌘Space before typing otherwise tainted the text
   events and Spotlight ignored them), HID keys as KeyStrokes gives them, each
@@ -5048,7 +5052,7 @@ good.
   `WindowSizer` (Accessibility resize for the Aa scale, returning what it did,
   `Fit`; `placement/move/restore` for the virtual display; `AXWindows`,
   WindowRestore's reads and writes through Accessibility), `WindowRestore` (a
-  window Sill sized for a device goes back when it stops streaming: each fit's
+  window Skopry sized for a device goes back when it stops streaming: each fit's
   record and `movedSince`, the decision at the stop, the sequences that fit a
   window and put it back over `WindowRestore.Access` (`fit`, `stop`,
   `stageHome`), `keepsStreaming` and `coversDisplay` for a window off the list
@@ -5071,7 +5075,7 @@ good.
   (who may use which door; pure), `RefusalSummary` (one refusal line a minute),
   `HostIdentity` (the `IdentityStore` protocol, `MemoryIdentityStore`, the TEST
   ONLY `FileIdentityStore`, `PairedDevice`, the lock-protected trust snapshot
-  the door reads on the network queue), `KeychainIdentityStore` (Sill.app's),
+  the door reads on the network queue), `KeychainIdentityStore` (Skopry.app's),
   `PairingWindow` (pure), `RemoteServer` (the remote door), `Reachability`,
   `AddressList` (pure) and `RouterAddress` (read-only NAT-PMP/PCP),
   `RemoteAccess` (main actor; ties them together, signs kind 18; owns
@@ -5079,10 +5083,10 @@ good.
   Remove at both doors). Pairing at home (docs/home-pairing-plan.md): `Door`
   (admission at a TLS door, one class behind both listeners: the pending
   caps, the backoff, the verify block, the device gate, one pairing request
-  per `sill-pair/1` connection; `RemoteServer` keeps the remote door's
+  per `skopry-pair/1` connection; `RemoteServer` keeps the remote door's
   listener), `DoorPolicy` (who each door admits, the ask rule's six steps,
   `afterGate`, `isTestHost`: a host that does not advertise and is not
-  Sill.app's own executable; pure, `Tests/checks/door-policy`), `CableLink`
+  Skopry.app's own executable; pure, `Tests/checks/door-policy`), `CableLink`
   (whether a connection came over the USB cable to an iPhone or iPad, from
   InterfaceSnapshot's IOKit reading, and the device's ID; pure,
   `Tests/checks/cable-link`), `CableReport` (`--print-cable`), `SessionLock`
@@ -5097,7 +5101,7 @@ good.
   `DeviceGate` (the device floor, "0" in every build so far, and a refusal's
   words and log lines; pure, checked with swiftc; the gate itself, which runs
   only above "0", is StreamServer's, with the TEST ONLY
-  SILL_TEST_MIN_DEVICE_VERSION and SILL_TEST_GOODBYE).
+  SKOPRY_TEST_MIN_DEVICE_VERSION and SKOPRY_TEST_GOODBYE).
   The Mac's menus (docs/menu-bar-plan.md): `MenuFormat` (a shortcut as the
   Mac draws it, "⇧⌘S", "fn ⌃F"; an item and a top-level menu as sent; pure),
   `MenuPolicy` (`MenuPath`, the ids; `MenuCache`, a menu's read kept 1 s,
@@ -5107,21 +5111,21 @@ good.
   their places; `PressDecision`, only a leaf whose title now is the one shown;
   `TopLevel`; the refusals' words and log lines; pure; both checked by
   `Tests/checks/menus`), `MenuReader` (every Accessibility call for menus, on
-  its own queue `sill.menus`: the top level, one menu's items under the title
+  its own queue `skopry.menus`: the top level, one menu's items under the title
   shown, walks checked against the version's record, a press; a 1 s timeout
   per element, 1.5 s a menu, and no item begun that would end past the
   request's deadline), `MenuMirror` (main actor: the target, the version, the
   subscribers (only they are served), one request at a time with its
   deadline, the cache and the kept elements; the TEST ONLY
-  SILL_TEST_MENU_PID, honoured only by a synthetic host, makes a process's
+  SKOPRY_TEST_MENU_PID, honoured only by a synthetic host, makes a process's
   menus the test pattern's) and `MenuSelfTest` (`--menu-selftest[=APP]`,
   read-only).
   The Mac's pointer: `PointerControl` (who moves it, the Mac or the device
-  whose input the host read last, with the settle for Sill's own motion; the
+  whose input the host read last, with the settle for Skopry's own motion; the
   fraction kind 26 carries; pure, `Tests/checks/pointer-control`) and
   `PointerWatch` (the host's sampling of it: PointerControl under a lock, the
   streamed source's rectangle, a regular-mode window's bounds re-read on
-  `sill.pointer`, the TEST ONLY scripted pointer `TestPointerPath` and
+  `skopry.pointer`, the TEST ONLY scripted pointer `TestPointerPath` and
   `PointerTestHooks`; `Tests/checks/pointer-watch`). StreamServer samples it at
   each tick, and at the stream's frame rate while it moves over the source and
   some device is sent it (`PointerWatch.samplerInterval`), and sends kind 26
@@ -5129,8 +5133,8 @@ good.
   post just before it and, on a synthetic host, posts nothing (`in.dry`).
   Trackpad gestures: `GestureChords` (kind 28's gesture as the Mac's own
   shortcut for its action, the first of its shortcuts that is on; the view
-  Sill's last gesture opened, which the opposite gesture closes; the log line;
-  the TEST ONLY `SILL_TEST_HOTKEYS` table; pure, `Tests/checks/gesture-chords`)
+  Skopry's last gesture opened, which the opposite gesture closes; the log line;
+  the TEST ONLY `SKOPRY_TEST_HOTKEYS` table; pure, `Tests/checks/gesture-chords`)
   and `SymbolicHotKeys` (the Mac's Keyboard Shortcuts read through SkyLight's
   two getters at each gesture, read-only); the coordinator takes four a second
   per connection, waits for a switch in flight, queues the chord behind held
@@ -5138,11 +5142,11 @@ good.
   `InputInjector.chord` posts it (`in.gesture`), its key up with the HID
   state table's flags from before it (`KeyStrokes.chord`;
   `in.gestureModifiersLeft` if some stay).
-- `Sources/SillHostCLI/main.swift` — the CLI: flags, `dispatchMain` vs
+- `Sources/SkopryHostCLI/main.swift` — the CLI: flags, `dispatchMain` vs
   `NSApplication.run`, the Terminal permission hint; `--pairing` (the home
   door's TLS with pairing required, a throwaway identity, the code and link
   on its own stdout), `--print-cable` and `--no-clipboard`.
-- `Sources/SillMenuBar/` — the app: `main.swift` (AppKit lifecycle, accessory
+- `Sources/SkopryMenuBar/` — the app: `main.swift` (AppKit lifecycle, accessory
   policy), `AppDelegate` (launch order, Quit, the modal-loop rule), `AppModel`
   (owns the coordinator, presentation, App Nap guard, onboarding),
   `HostSettings` (UserDefaults; the presets are StreamProtocol's
@@ -5161,8 +5165,8 @@ good.
   address; pure, checked with swiftc), `UpdatePolicy` (the update check's rules
   and words; pure, checked with swiftc) and `UpdateChecker` (main actor; asks
   GitHub's releases feed and times the checks; compiles on its own with swiftc).
-- `Packaging/` — Sill.app's `Info.plist` and the development entitlements
-  (get-task-allow only), the release's (`SillRelease.entitlements`:
+- `Packaging/` — Skopry.app's `Info.plist` and the development entitlements
+  (get-task-allow only), the release's (`SkopryRelease.entitlements`:
   `com.apple.application-identifier`, the team and the keychain group, signed
   in only with `embedded.provisionprofile`, the Developer ID profile, which is
   git-ignored; docs/keychain-plan.md), and `ExportOptions-appstore.plist`, how
@@ -5179,9 +5183,9 @@ good.
   checks must say DTPlatformVersion 27.1 or later),
   with `--bump` or `--upload` a working tree with changes (new files in
   iOSClient and Sources/StreamProtocol count), and an App Store address in
-  `SillLinks.swift` that isn't one, and sourced it only defines its
+  `SkopryLinks.swift` that isn't one, and sourced it only defines its
   functions (docs/release-checklist.md, TestFlight). `Scripts/make-app.sh`
-  builds, iconizes, signs and installs the bundle (with `SILL_UNIVERSAL=1`
+  builds, iconizes, signs and installs the bundle (with `SKOPRY_UNIVERSAL=1`
   arm64 and x86_64, each in its own scratch path under `.build/universal`,
   joined with lipo, for an Intel tester, #62; off by default, so releases
   stay arm64, and `release.sh`'s `check_signature` reads every slice);
@@ -5190,36 +5194,36 @@ good.
   `make-app.sh --release`, `make-dmg.sh --prepare` (the image's tool and
   background, before anything goes to Apple), a zip (`ditto -c -k
   --keepParent`), Apple's notary service (`notarytool submit --wait`, the
-  profile in `SILL_NOTARY_PROFILE`), the ticket stapled, the zip made again
+  profile in `SKOPRY_NOTARY_PROFILE`), the ticket stapled, the zip made again
   with the ticket inside, and a copy unpacked from it checked with `stapler
   validate` and `spctl` ("Notarized Developer ID"); then the disk image of the
   stapled app (`make-dmg.sh --sign`), notarized on its own, stapled, and
   checked (`hdiutil verify`, `stapler validate`, `spctl -t open --context
   context:primary-signature` as "Notarized Developer ID", mounted `-nobrowse`
-  in `$TMPDIR` and the Sill.app inside checked as the zip's copy); it prints
-  `.build/Sill-<version>.dmg` and `.zip` with their SHA-256. A dry run makes
+  in `$TMPDIR` and the Skopry.app inside checked as the zip's copy); it prints
+  `.build/Skopry-<version>.dmg` and `.zip` with their SHA-256. A dry run makes
   the image too, from the app before stapling, signed with the same identity.
   It refuses to start, before building, without a
-  Developer ID Application identity (`SILL_SIGN_IDENTITY`, checked against the
+  Developer ID Application identity (`SKOPRY_SIGN_IDENTITY`, checked against the
   keychain) or the profile, or on a HEAD without the tag v‹version› (the
-  update check's), or with `SILL_RELEASE_TAG` (the release workflow sets it)
+  update check's), or with `SKOPRY_RELEASE_TAG` (the release workflow sets it)
   not `v<CFBundleShortVersionString>` or naming another commit (`--check-tag`
   checks only that), and `--dry-run` stops before notarytool (the profile and
-  the tag only warned about: it sets `SILL_RELEASE_DRY_RUN=1`, with which
+  the tag only warned about: it sets `SKOPRY_RELEASE_DRY_RUN=1`, with which
   `make-app.sh --release` builds an untagged commit); it refuses a build
   without Assets.car and AppIcon.icns. `--publish` makes the GitHub Release in
-  `SILL_RELEASE_REPO` (default Saffsanity/sill, the only repository the update
+  `SKOPRY_RELEASE_REPO` (default jeanpfs/skopry, the only repository the update
   check reads), asks `gh api repos/<repo>` whether it can reach the repository
   (`gh auth status` asks GET /user, which the Actions token can't answer), and
   refuses to start unless origin's tag v‹version› names HEAD (gh would make a
   missing tag from the default branch's tip; not asked in the release
   workflow, whose checkout is that tag and keeps no credentials); in
-  Saffsanity/sill it passes gh `--verify-tag`, anywhere else it warns that no
-  Sill.app will offer the release. It uploads `Sill.dmg`, `Sill.dmg.sha256`,
-  `Sill.zip` and `Sill.zip.sha256` (the zip kept for older links: the download
+  jeanpfs/skopry it passes gh `--verify-tag`, anywhere else it warns that no
+  Skopry.app will offer the release. It uploads `Skopry.dmg`, `Skopry.dmg.sha256`,
+  `Skopry.zip` and `Skopry.zip.sha256` (the zip kept for older links: the download
   page names the image since 0.3.1). Sourced, it only defines its functions.
   `Scripts/make-dmg.sh --sign IDENTITY APP DMG` (`-` for ad hoc) makes the
-  image: an HFS+ volume "Sill" (not APFS: Finder names the background by an
+  image: an HFS+ volume "Skopry" (not APFS: Finder names the background by an
   HFS+ alias record, and Finder-made and current third-party images are
   HFS+) with the app (`ditto`), a link to /Applications, `.background/`
   (design/DMGBackground.svg rendered by Quick Look at 1x and 2x, cropped,
@@ -5230,13 +5234,13 @@ good.
   DMGLayout.swift) writes without Finder and reads back (`check`): 660 x 432
   points, the picture's 400 and macOS 27's 32-point title bar
   (`DMGLayout.titleBar`; `Tests/checks/dmg-layout` checks the writer); converted
-  to ULFO (LZFSE, read-only), signed (identifier `me.saffer.sill.dmg`, a
+  to ULFO (LZFSE, read-only), signed (identifier `app.skopry.dmg`, a
   timestamp unless ad hoc) and checked mounted (exactly five items at the
   root, the link, the layout, the app byte for byte). Mounts are `-nobrowse`
   in a new folder in `$TMPDIR`: mounted under the home folder, fseventsd
   writes `.fseventsd` onto the image as it unmounts. `--prepare` only builds
   the tool and the background. Sourced, it only defines its functions.
-  `Scripts/sillclient.py` is the wire-format test client
+  `Scripts/skopryclient.py` is the wire-format test client
   (timed `--set=K=V[,K=V]@T` kind 17 changes with tokens 1, 2, 3…,
   `--raw17=JSON@T`, `--pick=none|desktop|window:ID@T`, `--stats`,
   `--expect=K=V[,…]` against the last kind 16, which it prints one per line,
@@ -5257,7 +5261,7 @@ good.
   the one listed for the id), `--press=ID[,TITLE]@T`, `--raw25=JSON@T`,
   `--raw27=JSON@T` and
   `--expect-menus=TITLE[,…]`, the fetches and presses only with
-  SILL_TEST_MENU_PID in its own environment (against any other host they
+  SKOPRY_TEST_MENU_PID in its own environment (against any other host they
   would open and choose the menus of whatever app is in front); every
   argument is checked before it connects, and a bad one exits 2).
   `Scripts/menufixture.swift` (TEST ONLY) is the menu gates' app: an AppKit
@@ -5269,7 +5273,7 @@ good.
   SIGHUP inserting an item at the top of Probe in place and SIGALRM giving
   Probe a new NSMenu; `menufixture label PID` reads its label over
   Accessibility. `Scripts/menu-check/run.sh` runs the real MenuReader and
-  MenuMirror against it with no host and no encoder (safe while Sill.app
+  MenuMirror against it with no host and no encoder (safe while Skopry.app
   streams; it needs Accessibility for whatever runs it).
   `Scripts/restore-probe/run.sh` (TEST ONLY; issue #57) drives the real
   `WindowSizer.resize` and a fitted window's way back (WindowRestore's `fit`
@@ -5278,7 +5282,7 @@ good.
   every window), frames before, during and after, fourteen steps (its app
   stopped with SIGSTOP at a fit and at a stop among them); the front app must
   not change. It needs Accessibility, Screen Recording and an unlocked screen,
-  and exits 2 saying which is missing. `Scripts/sillrelay.py` is a
+  and exits 2 saying which is missing. `Scripts/skopryrelay.py` is a
   shaping passthrough relay (`--listen 0 --to HOST:PORT [--delay-ms N]
   [--rate-mbps R] [--blackhole-after S] [--record PREFIX]`; TLS passes
   through). `Scripts/pacing/` is the remote pacing harness
@@ -5291,7 +5295,7 @@ good.
   refused; on cue, new sizes, a still window or a restart); `run.sh [--full]
   [--cases a,b] [--repeat N] [--base REF] [--list]`
   runs each case on both, host → `bottleneck.py` (a downlink rate on a virtual
-  clock, a delay, a finite queue, rate changes) or `Scripts/sillrelay.py` →
+  clock, a delay, a finite queue, rate changes) or `Scripts/skopryrelay.py` →
   `device.py` (the device's reader, pings, stats and liveness;
   `--liveness-bytes` for MessageReader's rule), everything on 127.0.0.1 and
   each run only while the load average is under 20; `summarize.py` prints the
@@ -5304,18 +5308,18 @@ good.
   links VideoToolbox), and `verify-hardware.sh` the hardware runs against a
   base commit built from `git archive` (parity, stream, harness, probe,
   keyframe), each only while `no-device.sh` finds no device connected to
-  Sill.app; outputs go to `.build/encoder-check/`.
-  `sillclient.py --hello=VER[,PROTO]` (or `none`) sends a device's hello
+  Skopry.app; outputs go to `.build/encoder-check/`.
+  `skopryclient.py --hello=VER[,PROTO]` (or `none`) sends a device's hello
   first (`--hello-delay=S` S seconds after the connection is up, for a change
   made while a host's device gate holds it), and kind 22's new fields are
-  printed. `Scripts/sillfeed.py PORT`
+  printed. `Scripts/skopryfeed.py PORT`
   is a fake GitHub releases feed for the update check's tests (`--tag`,
   `--status`, `--etag`, `--draft`, `--prerelease`, `--html-url`, `--body`,
   `--big`, `--slow`, `--reset`, `--redirect`, `--set-cookie`,
   `--all-headers`; `GET /__control?key=value` changes them while it runs).
 - `site/` — the website, for GitHub Pages at the domain in `site/CNAME`:
-  `index.html`, `download.html` (links the newest GitHub Release's `Sill.dmg`
-  and `Sill.dmg.sha256`; never edited per release), `privacy.html` (the policy
+  `index.html`, `download.html` (links the newest GitHub Release's `Skopry.dmg`
+  and `Skopry.dmg.sha256`; never edited per release), `privacy.html` (the policy
   App Store Connect and the app link to), `support.html`, `terms.html` (the terms of service: the
   Apache license, Apple's EULA for the App Store copy, no warranty, no fees;
   linked in every footer), `style.css` (system
@@ -5334,7 +5338,7 @@ good.
   Connect record) and every release's steps.
 - `Sources/VirtualDisplayProbe/` — CLI experiment for milestone 3; run it from
   Terminal (needs Screen Recording + Accessibility): `.build/release/VirtualDisplayProbe "Activity Monitor" --seconds 20`.
-- `iOSClient/` — `Sill.xcodeproj` and its sources: `StreamClient` (Bonjour: a
+- `iOSClient/` — `Skopry.xcodeproj` and its sources: `StreamClient` (Bonjour: a
   network browser and, when `DiscoveryPolicy` says, a nearby peer-to-peer one,
   each made again after the background and after a failure (`cameForward`,
   `rebuildBrowser`); `FoundMac` rows; connection, parsing, reconnect, the move of a session over
@@ -5422,7 +5426,7 @@ good.
   `DiagnosticsHUD` (client stats reporter),
   `StreamClient+Viewport`, `ContentView` (connect screen with rows ending in
   Wired, Wi-Fi, Direct or Remote, the hint and Search Nearby, Add a Mac…, and
-  a footer along the bottom, "Needs the free Sill app on your Mac." with links
+  a footer along the bottom, "Needs the free Skopry app on your Mac." with links
   to the download, support and the privacy policy, which open in Safari (one
   line while they fit, else the download link over the other two, as wide as
   the column); the column stays where it would be without the footer
@@ -5433,9 +5437,9 @@ good.
   12 pt clear, both inside the gap); one scroll view
   whatever the fit (`ColumnOverFooter`, measuring a hidden copy of the
   footer), so a fit that changes never builds the card anew (its fields, the
-  camera); + DEBUG harness, and `InputScript`, `-SillInputScript`'s steps),
-  `SillLinks`
-  (the site's addresses, written once; getsill.app is live since 2026-09-25;
+  camera); + DEBUG harness, and `InputScript`, `-SkopryInputScript`'s steps),
+  `SkopryLinks`
+  (the site's addresses, written once; skopry.app is live since 2026-09-25;
   and the App Store address for a Mac's update notice, the App Store Connect
   record's since PR #27),
   `MockCatalog` (harness data and the settings cases), `HostSettingsLedger`
@@ -5462,7 +5466,7 @@ good.
   pure, `Tests/checks/menu-state`), `MacMenuElements` (the one builder of
   `UIMenuElement`s for the iPad's bar and the button: uncached deferred
   elements, `UIAction` leaves with the Mac's shortcut as the subtitle, never a
-  `UIKeyCommand` or `UICommand`), `SillAppDelegate` (`SillApp`'s
+  `UIKeyCommand` or `UICommand`), `SkopryAppDelegate` (`SkopryApp`'s
   `@UIApplicationDelegateAdaptor`; only `buildMenu(with:)`) with `MacMenuBar`
   (where the Mac's menus go in the iPadOS 26 bar, once per build, every
   anchor looked up first), `MacMenuHub` (whose session the bar shows: the
@@ -5484,7 +5488,7 @@ good.
   `StreamClient+Clipboard` (the subscription at the first window list that
   says `clipboard` and on a move's new connection, `stop` when the switch goes
   off, the Mac's text written `.localOnly` for 10 minutes, the chip's look when
-  Sill becomes active and its time while it shows, Paste's send and its
+  Skopry becomes active and its time while it shows, Paste's send and its
   receipt, a ping whose pong says the Mac read it; pbxproj AC64/FC64) and `ClipboardChip`
   (the chip and `ClipboardPasteButton`, the system's Paste control;
   AD64/FD64); StreamScreen places the chip, the Settings panel's This iPad
@@ -5495,35 +5499,35 @@ good.
   where the card goes, every word; pure, Foundation and CoreGraphics,
   `Tests/checks/tour`) and `TourOverlay` (the dim with the lit cutout and its
   ring, the card placed by a Layout, the targets' preference in the stream
-  screen's named space `sill.screen`, `TourStore` for `Sill.tourSeen` and
-  `Sill.tourSkipped`, `TouchWatcher`, a recognizer on the window that counts
+  screen's named space `skopry.screen`, `TourStore` for `Skopry.tourSeen` and
+  `Skopry.tourSkipped`, `TouchWatcher`, a recognizer on the window that counts
   every touch and takes none, and DEBUG `TourDebug`); StreamScreen runs it
   (targets, the rule's inputs, the layer above the layouts and under the
   pairing overlay, Take the Tour from the Settings panel's last row).
   `Info-Debug.plist` is the Debug configuration's Info.plist: Info.plist's
-  keys, with `_silltest._tcp` beside `_sill._tcp` for the harness's
-  `-SillServiceType` (Release declares `_sill._tcp` alone).
+  keys, with `_skoprytest._tcp` beside `_skopry._tcp` for the harness's
+  `-SkopryServiceType` (Release declares `_skopry._tcp` alone).
   `PrivacyInfo.xcprivacy`, a resource of the target, is the privacy manifest:
   it declares UserDefaults (CA92.1) and `systemUptime` (35F9.1), and any new
   use of a required-reason API (file dates, disk space, `mach_absolute_time`,
   active keyboards) must add its category and reason there before the next
   upload. New files need their four pbxproj entries by hand.
   Swift 5 language mode.
-- `android/` — Sill for Android (Gradle, AGP 9, Kotlin, Compose; `./gradlew assembleDebug`,
+- `android/` — Skopry for Android (Gradle, AGP 9, Kotlin, Compose; `./gradlew assembleDebug`,
   `testDebugUnitTest`): `protocol/` the wire format and JSON, `crypto/` pairing, identity and TLS,
   `net/` saved Macs, the dialer, pairing, the session and Bonjour, `client/` the client's state
-  (SillClient, the settings ledger, the menus, keys), `video/` the HEVC decoder, `ui/` the screens and
+  (SkopryClient, the settings ledger, the menus, keys), `video/` the HEVC decoder, `ui/` the screens and
   `ui/input/` the touch, trackpad and keyboard surfaces. `android/README.md` maps each to its iOS file.
 - `docs/BRIEF.md` — product decisions, competition, scope, risks.
 - `docs/DEVELOPMENT.md` — building, running and testing from source; the
   README's developer material until 2026-09-25, so a plan's "README" means a
-  section there: the toolchain, make-app.sh, Sill.app's menu and Quality, the
+  section there: the toolchain, make-app.sh, Skopry.app's menu and Quality, the
   CLI's flags, the iOS project, Permissions (the TCC reset), settings from a
   device, Direct Wireless, pairing at home (the cable, Require pairing, older
   builds, starting over), remote access (setup, troubleshooting, reset), the
   test tools in brief (Build and run below has them all), measuring latency,
   troubleshooting (slow, frozen, the encoder), releasing, known limitations.
-- `README.md` — the public front page: the site's lede, links to getsill.app
+- `README.md` — the public front page: the site's lede, links to skopry.app
   and its download, support, privacy and terms pages, the App Store badge
   (live since 2026-10-10), requirements, how it works, tips, building from
   source in brief,
@@ -5533,7 +5537,7 @@ good.
   `.github/FUNDING.yml` — the Sponsor button: GitHub Sponsors (a `ko_fi:`
   line joins it once there is a Ko-fi handle). Tip links live there, in the
   README's Tips and on the site, never in the iOS app. `SECURITY.md` — how to
-  report a vulnerability (support@getsill.app, never a public issue) and what
+  report a vulnerability (support@skopry.app, never a public issue) and what
   is in scope. `.github/ISSUE_TEMPLATE/` — issue forms: a bug report, an idea,
   a question, no blank issue. `.gitignore` also leaves out signing keys,
   profiles, keychains and design/reel/.
@@ -5549,7 +5553,7 @@ good.
   pushed tag `v*`, or by hand with one; verify only (the tag, the checks,
   `make-app.sh` signed ad hoc, zipped, and `make-dmg.sh`'s image of it, ad hoc
   too, as two artifacts) unless the repository
-  variable `SILL_SIGN_IN_CI` is `true`, then the Developer ID .p12 into a
+  variable `SKOPRY_SIGN_IN_CI` is `true`, then the Developer ID .p12 into a
   temporary keychain, the notary key stored as a profile in it, `release.sh
   --publish`, Apple's notary logs kept as an artifact (`include-hidden-files:
   true`: upload-artifact skips whatever is under a folder whose name starts
@@ -5558,9 +5562,9 @@ good.
   variables, rotation and costs: docs/release-checklist.md, "Releasing from
   GitHub Actions". `testflight.yml`: by hand only; `release-ios.sh
   --unsigned` without an App Store Connect key, `--sign-at-export` with one
-  (the secrets `SILL_TESTFLIGHT_KEY_ID`, `SILL_TESTFLIGHT_ISSUER_ID`,
-  `SILL_TESTFLIGHT_KEY_P8`, an Admin key: cloud signing, no certificate or
-  profile stored), and `--upload` too when the variable `SILL_TESTFLIGHT_IN_CI`
+  (the secrets `SKOPRY_TESTFLIGHT_KEY_ID`, `SKOPRY_TESTFLIGHT_ISSUER_ID`,
+  `SKOPRY_TESTFLIGHT_KEY_P8`, an Admin key: cloud signing, no certificate or
+  profile stored), and `--upload` too when the variable `SKOPRY_TESTFLIGHT_IN_CI`
   is `true`; the .ipa is the artifact for 14 days (docs/release-checklist.md,
   "TestFlight from GitHub Actions"). `.github/actions/select-xcode` —
   selects the newest Xcode of the `version` asked for (27; CI's build 27.1)
@@ -5591,7 +5595,7 @@ good.
   MenuPolicy, and MacMenu.swift's JSON), `message-reader`, `origin`,
   `pairing-address`, `phone-portrait`, `pointer-control`, `pointer-presence`,
   `pointer-watch`, `policy` (with its `home.swift`), `protocol`,
-  `remote-rules` (with its `home.swift`), `settings-window` (Sill.app's
+  `remote-rules` (with its `home.swift`), `settings-window` (Skopry.app's
   `SettingsWindowFit`), `tour`, `update-policy`, `virtual-display-api`
   (VirtualDisplay.swift whole, as VirtualDisplayProbe compiles it: its surface,
   TypeEncoding and Runtime.method's decision, on classes made at run time, against
@@ -5609,7 +5613,7 @@ good.
   app, driven with synthesized touches (`TouchSynth`, private UIKit calls, test
   only, never in the app), every event logged; `run.sh [--rev REV] [--switch
   off] NAME` builds and runs it on a simulator of its own
-  (`SILL_TOUCHRIG_SIM`), `compare.py` judges a run against the surfaces
+  (`SKOPRY_TOUCHRIG_SIM`), `compare.py` judges a run against the surfaces
   before, and a stroke made right after a gesture against the same stroke
   made fresh.
 - `Tests/duorig/` — TEST ONLY, private interfaces, simulator only: folds and
@@ -5633,99 +5637,99 @@ good.
 
 ```
 swift build -c release
-swift run -c release SillHost              # nothing streams until the iOS app picks a window
-swift run -c release SillHost Safari       # optional: preselect a matching window
-swift run -c release SillHost --synthetic  # Desktop streams a test pattern; no Screen Recording needed
-swift run -c release SillHost --encoder-selftest   # is the hardware encoder alive? 5 s, exits
-swift run -c release SillHost --virtual-display   # picked windows stream from their own HiDPI display (off by default)
-swift run -c release SillHost --virtual-display-selftest   # create/destroy one display, report what sees it
-swift run -c release SillHost --direct-wireless   # also over peer-to-peer Wi-Fi (AWDL): devices without a shared network (off by default)
-swift run -c release SillHost --remote      # the remote door for this run on any free port (--remote=PORT), a throwaway identity; the code and link print here
-swift run -c release SillHost --remote --internet   # also admit paired devices from outside this Mac's networks and VPNs
-swift run -c release SillHost --print-reachability  # the addresses a device would get away from home, then exit
-swift run -c release SillHost --pairing     # the home door speaks TLS, pairing required, a throwaway identity; the code and link print here (with --remote, one pairing for both doors)
-swift run -c release SillHost --print-cable # what the cable rule reads on each interface, and whether the console is unlocked; read-only, then exit
-swift run -c release SillHost --menu-selftest=TextEdit   # the menus a device would be sent for that app (a pid, or the start of its name), read once; read-only
-python3 Scripts/sillclient.py PORT 5 none --pair-ask --then-code=$T/code --identity=$T/a   # a device's ask at a TLS home door, then the code the host printed (saved in $T/code)
-python3 Scripts/sillclient.py PORT 8 desktop --set=bitrate=25000000@3 --expect=bitrate=25000000   # a device's settings change
-SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_POINTER_PATH=$T/path .build/release/SillHost --synthetic   # a scripted pointer on the test pattern, on 127.0.0.1 alone, never the hardware encoder
-python3 Scripts/sillclient.py PORT 6 desktop --pointer --move=0.25,0.25@3   # each kind 26 as it arrives; input goes only to a --synthetic host
-SILL_TEST_INPUT_LOG=1 SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_POINTER_PATH=$T/path .build/release/SillHost --synthetic   # prints each event a dry run would post ("Test input: key 49 up (none)")
-python3 Scripts/sillclient.py PORT 3 desktop --input='{"key":{"hidUsage":44,"down":true,"modifiers":1048576}}@1' --input='{"key":{"hidUsage":44,"down":false,"modifiers":1048576}}@1.05' --tap=0.5,0.5@1.5   # an older device's Spotlight key, then a tap
-python3 Scripts/sillclient.py PORT 8 none --gesture=swipeUp@3 --gesture=swipeDown@4   # a synthetic host logs "Gesture from …: swipe up → Mission Control (shortcut 108: key 160, fn) (not posted: a test host)"
-SILL_TEST_LOOPBACK=1 SILL_TEST_HOTKEYS='108=off,173=off' .build/release/SillHost --synthetic   # TEST ONLY: the gestures read this table (over macOS 27's own; `defaults` alone) instead of this Mac's shortcuts
-swift run -c release SillHost --no-clipboard  # share nothing of the clipboard with devices (on by default, as in Sill.app)
-SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 SILL_TEST_PASTEBOARD=me.saffer.sill.test.x SILL_TEST_CLIPBOARD_LOG=1 .build/release/SillHost --synthetic   # the clipboard on a pasteboard of its own (never this Mac's), each decision printed with sizes
-python3 Scripts/sillclient.py PORT 6 none --clipboard --copy=hello@2 --expect=clipboard=none   # subscribe, send text as a device's Paste does; each kind 32 printed
-SILL_TOUCHRIG_SIM='Sill touchrig' Tests/touchrig/run.sh new && Tests/touchrig/run.sh --rev origin/main base && Tests/touchrig/compare.py .build/touchrig/base.log .build/touchrig/new.log   # the surfaces under synthesized touches
+swift run -c release SkopryHost              # nothing streams until the iOS app picks a window
+swift run -c release SkopryHost Safari       # optional: preselect a matching window
+swift run -c release SkopryHost --synthetic  # Desktop streams a test pattern; no Screen Recording needed
+swift run -c release SkopryHost --encoder-selftest   # is the hardware encoder alive? 5 s, exits
+swift run -c release SkopryHost --virtual-display   # picked windows stream from their own HiDPI display (off by default)
+swift run -c release SkopryHost --virtual-display-selftest   # create/destroy one display, report what sees it
+swift run -c release SkopryHost --direct-wireless   # also over peer-to-peer Wi-Fi (AWDL): devices without a shared network (off by default)
+swift run -c release SkopryHost --remote      # the remote door for this run on any free port (--remote=PORT), a throwaway identity; the code and link print here
+swift run -c release SkopryHost --remote --internet   # also admit paired devices from outside this Mac's networks and VPNs
+swift run -c release SkopryHost --print-reachability  # the addresses a device would get away from home, then exit
+swift run -c release SkopryHost --pairing     # the home door speaks TLS, pairing required, a throwaway identity; the code and link print here (with --remote, one pairing for both doors)
+swift run -c release SkopryHost --print-cable # what the cable rule reads on each interface, and whether the console is unlocked; read-only, then exit
+swift run -c release SkopryHost --menu-selftest=TextEdit   # the menus a device would be sent for that app (a pid, or the start of its name), read once; read-only
+python3 Scripts/skopryclient.py PORT 5 none --pair-ask --then-code=$T/code --identity=$T/a   # a device's ask at a TLS home door, then the code the host printed (saved in $T/code)
+python3 Scripts/skopryclient.py PORT 8 desktop --set=bitrate=25000000@3 --expect=bitrate=25000000   # a device's settings change
+SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_POINTER_PATH=$T/path .build/release/SkopryHost --synthetic   # a scripted pointer on the test pattern, on 127.0.0.1 alone, never the hardware encoder
+python3 Scripts/skopryclient.py PORT 6 desktop --pointer --move=0.25,0.25@3   # each kind 26 as it arrives; input goes only to a --synthetic host
+SKOPRY_TEST_INPUT_LOG=1 SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_POINTER_PATH=$T/path .build/release/SkopryHost --synthetic   # prints each event a dry run would post ("Test input: key 49 up (none)")
+python3 Scripts/skopryclient.py PORT 3 desktop --input='{"key":{"hidUsage":44,"down":true,"modifiers":1048576}}@1' --input='{"key":{"hidUsage":44,"down":false,"modifiers":1048576}}@1.05' --tap=0.5,0.5@1.5   # an older device's Spotlight key, then a tap
+python3 Scripts/skopryclient.py PORT 8 none --gesture=swipeUp@3 --gesture=swipeDown@4   # a synthetic host logs "Gesture from …: swipe up → Mission Control (shortcut 108: key 160, fn) (not posted: a test host)"
+SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_HOTKEYS='108=off,173=off' .build/release/SkopryHost --synthetic   # TEST ONLY: the gestures read this table (over macOS 27's own; `defaults` alone) instead of this Mac's shortcuts
+swift run -c release SkopryHost --no-clipboard  # share nothing of the clipboard with devices (on by default, as in Skopry.app)
+SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 SKOPRY_TEST_PASTEBOARD=app.skopry.test.x SKOPRY_TEST_CLIPBOARD_LOG=1 .build/release/SkopryHost --synthetic   # the clipboard on a pasteboard of its own (never this Mac's), each decision printed with sizes
+python3 Scripts/skopryclient.py PORT 6 none --clipboard --copy=hello@2 --expect=clipboard=none   # subscribe, send text as a device's Paste does; each kind 32 printed
+SKOPRY_TOUCHRIG_SIM='Skopry touchrig' Tests/touchrig/run.sh new && Tests/touchrig/run.sh --rev origin/main base && Tests/touchrig/compare.py .build/touchrig/base.log .build/touchrig/new.log   # the surfaces under synthesized touches
 Tests/checks/run-all.sh                 # every pure check, as CI runs them (~5 min; --mutants adds the mutants, well over an hour)
 Scripts/pacing/run.sh                   # remote pacing and the link's judge, this tree against origin/main, no encoder, all on loopback (~25 min; --full ~45; --list)
-SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 SILL_TEST_ORIGIN=vpn SILL_TEST_PATTERN=noise .build/release/SillHost --synthetic --remote   # an away session whose stream follows its quality
-Scripts/make-app.sh                     # .build/Sill.app, signed with the Apple Development identity (~2 s unchanged)
-Scripts/make-app.sh --install --open    # Noah: replace /Applications/Sill.app (a running one quits first), launch it
-SILL_UNIVERSAL=1 Scripts/make-app.sh    # .build/Sill.app for Apple silicon and Intel (arm64 and x86_64) for an Intel tester (#62): twice the build time; the x86_64 slice has not streamed on an Intel Mac
-SILL_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' Scripts/make-app.sh --release   # M6
-SILL_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' SILL_NOTARY_PROFILE=sill-notary Scripts/release.sh [--dry-run]   # M6: the notarized download (docs/release-checklist.md)
-Scripts/release-ios.sh                  # the iOS app for App Store Connect: archive, export .build/ios/export/Sill.ipa, check it; uploads nothing
+SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 SKOPRY_TEST_ORIGIN=vpn SKOPRY_TEST_PATTERN=noise .build/release/SkopryHost --synthetic --remote   # an away session whose stream follows its quality
+Scripts/make-app.sh                     # .build/Skopry.app, signed with the Apple Development identity (~2 s unchanged)
+Scripts/make-app.sh --install --open    # Noah: replace /Applications/Skopry.app (a running one quits first), launch it
+SKOPRY_UNIVERSAL=1 Scripts/make-app.sh    # .build/Skopry.app for Apple silicon and Intel (arm64 and x86_64) for an Intel tester (#62): twice the build time; the x86_64 slice has not streamed on an Intel Mac
+SKOPRY_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' Scripts/make-app.sh --release   # M6
+SKOPRY_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' SKOPRY_NOTARY_PROFILE=skopry-notary Scripts/release.sh [--dry-run]   # M6: the notarized download (docs/release-checklist.md)
+Scripts/release-ios.sh                  # the iOS app for App Store Connect: archive, export .build/ios/export/Skopry.ipa, check it; uploads nothing
 Scripts/release-ios.sh --bump --upload  # Noah: the next build to TestFlight (docs/release-checklist.md, TestFlight; --privacy-report, --print-version)
-Scripts/make-dmg.sh --sign - .build/Sill.app .build/Sill.dmg   # the download's disk image of any build, ad hoc (release.sh makes the real one)
+Scripts/make-dmg.sh --sign - .build/Skopry.app .build/Skopry.dmg   # the download's disk image of any build, ad hoc (release.sh makes the real one)
 python3 -m http.server 8000 --directory site   # the website at http://localhost:8000
-Scripts/encoder-check/run.sh            # the encoder checks that never touch an encoder (safe while Sill.app streams)
+Scripts/encoder-check/run.sh            # the encoder checks that never touch an encoder (safe while Skopry.app streams)
 Scripts/menu-check/run.sh               # the menus' reader and mirror against Scripts/menufixture.swift, no host, no encoder (needs Accessibility)
-Scripts/restore-probe/run.sh            # TEST ONLY: a window Sill sized goes back, against a window of its own (needs Accessibility, Screen Recording, an unlocked screen)
+Scripts/restore-probe/run.sh            # TEST ONLY: a window Skopry sized goes back, against a window of its own (needs Accessibility, Screen Recording, an unlocked screen)
 Tests/duorig/run.sh UDID pose book && Tests/duorig/run.sh UDID shot book book.png   # TEST ONLY: fold and photograph an iPhone Duo simulator (laptop, flat-portrait, flat-landscape, closed-upright, closed-side)
 Tests/keyrig/run.sh UDID keys 29,04,e3:down,1a,e3:up && Tests/keyrig/run.sh UDID point 'move 300,200|wheel -3'   # TEST ONLY: Esc, a and ⌘W from a hardware keyboard, then a wheel's notch, inside a simulator of your own
-SILL_TEST_ENCODER_RECYCLE=0 swift run -c release SillHost   # =0 keeps every hardware session, =1 replaces one in the slow state, as by default (A/B on the real Desktop: --synthetic moves every frame and never reaches the slow state)
+SKOPRY_TEST_ENCODER_RECYCLE=0 swift run -c release SkopryHost   # =0 keeps every hardware session, =1 replaces one in the slow state, as by default (A/B on the real Desktop: --synthetic moves every frame and never reaches the slow state)
 Scripts/encoder-check/verify-hardware.sh harness   # USES THE HARDWARE ENCODER; skips each run while a device is connected
 ```
 Needs Xcode as the active developer directory with its license accepted; with
 Command Line Tools only, add `--build-system native`.
 First run prompts for Screen Recording: the CLI's belongs to Terminal (or
-whatever launched it), Sill.app's to Sill itself.
-Sill.app: the log is `~/Library/Logs/Sill/Sill.log` (`tail -F`, not `-f`: at
-10 MB it moves to Sill.1.log; Show Log… in the menu); settings are `defaults
-read me.saffer.sill.mac` (maxFPS, captureScale, bitrate, prioritizeSpeed,
+whatever launched it), Skopry.app's to Skopry itself.
+Skopry.app: the log is `~/Library/Logs/Skopry/Skopry.log` (`tail -F`, not `-f`: at
+10 MB it moves to Skopry.1.log; Show Log… in the menu); settings are `defaults
+read app.skopry.mac` (maxFPS, captureScale, bitrate, prioritizeSpeed,
 virtualDisplay, directWireless, shareClipboard, updateCheck; the update check keeps
 updateLastCheck, updateETag, updateLatestTag and updateLatestURL), and a launch
 argument such as `-maxFPS 60` or `-updateCheck 0` overrides one for one run. A device's change from its Settings panel is saved there too, like a
-menu click; the CLI keeps a device's change until SillHost quits. Test arguments for the bare binary (`.build/release/SillMenuBar`,
-defaults domain `SillMenuBar`; delete it after): `--synthetic` (test pattern,
+menu click; the CLI keeps a device's change until SkopryHost quits. Test arguments for the bare binary (`.build/release/SkopryMenuBar`,
+defaults domain `SkopryMenuBar`; delete it after): `--synthetic` (test pattern,
 off Bonjour; the port is in the "Status: Test Pattern Mode" line),
-`-SillLogFile <path>`, `-SillSetAfter '<s> key=value[,key=value][; <s> …]'`,
-`-SillQuitAfter <s>`, `-SillRenderPreviews <dir>` (panes, cards, glyphs,
+`-SkopryLogFile <path>`, `-SkoprySetAfter '<s> key=value[,key=value][; <s> …]'`,
+`-SkopryQuitAfter <s>`, `-SkopryRenderPreviews <dir>` (panes, cards, glyphs,
 menu.txt; no permission needed), and for the Settings window's height
-`-SillSettingsAfter '<s> <tab>|close|report|end|height=<points>[; …]'` (opens it,
+`-SkoprySettingsAfter '<s> <tab>|close|report|end|height=<points>[; …]'` (opens it,
 then prints its frame, the pane's whole height and how much shows),
-`-SillTestScreenHeight <points>` and `-SillSettingsShot <dir>`
+`-SkopryTestScreenHeight <points>` and `-SkoprySettingsShot <dir>`
 (docs/DEVELOPMENT.md, Test arguments for the bare app). The update check, in the bare binary (which
-has no version and never checks without these) and the app: `-SillUpdateFeed
+has no version and never checks without these) and the app: `-SkopryUpdateFeed
 http://127.0.0.1:P/latest` (a feed on this Mac only: 127.0.0.1, ::1 or
-localhost; `Scripts/sillfeed.py P` serves one; test pattern mode checks only
-such a feed), `-SillUpdateVersion 0.3.0`, `-SillUpdateNow 1` (one check at
-start, as Check Now), `-SillUpdateInterval <s>` (24 h become s seconds, the
-retry s/24), `-SillPrintMenuAfter <s>` (the status menu as it would open, and
-Settings › General's update line, in the log), `-SillSetAfter '<s>
-updateCheck=0'`. Never run a test against GitHub. To make Sill.app check again at
+localhost; `Scripts/skopryfeed.py P` serves one; test pattern mode checks only
+such a feed), `-SkopryUpdateVersion 0.3.0`, `-SkopryUpdateNow 1` (one check at
+start, as Check Now), `-SkopryUpdateInterval <s>` (24 h become s seconds, the
+retry s/24), `-SkopryPrintMenuAfter <s>` (the status menu as it would open, and
+Settings › General's update line, in the log), `-SkoprySetAfter '<s>
+updateCheck=0'`. Never run a test against GitHub. To make Skopry.app check again at
 its next launch: `for k in updateLastCheck updateETag updateLatestTag
-updateLatestURL; do defaults delete me.saffer.sill.mac $k; done`. Render previews from
-`.build/Sill.app/Contents/MacOS/Sill` to see what Sill.app looks like: only the
+updateLatestURL; do defaults delete app.skopry.mac $k; done`. Render previews from
+`.build/Skopry.app/Contents/MacOS/Skopry` to see what Skopry.app looks like: only the
 bundle's copy records the real SDK (make-app.sh sets it with vtool; see Current
 step), and the bare binary draws the pre-26 look. `--encoder-selftest` and
 `--virtual-display-selftest` work in the app too.
-iOS side: open `iOSClient/Sill.xcodeproj`, set your team, run on a real
+iOS side: open `iOSClient/Skopry.xcodeproj`, set your team, run on a real
 device on the same Wi-Fi (or with the Mac's Direct Wireless Connection on).
-AWDL, headless and without touching a running Sill.app: the synthetic hosts do
-not advertise, but `SILL_TEST_SERVICE_TYPE=_silltest._tcp` registers them as
-"Sill test ‹pid›" under that test type (never `_sill._tcp`, so no device sees
+AWDL, headless and without touching a running Skopry.app: the synthetic hosts do
+not advertise, but `SKOPRY_TEST_SERVICE_TYPE=_skoprytest._tcp` registers them as
+"Skopry test ‹pid›" under that test type (never `_skopry._tcp`, so no device sees
 them) with the listener's own peer-to-peer flag, and prints which one it got;
-`SILL_TEST_SWAP_FAIL=port|all` makes a replacement's same-port (and any-port)
-bind fail; `SILL_TEST_PEER_TO_PEER_INTERFACE=en0` counts a client scoped to that
+`SKOPRY_TEST_SWAP_FAIL=port|all` makes a replacement's same-port (and any-port)
+bind fail; `SKOPRY_TEST_PEER_TO_PEER_INTERFACE=en0` counts a client scoped to that
 interface as one on peer-to-peer Wi-Fi, so a test client on the Mac's own en0
 link-local address (`ifconfig en0`, `fe80::…%en0`; Python's socket takes it)
 stands in for a device on awdl0 when Direct Wireless turns off (a local
 connection to the Mac's own awdl0 address never became ready, so awdl0 cannot
 be tested headless); all three are honoured only by a host that does not
-advertise. `dns-sd -t 3 -includeAWDL -B _silltest._tcp local` lists a
+advertise. `dns-sd -t 3 -includeAWDL -B _skoprytest._tcp local` lists a
 registration that includes AWDL a second time on awdl0's index (`python3 -c
 'import socket; print(socket.if_nametoindex("awdl0"))'`, 16 here). dns-sd
 options go before the command: `dns-sd -R … -includeAWDL` registers a TXT
@@ -5737,88 +5741,88 @@ builtin, hence `/usr/bin/log`, and `process == "kernel"` keeps the log tool's
 own line out. Enable and disable lines ("Enabling AWDL due to Mdns") show only
 when nothing else holds AWDL. Keep AWDL-on tests under 20 s and on test types.
 Remote access, headless: TEST ONLY variables, honoured only by a host that
-does not advertise: `SILL_TEST_REMOTE_DIR=<dir>` (the identity and trust list
+does not advertise: `SKOPRY_TEST_REMOTE_DIR=<dir>` (the identity and trust list
 in a 0700 directory instead of memory or the keychain; the bare app's
-`-SillPairAfter <s>` leaves `pairing.url` and `pairing.code` there, 0600, never
-printed), `SILL_TEST_PAIRING_TTL=<s>`, `SILL_TEST_BACKOFF_SECONDS=<s>`,
-`SILL_TEST_ORIGIN=vpn|internet` (loopback counts as that origin),
-`SILL_TEST_REMOTE_ORIGIN=vpn|internet` (the same at the remote door alone, so
+`-SkopryPairAfter <s>` leaves `pairing.url` and `pairing.code` there, 0600, never
+printed), `SKOPRY_TEST_PAIRING_TTL=<s>`, `SKOPRY_TEST_BACKOFF_SECONDS=<s>`,
+`SKOPRY_TEST_ORIGIN=vpn|internet` (loopback counts as that origin),
+`SKOPRY_TEST_REMOTE_ORIGIN=vpn|internet` (the same at the remote door alone, so
 one loopback host serves a device away and one at home: away from home's
-H8 and S4) and `SILL_TEST_NO_ROUTER=1` (never ask the router; set it on every
+H8 and S4) and `SKOPRY_TEST_NO_ROUTER=1` (never ask the router; set it on every
 headless host). Away from home and the link, headless (docs/remote-bundle-
-plan.md, PR B): `SILL_TEST_PATTERN=picture:<path>` gives a synthetic host a
+plan.md, PR B): `SKOPRY_TEST_PATTERN=picture:<path>` gives a synthetic host a
 still picture for its Desktop (any image ImageIO reads, filling the frame:
-photographs of a device, docs/iphone-duo-plan.md); `SILL_TEST_PATTERN=noise`
+photographs of a device, docs/iphone-duo-plan.md); `SKOPRY_TEST_PATTERN=noise`
 gives it a square of noise, so its stream follows the quality (on the software encoder about 14
 frames a second, 3.6 Mbit/s at Low and 10.6 at Balanced), for a test of the
-link through `sillrelay.py --rate-mbps 5`; `sillclient.py` prints `away=` and
+link through `skopryrelay.py --rate-mbps 5`; `skopryclient.py` prints `away=` and
 `link=` on each kind 16, and `--expect` knows `awayBitrate`,
 `awayCaptureScale`, `homeBitrate`, `homeCaptureScale`, `thisConnectionAway`,
 `awayRunning` and `linkState`.
 The Mac's pointer, headless: every synthetic host is a dry run (its input is
 counted as `in.dry`, never posted, and activates or raises nothing) and never
 reads the real pointer. TEST ONLY, honoured only by a synthetic host (anywhere else one
-line says it is ignored): `SILL_TEST_POINTER_PATH=<file>` is a scripted
+line says it is ignored): `SKOPRY_TEST_POINTER_PATH=<file>` is a scripted
 pointer on the test pattern, lines `T X Y` (seconds since the stream's first
 sample, points in the 1512×949 pattern, outside allowed; `#` comments; at most
 10,000 steps and 1 MiB, a bad file refused whole with one line): the test
 pattern then has a pointer, a test client's input lands in the pattern's space
 and a dry-run pointer event moves the scripted pointer (the newer of it and a
-step wins); `SILL_TEST_SOFTWARE_ENCODER=1` starts on the software encoder, with
+step wins); `SKOPRY_TEST_SOFTWARE_ENCODER=1` starts on the software encoder, with
 no launch probe and no re-check, so a test never touches the hardware encoder
 (60 fps at most: a 120 fps sampler test needs the hardware, and so the
-no-device check); `SILL_TEST_INPUT_LOG=1` prints each event the dry run would
+no-device check); `SKOPRY_TEST_INPUT_LOG=1` prints each event the dry run would
 post, "Test input: key 49 down (command)" with the flags it was made with, and
 a pointer or scroll event with those the last keyboard event would have left
 in the HID state table, a button's with where it goes ("Test input: left mouse
 down (none) at 756,474"), and each check a key's up arms ("Test input: key 55
 up: the table read again in 0.25 s for command"): what a device's keys and
 buttons leave for its next click (KeyStrokes), without posting anything.
-The device floor, headless: `SILL_TEST_MIN_DEVICE_VERSION=1.2` raises the floor
+The device floor, headless: `SKOPRY_TEST_MIN_DEVICE_VERSION=1.2` raises the floor
 of a host that does not advertise (a device below it, or one that sends no
 hello, gets kind 22 "update" and is closed; a value that does not parse is
-ignored with one line), and `SILL_TEST_GOODBYE='<JSON Goodbye>'` makes its
+ignored with one line), and `SKOPRY_TEST_GOODBYE='<JSON Goodbye>'` makes its
 refusals send that payload instead (a reason the device does not know).
-Pairing at home, headless: `SillHost --synthetic --pairing` (the bare app's
-home door always speaks TLS, as Sill.app's does) with `SILL_TEST_REMOTE_DIR`,
-`SILL_TEST_NO_ROUTER=1`, `SILL_TEST_SOFTWARE_ENCODER=1` and
-`SILL_TEST_LOOPBACK=1`; the CLI prints its code and link, and again after each
+Pairing at home, headless: `SkopryHost --synthetic --pairing` (the bare app's
+home door always speaks TLS, as Skopry.app's does) with `SKOPRY_TEST_REMOTE_DIR`,
+`SKOPRY_TEST_NO_ROUTER=1`, `SKOPRY_TEST_SOFTWARE_ENCODER=1` and
+`SKOPRY_TEST_LOOPBACK=1`; the CLI prints its code and link, and again after each
 ask. The door and pairing hooks are TEST ONLY and honoured only by a test host
-(DoorPolicy.isTestHost: one that does not advertise and is not Sill.app's own
+(DoorPolicy.isTestHost: one that does not advertise and is not Skopry.app's own
 executable; anywhere else TestHooks prints one "ignored" line for each set),
-and so are the ones above (SILL_TEST_SERVICE_TYPE and the rest):
-`SILL_TEST_CABLE_INTERFACE=<if>` counts a client scoped to that interface as
+and so are the ones above (SKOPRY_TEST_SERVICE_TYPE and the rest):
+`SKOPRY_TEST_CABLE_INTERFACE=<if>` counts a client scoped to that interface as
 one on the cable to an "iPad" (serial TEST) and lets this Mac's own address
 there through, so a client at this Mac's link-local address on it
-(`sillclient.py --host=fe80::…%<if> --pair-ask=cable`) stands in for a device
-on the cable, and the simulator's `-SillCableTest 1` for the device's side
+(`skopryclient.py --host=fe80::…%<if> --pair-ask=cable`) stands in for a device
+on the cable, and the simulator's `-SkopryCableTest 1` for the device's side
 (lo0's `fe80::1%lo0` keeps such a test on this Mac; it needs a listener there,
-which SILL_TEST_LOOPBACK's 127.0.0.1 alone is not); `SILL_TEST_LOCKED=1` makes
-the Mac locked; `SILL_TEST_ASK_QUIET=<s>` shortens the 10 minutes of quiet
-after the Mac's Cancel or a stop; `SILL_TEST_ASK_FROM_THIS_MAC=1` skips the
+which SKOPRY_TEST_LOOPBACK's 127.0.0.1 alone is not); `SKOPRY_TEST_LOCKED=1` makes
+the Mac locked; `SKOPRY_TEST_ASK_QUIET=<s>` shortens the 10 minutes of quiet
+after the Mac's Cancel or a stop; `SKOPRY_TEST_ASK_FROM_THIS_MAC=1` skips the
 ask rule's step for an ask from this Mac itself (answered `openOnMac` unless a
 window is open, and lighting no menu item), so a test client on this Mac opens
-windows. The bare app takes `-requirePairing NO`, `-SillSetAfter '<s>
-requirePairing=0|1'`, `-SillCancelPairingAfter '<s>[; <s> …]'` (the window
-closed as its Cancel does), `-SillCableNoticeAfter <s>` (the cable notice for
-a sample device) and `-SillMenuAfter '<s>[; <s> …]'` (the status menu in the
-log, line by line). Sill.app itself ignores every `-Sill…After` hook,
-`-requirePairing` and `SILL_TEST_REMOTE_DIR` with one line each (any process
-can start it with arguments and its grants); `-SillRenderPreviews`,
-`-SillLogFile` and the encoder's variables still work there. Require pairing
+windows. The bare app takes `-requirePairing NO`, `-SkoprySetAfter '<s>
+requirePairing=0|1'`, `-SkopryCancelPairingAfter '<s>[; <s> …]'` (the window
+closed as its Cancel does), `-SkopryCableNoticeAfter <s>` (the cable notice for
+a sample device) and `-SkopryMenuAfter '<s>[; <s> …]'` (the status menu in the
+log, line by line). Skopry.app itself ignores every `-Skopry…After` hook,
+`-requirePairing` and `SKOPRY_TEST_REMOTE_DIR` with one line each (any process
+can start it with arguments and its grants); `-SkopryRenderPreviews`,
+`-SkopryLogFile` and the encoder's variables still work there. Require pairing
 and the trust list live in the login keychain (service
-`me.saffer.sill.remote`, accounts `paired-devices` and `require-pairing`,
-beside the key "Sill Remote Access"), never in UserDefaults; Settings ›
+`app.skopry.remote`, accounts `paired-devices` and `require-pairing`,
+beside the key "Skopry Remote Access"), never in UserDefaults; Settings ›
 Devices' Remove forgets one device, and deleting those items makes this Mac
 new to every device.
 The Mac's menus, headless: `swiftc -O Scripts/menufixture.swift -o
 $T/menufixture -framework AppKit`, then `$T/menufixture serve $T/fixture.log
 60` (it exits by itself, 120 s at most, and can never take the front) and a
-synthetic host with `SILL_TEST_MENU_PID=<its pid>` (honoured only by a host
+synthetic host with `SKOPRY_TEST_MENU_PID=<its pid>` (honoured only by a host
 that does not advertise; "Test menus: …" at start): the test pattern's menus
 are then the fixture's, read and pressed without activating it. `python3
-Scripts/sillclient.py PORT 20 desktop --menus --fetch=4@3 --press=4.0@5` (with
-SILL_TEST_MENU_PID in the client's environment too) prints each kind 24 on a
+Scripts/skopryclient.py PORT 20 desktop --menus --fetch=4@3 --press=4.0@5` (with
+SKOPRY_TEST_MENU_PID in the client's environment too) prints each kind 24 on a
 line, and `$T/menufixture label PID` what the last press set ("A"); `kill
 -HUP` inserts an item at the top of Probe in place (the ids below it move: the
 host's next read of a moved place moves the version), `-ALRM` gives Probe a
@@ -5826,46 +5830,46 @@ new menu, and `-USR1`/`-USR2` give Probe › Rebuilt one.
 `--menu-selftest=menufixture` reads it. Presses go only to the fixture, and a
 real app's menus are read only with `--menu-selftest=TextEdit`, never a bare
 `--menu-selftest` (the frontmost app); the plan's §10 has the gates.
-The bare app takes `-remoteAccess 1 -remotePort P`, `-SillSetAfter '3
-remotePort=P2'`, `-SillPairAfter <s>` and `-SillUnpairAfter <s>`; its
-`-SillRenderPreviews` adds the Remote Access pane's states and the pairing
-window's. A session through a shaped link: `python3 Scripts/sillrelay.py
+The bare app takes `-remoteAccess 1 -remotePort P`, `-SkoprySetAfter '3
+remotePort=P2'`, `-SkopryPairAfter <s>` and `-SkopryUnpairAfter <s>`; its
+`-SkopryRenderPreviews` adds the Remote Access pane's states and the pairing
+window's. A session through a shaped link: `python3 Scripts/skopryrelay.py
 --listen 0 --to 127.0.0.1:P --delay-ms 150 --rate-mbps 2`, then
-`sillclient.py RELAYPORT 90 desktop --tls --identity=$T/a --stats` after
+`skopryclient.py RELAYPORT 90 desktop --tls --identity=$T/a --stats` after
 `--pair-url=URL` once. Never let a test binary take a connection from another
-machine: the Application Firewall prompts. `SILL_TEST_LOOPBACK=1`, honoured only
+machine: the Application Firewall prompts. `SKOPRY_TEST_LOOPBACK=1`, honoured only
 by a host that does not advertise, makes both doors of a test host listen on
 127.0.0.1 alone ("Test listener: loopback only …"; `lsof` lists
 `127.0.0.1:PORT`); a device on this Mac, the simulator included, and the test
 clients reach it by 127.0.0.1. Reset the app's remote settings with
 `for k in remoteAccess remotePort internetAccess remoteAddressName
-remoteDevicesSeen; do defaults delete me.saffer.sill.mac $k; done`.
+remoteDevicesSeen; do defaults delete app.skopry.mac $k; done`.
 Debug harness (simulator; the iPhone Duo's from the iOS 27.1 runtime, folded
-by Tests/duorig): launch arguments `-SillLayout 951x669` (inner landscape) /
+by Tests/duorig): launch arguments `-SkopryLayout 951x669` (inner landscape) /
 `669x951` / `466x678` / `678x466` (the cover), each with the safe area its
-display gives Sill, the status bar's strip included but on the stream screen
-upright with `-SillHinge half` or `flat` (`-SillSafeArea T,L,B,R` sets
+display gives Skopry, the status bar's strip included but on the stream screen
+upright with `-SkopryHinge half` or `flat` (`-SkoprySafeArea T,L,B,R` sets
 another; the first guesses, `1000x710` / `710x1000` / `500x710` / `710x500`,
-have none), `-SillHinge
+have none), `-SkopryHinge
 closed|half|flat` (the hinge and a 40 pt fold across the middle of the longer
 side; without it the harness knows no hinge, even on the Duo's simulator),
-`-SillLive 1` (real client inside the frame), `-SillDrawer 1`,
-`-SillActive none|desktop|<windowID>` (mock), `-SillHUD 1` (diagnostics overlay),
-`-SillSettings 1` (the Settings panel open), `-SillMacMenu
+`-SkopryLive 1` (real client inside the frame), `-SkopryDrawer 1`,
+`-SkopryActive none|desktop|<windowID>` (mock), `-SkopryHUD 1` (diagnostics overlay),
+`-SkoprySettings 1` (the Settings panel open), `-SkopryMacMenu
 code|blender|long|stale|noaccess|none|slow|timeout|refuse` (the mock Mac's
-menus; `code` by default, VS Code's ten), `-SillMenusOpen 1` (the Menus
-pull-down opens after launch) or `-SillMenusOpen 'File/Open Recent'` (opens
-on that menu, each level fetched on the way), `-SillMenuPress 'File/Save'`
+menus; `code` by default, VS Code's ten), `-SkopryMenusOpen 1` (the Menus
+pull-down opens after launch) or `-SkopryMenusOpen 'File/Open Recent'` (opens
+on that menu, each level fetched on the way), `-SkopryMenuPress 'File/Save'`
 (chooses that item once the menus are in; both live too, but only on the test
-app's menus through a test host: `-SillConnect` to a loopback address, no host
+app's menus through a test host: `-SkopryConnect` to a loopback address, no host
 version, menufixture's top level; anything else prints "refused"),
-`-SillMenusAt <s>` and `-SillMenusCloseAfter <s>` (when the pull-down opens,
-and closes after it), and on an iPad `-SillMenuBarLayout perMenu|replace|one`,
-`-SillMenuDump 1` (the main menu's root after each build, on the console),
-`-SillMenuBuildTwice 1` and `-SillMenuNoView 1` (the insertion's guards),
-`-SillSecondWindow 1` (a second window 2 s after launch: the bar then gets
+`-SkopryMenusAt <s>` and `-SkopryMenusCloseAfter <s>` (when the pull-down opens,
+and closes after it), and on an iPad `-SkopryMenuBarLayout perMenu|replace|one`,
+`-SkopryMenuDump 1` (the main menu's root after each build, on the console),
+`-SkopryMenuBuildTwice 1` and `-SkopryMenuNoView 1` (the insertion's guards),
+`-SkoprySecondWindow 1` (a second window 2 s after launch: the bar then gets
 none of the Mac's menus; the console's "menus: …" and "menubar: …" lines say
-what happened), `-SillSettingsCase
+what happened), `-SkoprySettingsCase
 default|cli|software|custom|vdproblem|vdstream|legacy|pending|timeout|direct|
 directlink|nodirect|wired|noroute` (the mock Mac's settings; it answers a pick
 after 0.35 s; the readout's route is Wi-Fi except `directlink` Direct, `wired`
@@ -5873,98 +5877,98 @@ Wired, `noroute` none, and `remote`, `remoteinternet` and `remoteslow` none,
 where the route line says how), away from home's and the link's settings cases
 `away|awaymixed|awayhome|linkbehind|linkmixed|linklow|linkstalled` (the header's
 away line, the footnote, the callout; `linkstalled` shows none) and
-`-SillLinkLine behind` (the mock reports the link behind: the stream's line),
-`-SillSettingsScript '<t> set K=V[,K=V] | suggestion; …'` (a live session to a
+`-SkopryLinkLine behind` (the mock reports the link behind: the stream's line),
+`-SkoprySettingsScript '<t> set K=V[,K=V] | suggestion; …'` (a live session to a
 synthetic host on loopback: the panel's controls and the link callout's button,
-t seconds after the first window list), `-SillMoveHomeTest to:HOST:PORT|refused|
-other:PORT` (with `-SillDialSaved 1`: the saved Mac listed as a network row a
+t seconds after the first window list), `-SkopryMoveHomeTest to:HOST:PORT|refused|
+other:PORT` (with `-SkopryDialSaved 1`: the saved Mac listed as a network row a
 second into the remote session at a door that speaks TLS, so the move home
-runs against a synthetic `--remote --pairing` host with SILL_TEST_REMOTE_ORIGIN
-and SILL_TEST_REMOTE_DIR, dialed pinned to the saved Mac's key), `-SillDialSaved
+runs against a synthetic `--remote --pairing` host with SKOPRY_TEST_REMOTE_ORIGIN
+and SKOPRY_TEST_REMOTE_DIR, dialed pinned to the saved Mac's key), `-SkopryDialSaved
 remotely` (as Connect Remotely: never moves home),
-`-SillConnectCase looking|hint|nearby|methods|denied|update|notice` (the connect screen in a discovery
+`-SkopryConnectCase looking|hint|nearby|methods|denied|update|notice` (the connect screen in a discovery
 state; `methods` has a row ending in each word, none, and long names; `update` a
-Mac's refusal with "Update Sill in the App Store" when `-SillAppStoreURL
+Mac's refusal with "Update Skopry in the App Store" when `-SkopryAppStoreURL
 https://apps.apple.com/app/id000000000` gives it an address, `notice` a goodbye
 reason the device does not know; the mock never browses) and remote access's `remote|addmac|addcode|addcodeerror|
-pairing|remotedial|remotefail|camera|externalpair` (`-SillRemoteFailure
-vpnoff|timeout|timeoutip|refused|dns|wrongmac|revoked|notsill|gaveup|quit|removed|
+pairing|remotedial|remotefail|camera|externalpair` (`-SkopryRemoteFailure
+vpnoff|timeout|timeoutip|refused|dns|wrongmac|revoked|notskopry|gaveup|quit|removed|
 remoteoff` picks remotefail's words), the settings cases `remote|remoteinternet|
-remoteslow|remotepair|remoteoff|noremote`, `-SillSettingsEnd 1` (the panel
-scrolled to its end), `-SillSettingsScroll gestures` (the panel scrolled to its
+remoteslow|remotepair|remoteoff|noremote`, `-SkoprySettingsEnd 1` (the panel
+scrolled to its end), `-SkoprySettingsScroll gestures` (the panel scrolled to its
 This iPad group; the mock Mac takes gestures in every case but `legacy`),
-`-Sill.trackpadGestures 0` (the device's Three-Finger Gestures off for one run,
-in the normal app too), `-Sill.largerPicture 1` (its Larger Picture on for one run,
-in effect while a window streams, as the mock does but with `-SillActive desktop|none`;
+`-Skopry.trackpadGestures 0` (the device's Three-Finger Gestures off for one run,
+in the normal app too), `-Skopry.largerPicture 1` (its Larger Picture on for one run,
+in effect while a window streams, as the mock does but with `-SkopryActive desktop|none`;
 the console's `larger picture: …` line says what the rule made of it;
-`-SillVideoSize WxH` the mock's frame, `-SillLargerPictureToggle <s>[,<s>…]` the
-switch at those seconds), `-SillVoiceOver 1` (that group as with VoiceOver on:
-its footnote says the rows do the gestures), `-SillScanOverlay 1` (Pair This
-iPad…'s overlay; `-SillOverlayLine asking|shown|openonmac|locked|noanswer` the
-line its ask's answer sets; under `-SillLive 1` it opens over the live session
+`-SkopryVideoSize WxH` the mock's frame, `-SkopryLargerPictureToggle <s>[,<s>…]` the
+switch at those seconds), `-SkopryVoiceOver 1` (that group as with VoiceOver on:
+its footnote says the rows do the gestures), `-SkopryScanOverlay 1` (Pair This
+iPad…'s overlay; `-SkopryOverlayLine asking|shown|openonmac|locked|noanswer` the
+line its ask's answer sets; under `-SkopryLive 1` it opens over the live session
 and asks), pairing at home's connect cases `homerows|homeasking|homecard|homecode|
 homecodeerror|homelocked|homeopenonmac|homerevoked|homecabledone|homeolder|
 pairingrequired` and settings cases `paired|pairedoff|openpair`, the connect
 case `asleep` (issue #69: a saved Mac's row listed, the reconnect's line after
-three dials of it that did not connect), `-SillBrowserFail N` (the normal app
-and `-SillLive 1`: each of the first N network browsers is reported failed with
+three dials of it that did not connect), `-SkopryBrowserFail N` (the normal app
+and `-SkopryLive 1`: each of the first N network browsers is reported failed with
 -65569, as iOS reports a suspended app's, half a second after it starts, so it
 is made again after 1, 2, 4… s; the console's "browser: …" lines, and the
 reconnect's "reconnect: …"),
-`-SillPointer mac@X,Y|device@X,Y|hidden|pencil@X,Y` (the pointer sprite in one
+`-SkopryPointer mac@X,Y|device@X,Y|hidden|pencil@X,Y` (the pointer sprite in one
 of docs/pointer-visibility-plan.md's states over the mock's frame, which it
-draws as a dim rectangle; `-SillPencilPointer 1` is Q2's flip),
-`-SillClipboardChip 1` and `-SillClipboardNote sent|long|notsent` (the clipboard's
+draws as a dim rectangle; `-SkopryPencilPointer 1` is Q2's flip),
+`-SkopryClipboardChip 1` and `-SkopryClipboardNote sent|long|notsent` (the clipboard's
 chip and a Paste's note on the mock's stream, docs/clipboard-plan.md; the mock Mac
-shares its clipboard in every settings case but `legacy`; live, `-SillSettingsScript
+shares its clipboard in every settings case but `legacy`; live, `-SkoprySettingsScript
 '<t> paste TEXT'` sends TEXT as the Paste control hands it over, and
-`-SillSettingsCloseAt <s>` closes the panel `-SillSettings 1` opened), and in
-the normal app and under `-SillLive 1` `-SillPairURL '<sill://pair…>'` (pair
+`-SkoprySettingsCloseAt <s>` closes the panel `-SkoprySettings 1` opened), and in
+the normal app and under `-SkopryLive 1` `-SkopryPairURL '<skopry://pair…>'` (pair
 at launch, no confirmation, at the link's own addresses only: a confirmed link
-tries the home rows first, which `-SillTapRow` and `-SillHomeLink` below reach),
-`-SillPairCode <12 digits> -SillPairAddress host:port`,
-`-SillDialSaved 1`, `-SillForgetMacs 1`, `-Sill.savedMacs '<JSON>'` (one run;
-`'[]'` empties), `-SillRemoteRoute vpn|internet` (a loopback session counts as
-that route), `-SillHelloVersion <v>` (the version the hello gives, against a
-host's floor), `-SillScreenFPS 120` (a 120 Hz screen) and `-SillDeviceKeySE 1`
+tries the home rows first, which `-SkopryTapRow` and `-SkopryHomeLink` below reach),
+`-SkopryPairCode <12 digits> -SkopryPairAddress host:port`,
+`-SkopryDialSaved 1`, `-SkopryForgetMacs 1`, `-Skopry.savedMacs '<JSON>'` (one run;
+`'[]'` empties), `-SkopryRemoteRoute vpn|internet` (a loopback session counts as
+that route), `-SkopryHelloVersion <v>` (the version the hello gives, against a
+host's floor), `-SkopryScreenFPS 120` (a 120 Hz screen) and `-SkopryDeviceKeySE 1`
 (a Secure Enclave device key, R0-a); for pairing at home (the normal app and
-`-SillLive 1`), `-SillServiceType _silltest._tcp` (the browsers look for the
-test type, so a test host registered with SILL_TEST_SERVICE_TYPE is a real
+`-SkopryLive 1`), `-SkopryServiceType _skoprytest._tcp` (the browsers look for the
+test type, so a test host registered with SKOPRY_TEST_SERVICE_TYPE is a real
 row with its TXT record and no real Mac is; only the Debug build's
-Info-Debug.plist declares it), `-SillHomeDoor paired|open|plain` (what a
-`-SillConnect` address counts as, since an address has no TXT record:
+Info-Debug.plist declares it), `-SkopryHomeDoor paired|open|plain` (what a
+`-SkopryConnect` address counts as, since an address has no TXT record:
 `plain`, the default, dials it plainly as before; `paired` pins the one saved
-Mac, else asks; `open` an open door), `-SillCableTest 1` (this device's path
-counts as the cable), `-SillForgetHomeTLS 1` (forget which Macs were seen over
-TLS, to dial another branch's older Sill.app plainly), `-SillTapRow <name
-prefix>` (tap that row once it is listed), `-SillHomeCode <digits>` and
-`-SillHomeLink <sill://pair…>` (the home card's code or scan once the Mac
-answers `shown`), `-SillOverlayCode <digits>` (Pair This iPad…'s ask, then
-that code, on a TLS session at home) and `-SillNoAutoDesktop 1` (the device
+Mac, else asks; `open` an open door), `-SkopryCableTest 1` (this device's path
+counts as the cable), `-SkopryForgetHomeTLS 1` (forget which Macs were seen over
+TLS, to dial another branch's older Skopry.app plainly), `-SkopryTapRow <name
+prefix>` (tap that row once it is listed), `-SkopryHomeCode <digits>` and
+`-SkopryHomeLink <skopry://pair…>` (the home card's code or scan once the Mac
+answers `shown`), `-SkopryOverlayCode <digits>` (Pair This iPad…'s ask, then
+that code, on a TLS session at home) and `-SkopryNoAutoDesktop 1` (the device
 never picks the Desktop by itself: a live gate streams nothing); `xcrun
-simctl openurl <udid> 'sill://pair…'` shows the link's confirmation after the
-system's "Open in Sill?". `-Sill.directWirelessMacs '("Mac mini")'` (seeds the
+simctl openurl <udid> 'skopry://pair…'` shows the link's confirmation after the
+system's "Open in Skopry?". `-Skopry.directWirelessMacs '("Mac mini")'` (seeds the
 device's memory of Macs with Direct Wireless on for one run; `'()'` empties it),
-`-SillConnect 127.0.0.1:PORT`
+`-SkopryConnect 127.0.0.1:PORT`
 (connect by address, also in the normal app: the only way to reach the
-off-Bonjour synthetic hosts from the simulator), `-SillMoveTest
-1|refused|other:PORT|to:HOST:PORT` (with `-SillConnect`: that session counts as
+off-Bonjour synthetic hosts from the simulator), `-SkopryMoveTest
+1|refused|other:PORT|to:HOST:PORT` (with `-SkopryConnect`: that session counts as
 direct and a second later the same address, or its port 1, or its port PORT, or
 HOST:PORT, is listed as the Mac's network row, so the move to the network runs
 against a synthetic host; `other:` with a second synthetic host on PORT is
 another launch, refused at its first window list and not tried again, and with
-`-SillConnect` through a delay proxy to the first host's own PORT the fence
-waits out the proxy's round trip; `to:` reads HOST:PORT as `-SillConnect` does,
+`-SkopryConnect` through a delay proxy to the first host's own PORT the fence
+waits out the proxy's round trip; `to:` reads HOST:PORT as `-SkopryConnect` does,
 `[::1]:P` too, and this Mac's `fe80::…%en0` address from `127.0.0.1` shows the
 panel's route word change at the hand-over; the console's "discovery: …" and
 "session: …" lines, `xcrun simctl launch --console-pty`, say what happened),
-`-SillWiredTest HOST:PORT` (a wired dial's fallback under test:
-`-SillConnect`'s dial, a network row's and a move's go to HOST:PORT first,
-`192.0.2.1:9` giving way after 2.5 s and `127.0.0.1:1` at once), `-SillPathTest
-'<spec>'` (with `-SillConnect`: the session's Mac listed as a network row whose
+`-SkopryWiredTest HOST:PORT` (a wired dial's fallback under test:
+`-SkopryConnect`'s dial, a network row's and a move's go to HOST:PORT first,
+`192.0.2.1:9` giving way after 2.5 s and `127.0.0.1:1` at once), `-SkopryPathTest
+'<spec>'` (with `-SkopryConnect`: the session's Mac listed as a network row whose
 cable and Wi-Fi come and go on cue, so the session follows the best path for
 real; the spec is ContentView's contract, the console's "path: …" lines say
-what happened), `-SillInputScript '<t> <step>; …'` (with `-SillLive 1`: input
+what happened), `-SkopryInputScript '<t> <step>; …'` (with `-SkopryLive 1`: input
 with no finger, t seconds after the session's first window list: `down`, `pad
 DX,DY`, `lift` and `click` on the portrait pad, `tap X,Y` on the stream at a
 frame fraction, `key USAGE` a hardware key, `row USAGE` a key of the portrait
@@ -5974,22 +5978,22 @@ key row, `gesture NAME[,FINGERS]` a three-finger gesture through
 scroll with its coast, `wheel DX,DY` a wheel's plain deltas, `keyboard
 attach|detach` a hardware keyboard coming or going, `orient landscape|portrait`
 the scene turned (an iPhone's); the console's "input script: …" and "pointer: …" lines say what
-happened; it runs only when the session was dialled by `-SillConnect` to a
+happened; it runs only when the session was dialled by `-SkopryConnect` to a
 loopback address, `127.0.0.1:P`, `::1:P` or `localhost:P`, and the host's first
-window list has no version: Sill.app's always has, and would post the input to
+window list has no version: Skopry.app's always has, and would post the input to
 this Mac, so the console says "input script: refused: …" and nothing is sent;
 point it only at `--synthetic` hosts; `[::1]:P` works too: the argument domain
 drops a launch argument that starts with `[`, and StreamClient.init registers
-`-SillConnect`'s, `-SillWiredTest`'s and `-SillPairAddress`'s from the command
-line). The first-run tour, in the mock, under `-SillLive 1` and in
-the normal app: `-SillTourState fresh|landscape|done|skipped|saved` turns the
+`-SkopryConnect`'s, `-SkopryWiredTest`'s and `-SkopryPairAddress`'s from the command
+line). The first-run tour, in the mock, under `-SkopryLive 1` and in
+the normal app: `-SkopryTourState fresh|landscape|done|skipped|saved` turns the
 automatic tour on (a Debug build never shows it by itself otherwise; `saved`
-reads and writes `Sill.tourSeen` and `Sill.tourSkipped`, the others last one
-run), `-SillTour touch|bar|settings|laptop` starts it at that step, and the
-stand-ins `-SillTourPress next@S|skip@S`, `-SillTourActivityAt S` (the app
-run's first session only), `-SillTakeTourAt S` (Settings, then its Take the
+reads and writes `Skopry.tourSeen` and `Skopry.tourSkipped`, the others last one
+run), `-SkopryTour touch|bar|settings|laptop` starts it at that step, and the
+stand-ins `-SkopryTourPress next@S|skip@S`, `-SkopryTourActivityAt S` (the app
+run's first session only), `-SkopryTakeTourAt S` (Settings, then its Take the
 Tour) and
-`-SillTourVoiceOver 1`; `-SillOrientation landscape|portrait` asks the normal
+`-SkopryTourVoiceOver 1`; `-SkopryOrientation landscape|portrait` asks the normal
 app's scene for that orientation (a phone simulator sideways with its real
 safe areas); the console's "tour: …" lines say what happened, and a card's
 line gives its frame and tail. `xcrun simctl launch --console-pty` streams the
@@ -6002,70 +6006,70 @@ scaled down and laid out at its own size ("harness: 710x1000 drawn at 0.62");
 a phone's whole stream screen on that phone (440x894 on an 18 Pro Max, 402x812
 on an 18 Pro) reaches into the simulator's safe area and runs its trackpad past
 its bottom edge: photograph it on a larger simulator, or in the normal app.
-`-SillKeyboard 1` raises the software keyboard for real in a live session (the
-mock only lights the button), `-SillKeyboardToggle <s>[,<s>…]` toggles it at
+`-SkopryKeyboard 1` raises the software keyboard for real in a live session (the
+mock only lights the button), `-SkopryKeyboardToggle <s>[,<s>…]` toggles it at
 those seconds as the Keyboard button does, and in a live session (the normal
-app with `-SillConnect`, or `-SillLive 1`) `-SillDrawer 1`, `-SillSettings 1`
-and `-SillScaleOpen 1` open theirs 1.5 s after the stream starts
-(`-SillDrawerSearch <text>`: the open drawer searches with its field's keyboard
+app with `-SkopryConnect`, or `-SkopryLive 1`) `-SkopryDrawer 1`, `-SkoprySettings 1`
+and `-SkopryScaleOpen 1` open theirs 1.5 s after the stream starts
+(`-SkopryDrawerSearch <text>`: the open drawer searches with its field's keyboard
 up). The console
 prints `viewport: 386×241 pt, scale none, 60 fps` for each viewport sent, and on
 a phone upright `trackpad: …, vertical span …` and, once the keyboard has moved,
 `keyboard: up, 301 pt tall, its top at …; the key row ends 10 pt above it`.
-`-SillAXDump <s>` lists the stream screen's accessibility elements in the
+`-SkopryAXDump <s>` lists the stream screen's accessibility elements in the
 tree's order (VoiceOver's), on a private simulator once `xcrun simctl spawn
 UDID defaults write com.apple.Accessibility ApplicationAccessibilityEnabled
 -bool true`.
 A hardware keyboard (docs/hardware-keyboard-plan.md): a simulator's GameController
 always counts the simulator's own keyboard, so the stream's input view takes the
-keyboard by itself there (an empty input view: nothing drawn); `-SillHardwareKeyboard
+keyboard by itself there (an empty input view: nothing drawn); `-SkopryHardwareKeyboard
 1|0` says a keyboard is attached or not for the run instead. The console prints
 `keyboard: …` for what HardwareKeyboardPolicy does and `hwkey: usage 41 down via
 pressesBegan (none): to the Mac` (or `keyCommand`) for every hardware key the input
-view sees; `-SillKeyProbe 1` adds GameController's own view of each key,
-`-SillEscViaCommand 1` hands Esc on from pressesBegan so its key commands take it,
-and `-SillTurnAt <s>[,<s>…]` turns an iPhone's scene mid-session (iPadOS's windowing
+view sees; `-SkopryKeyProbe 1` adds GameController's own view of each key,
+`-SkopryEscViaCommand 1` hands Esc on from pressesBegan so its key commands take it,
+and `-SkopryTurnAt <s>[,<s>…]` turns an iPhone's scene mid-session (iPadOS's windowing
 refuses). `Tests/keyrig` presses real keys and turns a wheel inside the simulator;
 after its keys UIKit there counts a hardware keyboard, so a fresh simulator is the
 one that shows the software keyboard. A test host's Desktop takes input only with
-`SILL_TEST_POINTER_PATH` (else it has nowhere to land).
-`-SillIdiom pad` draws a screen taller than wide and narrower than 600 pt as
+`SKOPRY_TEST_POINTER_PATH` (else it has nowhere to land).
+`-SkopryIdiom pad` draws a screen taller than wide and narrower than 600 pt as
 an iPad does (the compact halves) rather than as a phone, so an iPhone
 simulator photographs it (`phone` the other way round; the normal app too).
-`-SillInputTest 1`, with `-SillConnect` on this Mac's loopback: once, the
+`-SkopryInputTest 1`, with `-SkopryConnect` on this Mac's loopback: once, the
 portrait key row taps cmd, esc, shift and ctrl through its caps' action, then
 the trackpad checks that a touch at its centre lands on it, strokes, taps with
 the latched keys held and scrolls, through its own code, and in every layout
 the stream's input view sends Esc and ⇧Esc through its key command, a
 trackpad's scroll with its coast and a wheel's ("input test: …"); a
 synthetic host counts what it gets as `in.dry` and posts nothing, but a real
-host (Sill.app, SillHost without `--synthetic`) posts it on this Mac and the
+host (Skopry.app, SkopryHost without `--synthetic`) posts it on this Mac and the
 test does not look at which host it reached, so point it only at a synthetic
 host, or put a relay in front that reads the device's frames (the 14-byte
 header: kind, then the payload's length at bytes 10–13) and drops kind 8
-(`sillrelay.py` passes everything).
+(`skopryrelay.py` passes everything).
 
 ## Compatibility floor
 
-The first public builds (Sill for iPhone and iPad from the App Store, Sill.app from GitHub) set it
-for good. Sill.app changes only when its user downloads a new version (its update check only points
+The first public builds (Skopry for iPhone and iPad from the App Store, Skopry.app from GitHub) set it
+for good. Skopry.app changes only when its user downloads a new version (its update check only points
 at one), and a device can stay on an old version (automatic updates off, an iOS the next version
 dropped). So every later host keeps serving devices from the first public build on, and every later
 device keeps working with Macs from the first public build on, or each says why
 (docs/update-notice-plan.md):
-- Kept as they are: the home door as Sill.app 1.0 ships it, TLS with pairing at home
+- Kept as they are: the home door as Skopry.app 1.0 ships it, TLS with pairing at home
   (docs/home-pairing-plan.md, branch `home-pairing`; it ships before 1.0, Noah 2026-09-25), not
-  the plain-TCP `_sill._tcp` door, which only development builds and the CLI without `--pairing`
-  keep; the ALPNs `sill/1` and `sill-pair/1`, which every host offers for good at both doors
-  (`RemoteTLS.serverALPNs`: a later generation's `sill/2` only ever goes beside them); the 14-byte
+  the plain-TCP `_skopry._tcp` door, which only development builds and the CLI without `--pairing`
+  keep; the ALPNs `skopry/1` and `skopry-pair/1`, which every host offers for good at both doors
+  (`RemoteTLS.serverALPNs`: a later generation's `skopry/2` only ever goes beside them); the 14-byte
   header; kinds 0–28 and 32 and their payloads (HEVC with ParameterSets; the JSON of Switcher,
   Input, Viewport, HostSettings, Remote, Compatibility, Pointer, MacMenu, Gesture and Clipboard;
-  29 to 31 stay free, 29 the audio plan's, 30 and 31 pull request #66's), inside `sill/1` at
-  both doors (19 and 20 on their own `sill-pair/1` connection, the next bullet); the ping echo; a
-  kind 16 within 2 s of the first window list, one per connection since Sill for Mac 0.5.1 (away
+  29 to 31 stay free, 29 the audio plan's, 30 and 31 pull request #66's), inside `skopry/1` at
+  both doors (19 and 20 on their own `skopry-pair/1` connection, the next bullet); the ping echo; a
+  kind 16 within 2 s of the first window list, one per connection since Skopry for Mac 0.5.1 (away
   from home, docs/remote-bundle-plan.md §4): its `settings` the pair that connection's controls
   set (the away quality for a device away), and its optional `away` (AwayQuality, from a host with
-  an identity: Sill.app, SillHost --remote or --pairing) and `link` (LinkReport, only while a link
+  an identity: Skopry.app, SkopryHost --remote or --pairing) and `link` (LinkReport, only while a link
   does not keep up; its `state` a string,
   which a device reads as keeping up when it does not know it); kind 22's `reason`, `message` and
   `reconnect`; the
@@ -6091,7 +6095,7 @@ device keeps working with Macs from the first public build on, or each says why
   sent `{}`.
 - Pairing as 1.0 does it (docs/home-pairing-plan.md §3): the Bonjour TXT keys `r` (the recognition
   tag) and `p` ("1" pairing required, "0" open, no `p` a plain door, any other value read as "1");
-  a `sill-pair/1` connection is exactly one kind 19, with no hello (the device gate judges sessions
+  a `skopry-pair/1` connection is exactly one kind 19, with no hello (the device gate judges sessions
   only), and one kind 20, then the Mac closes it; kind 19's methods `qr`, `code` and, at the home
   door, `ask` and `cancel` (the remote door answers both `closed`), at `v` 1: a host answers any other `v`
   `closed` without counting a try, so a later method or proof format comes with a later `v`, never
@@ -6111,29 +6115,29 @@ device keeps working with Macs from the first public build on, or each says why
   before anything else. A device from 2026-09-25 on that receives it shows the host's message word
   for word, with its App Store link, and does not reconnect; older development builds cannot. At
   the TLS home door only devices from home pairing on receive it (Decided, below). Kind 22 reaches
-  a 1.0 device only inside a `sill/1` session, so such a host still completes that device's
-  `sill/1` handshake and reads its hello through the gate before refusing it: a host that stopped
-  offering `sill/1` would leave it a failed handshake (-9838), "disconnected" and a redial every
+  a 1.0 device only inside a `skopry/1` session, so such a host still completes that device's
+  `skopry/1` handshake and reads its hello through the gate before refusing it: a host that stopped
+  offering `skopry/1` would leave it a failed handshake (-9838), "disconnected" and a redial every
   few seconds, for ever.
 - Every device says hello first (kind 23: its version, build, protocol and name), and every host's
-  window list gives its version and protocol (`hostVersion`, nil from SillHost and from Macs
+  window list gives its version and protocol (`hostVersion`, nil from SkopryHost and from Macs
   before 2026-09-25). A later device facing an older Mac tells what it lacks from these and from
-  which kinds and fields arrive, and says "Update Sill on ‹Mac›", as the Settings panel already
+  which kinds and fields arrive, and says "Update Skopry on ‹Mac›", as the Settings panel already
   does for a Mac without kind 16.
-- `SillProtocol.current` (1) rises only with a change an older peer cannot skip, and the floor
+- `SkopryProtocol.current` (1) rises only with a change an older peer cannot skip, and the floor
   rises with it.
 - Decided (Noah, 2026-09-25; the plan's open question 14): home pairing ships before 1.0, so the
-  floor is the TLS home door with pairing, and no 1.0 device speaks plain TCP to Sill.app.
+  floor is the TLS home door with pairing, and no 1.0 device speaks plain TCP to Skopry.app.
   Settled at the merge of main into `home-pairing` (2026-09-27, d11aa60; home pairing landed
   second): the hello goes first inside TLS at both doors, and the device gate runs in `Door`, once
   the key is admitted, one place for both TLS doors (`StreamServer.gate`; the CLI's plain door
   without `--pairing` runs it at `.ready`); what changed while it held a session (the key removed,
   Require pairing on, Remote Access or internet access off, the session limit, Direct Wireless
   off) is judged again by `DoorPolicy.afterGate`, with the goodbye and the line that change's own
-  close gives. 1.0's TLS home door is `SillProtocol` 1 with ALPN `sill/1`, as the remote door is:
+  close gives. 1.0's TLS home door is `SkopryProtocol` 1 with ALPN `skopry/1`, as the remote door is:
   pairing on the home door is part of protocol 1, no longer an example of what raises it
   (Compatibility.swift, docs/update-notice-plan.md §3.2 and §4.6), and a later generation raises
-  both: `sill/2` is offered beside `sill/1` and `sill-pair/1`, never instead of them (the first
+  both: `skopry/2` is offered beside `skopry/1` and `skopry-pair/1`, never instead of them (the first
   bullet). Builds from before home
   pairing dial plain TCP and say hello in plaintext: at the TLS door they get a failed handshake
   and EOF, never kind 22 "update", and redial. Only development and TestFlight builds are that

@@ -1,5 +1,5 @@
 #!/bin/bash
-# AddressList and PairingWindow (Sources/SillHost), compiled with OriginPolicy and StreamProtocol's
+# AddressList and PairingWindow (Sources/SkopryHost), compiled with OriginPolicy and StreamProtocol's
 # sources as one module (build.sh strips `import StreamProtocol`): the addresses the Mac offers for
 # remote access, from its network services and tunnels, and the pairing window's codes and tries.
 #   Tests/checks/addresses/run.sh             compile and run the check

@@ -6,8 +6,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PATHS = {
     "StreamMessage.swift": "Sources/StreamProtocol/StreamMessage.swift",
     "MacMenu.swift": "Sources/StreamProtocol/MacMenu.swift",
-    "MenuFormat.swift": "Sources/SillHost/MenuFormat.swift",
-    "MenuPolicy.swift": "Sources/SillHost/MenuPolicy.swift",
+    "MenuFormat.swift": "Sources/SkopryHost/MenuFormat.swift",
+    "MenuPolicy.swift": "Sources/SkopryHost/MenuPolicy.swift",
 }
 MUTANTS = [
     # The wire (MacMenu.swift, StreamMessage.swift)

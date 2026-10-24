@@ -7,7 +7,7 @@ import UIKit
 /// The app can have several windows (scenes), each with its own StreamClient, and the bar is one for
 /// the app. A window's key status says nothing about which of them the bar's choices would reach:
 /// for an app built against the iOS 15 SDK or later every window is key in its own scene
-/// (UIWindow.h), so two Sill windows are both key at once. So the bar shows the menus of the app's
+/// (UIWindow.h), so two Skopry windows are both key at once. So the bar shows the menus of the app's
 /// one window, while exactly one window scene is connected; with two or more it shows none of them
 /// (a choice could reach a session the user is not looking at), and each window's Menus button still
 /// has its own session's. `WindowSessionObserver` in each scene tells the hub which session its
@@ -123,14 +123,14 @@ final class WindowSessionObserverView: UIView {
 }
 
 #if DEBUG
-/// `-SillSecondWindow 1`: a second Sill window (scene) opens 2 s after launch, as the system's New
+/// `-SkoprySecondWindow 1`: a second Skopry window (scene) opens 2 s after launch, as the system's New
 /// Window does, so a run can show what the iPad's bar does with two (ContentView's contract). Once
 /// per process.
 enum SecondWindow {
     private static var opened = false
 
     static func openFromLaunchArgument() {
-        guard !opened, UserDefaults.standard.bool(forKey: "SillSecondWindow") else { return }
+        guard !opened, UserDefaults.standard.bool(forKey: "SkoprySecondWindow") else { return }
         opened = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             print("menubar: harness: opening a second window")

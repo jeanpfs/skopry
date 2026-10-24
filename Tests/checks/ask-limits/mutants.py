@@ -2,7 +2,7 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import module
-F = "Sources/SillHost/PairingWindow.swift"
+F = "Sources/SkopryHost/PairingWindow.swift"
 M = [
     ("quiet by key only", F, "[quietKeys[fingerprint], quietSources[source]]", "[quietKeys[fingerprint]]"),
     ("quiet by address only", F, "[quietKeys[fingerprint], quietSources[source]]", "[quietSources[source]]"),
@@ -27,7 +27,7 @@ M = [
     ("closed: an expiry heard as closed", F, "        if reason == .expired { return PairResult.expired }\n", ""),
     ("closed: a withdrawn window heard as expired", F, "        if reason == .expired { return PairResult.expired }", "        if reason == .expired || reason == .withdrawn { return PairResult.expired }"),
     ("the override is for quiet only", F, "        spanSeconds = seconds ?? Self.span", "        spanSeconds = Self.span"),
-    ("the override on any host", F, "guard testHost, let v = environment[\"SILL_TEST_ASK_QUIET\"]", "guard let v = environment[\"SILL_TEST_ASK_QUIET\"]"),
+    ("the override on any host", F, "guard testHost, let v = environment[\"SKOPRY_TEST_ASK_QUIET\"]", "guard let v = environment[\"SKOPRY_TEST_ASK_QUIET\"]"),
     ("the override takes 0 and infinity", F, "let s = Double(v), s.isFinite, s > 0 else { return nil }", "let s = Double(v) else { return nil }"),
 ]
 sys.exit(0 if module.mutate("ask-limits", M, sys.argv[1]) else 1)

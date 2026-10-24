@@ -44,7 +44,7 @@ struct FoundMac: Identifiable, Hashable {
     /// the automatic reconnect do follows from it (DiscoveryPolicy.homeDial). `.plain` for a Remote row.
     let door: DiscoveryPolicy.HomeDoor
     /// The row's word, and VoiceOver's label and hint for it (DiscoveryPolicy.rowWord): how the Mac is
-    /// reachable, as before, or "Not paired", "Wired" for an unpaired Mac over the cable, "Update Sill".
+    /// reachable, as before, or "Not paired", "Wired" for an unpaired Mac over the cable, "Update Skopry".
     let homeWord: DiscoveryPolicy.RowWord
 
     init(name: String, endpoint: NWEndpoint?, route: Route, macID: String? = nil, savedByName: String? = nil,
@@ -64,7 +64,7 @@ struct FoundMac: Identifiable, Hashable {
     /// (DiscoveryPolicy.rows lists a name once), Mac IDs among Remote rows.
     var id: String { route == .remote ? "remote:\(macID ?? name)" : "\(route.rawValue):\(name)" }
     /// The word at the end of its row: "Remote" for a saved Mac dialed away from home, else its home
-    /// word (`homeWord`): how its Mac is reachable (`method`), "Not paired" or "Update Sill", or nil.
+    /// word (`homeWord`): how its Mac is reachable (`method`), "Not paired" or "Update Skopry", or nil.
     var word: String? { route == .remote ? "Remote" : homeWord.word }
 }
 
@@ -179,7 +179,7 @@ final class StreamClient: ObservableObject {
             #endif
         }
     }
-    /// A sill://pair link from outside the app (Camera, Messages, simctl openurl): never acted on
+    /// A skopry://pair link from outside the app (Camera, Messages, simctl openurl): never acted on
     /// until the person confirms it.
     @Published var pendingLink: PairLink?
 
@@ -204,10 +204,10 @@ final class StreamClient: ObservableObject {
     /// another's (-9808): the reconnect skips them until a session connects (docs/home-pairing-plan.md §7.3).
     var pinRefusedRows = Set<String>()
     #if DEBUG
-    /// `-SillTapRow <prefix>`: the first network or Direct row whose name starts so is tapped once,
+    /// `-SkopryTapRow <prefix>`: the first network or Direct row whose name starts so is tapped once,
     /// as soon as it is listed (the gates drive no UI).
-    var pendingTapRow = UserDefaults.standard.string(forKey: "SillTapRow")
-    /// `-SillOverlayCode` was typed (once per launch).
+    var pendingTapRow = UserDefaults.standard.string(forKey: "SkopryTapRow")
+    /// `-SkopryOverlayCode` was typed (once per launch).
     var overlayCodeTyped = false
     #endif
 
@@ -215,7 +215,7 @@ final class StreamClient: ObservableObject {
     /// access (updateDiscovery); any other status (a disconnect, a failure) stays as it was set.
     static let lookingOnNetwork = "Looking for Macs on this network"
     static let lookingNearby = "Looking for Macs on this network and nearby"
-    static let allowLocalNetwork = "To find your Mac, allow Local Network for Sill in Settings."
+    static let allowLocalNetwork = "To find your Mac, allow Local Network for Skopry in Settings."
 
     // Switcher catalog, as the host sends it. Published on main.
     @Published var macName = ""
@@ -225,11 +225,11 @@ final class StreamClient: ObservableObject {
     @Published private(set) var windowOrder: [UInt32] = []
     /// When the Desktop was last picked on the device's own initiative (see the window list).
     private var lastAutoDesktop: Date = .distantPast
-    /// DEBUG `-SillNoAutoDesktop 1`: the device never picks the Desktop by itself, so a live gate's
+    /// DEBUG `-SkopryNoAutoDesktop 1`: the device never picks the Desktop by itself, so a live gate's
     /// session streams nothing and no host encodes (a test host's software encoder included) while
     /// it runs. Always false in a Release build.
     #if DEBUG
-    private static let noAutoDesktop = UserDefaults.standard.bool(forKey: "SillNoAutoDesktop")
+    private static let noAutoDesktop = UserDefaults.standard.bool(forKey: "SkopryNoAutoDesktop")
     #else
     private static let noAutoDesktop = false
     #endif
@@ -302,9 +302,9 @@ final class StreamClient: ObservableObject {
     #if DEBUG
     /// What each waiting completion opened, for the console ("menus: File (2) in 41 ms, 24 items").
     private var menuAsked: [Int: (title: String, id: String, at: Double)] = [:]
-    /// The harness's Mac menus (`-SillMacMenu`): what the mock Mac answers its fetches and choices with.
+    /// The harness's Mac menus (`-SkopryMacMenu`): what the mock Mac answers its fetches and choices with.
     var mockMenus: MockCatalog.MacMenus?
-    /// `-SillMenuPress` has run on this client.
+    /// `-SkopryMenuPress` has run on this client.
     private var menuPressArgumentDone = false
     #endif
 
@@ -460,14 +460,14 @@ final class StreamClient: ObservableObject {
     // Discovery (main thread). Two browsers: the network one always runs and never uses
     // peer-to-peer; the nearby one runs only when DiscoveryPolicy says, never while connected.
     // Both read the TXT record, whose `r` tag names a saved Mac whatever its Bonjour name.
-    /// `_sill._tcp`. DEBUG `-SillServiceType _silltest._tcp`: the browsers look for that type
-    /// instead, so a test host registered with SILL_TEST_SERVICE_TYPE shows as a real row with its
+    /// `_skopry._tcp`. DEBUG `-SkopryServiceType _skoprytest._tcp`: the browsers look for that type
+    /// instead, so a test host registered with SKOPRY_TEST_SERVICE_TYPE shows as a real row with its
     /// TXT record, and no real Mac is listed (the Debug build's Info.plist declares it).
     static var serviceType: String {
         #if DEBUG
-        if let type = UserDefaults.standard.string(forKey: "SillServiceType"), !type.isEmpty { return type }
+        if let type = UserDefaults.standard.string(forKey: "SkopryServiceType"), !type.isEmpty { return type }
         #endif
-        return "_sill._tcp"
+        return "_skopry._tcp"
     }
     private var networkBrowser: NWBrowser?
     private var nearbyBrowser: NWBrowser?
@@ -494,7 +494,7 @@ final class StreamClient: ObservableObject {
         var rebuildWork: DispatchWorkItem?
         var settleWork: DispatchWorkItem?
         #if DEBUG
-        /// Browsers of this kind made so far (`-SillBrowserFail`).
+        /// Browsers of this kind made so far (`-SkopryBrowserFail`).
         var made = 0
         #endif
     }
@@ -506,11 +506,11 @@ final class StreamClient: ObservableObject {
     /// a listed row, and a failed browser is made again, only then (issue #69). Main thread.
     private(set) var appInForeground = UIApplication.shared.applicationState != .background
     #if DEBUG
-    /// `-SillBrowserFail N`: each of the first N network browsers is reported failed with
+    /// `-SkopryBrowserFail N`: each of the first N network browsers is reported failed with
     /// kDNSServiceErr_DefunctConnection (-65569) half a second after it starts, as iOS reports a
     /// suspended app's: the simulator's browsers use the Mac's own mDNSResponder, which never makes an
     /// app's connection defunct.
-    private static let browserFailCount = UserDefaults.standard.integer(forKey: "SillBrowserFail")
+    private static let browserFailCount = UserDefaults.standard.integer(forKey: "SkopryBrowserFail")
     /// The automatic reconnect's last "next dial" line on the console, so that each prints once.
     var lastRedialNote: String?
     #endif
@@ -519,7 +519,7 @@ final class StreamClient: ObservableObject {
     var searchingSince = ProcessInfo.processInfo.systemUptime
     /// Search Nearby tapped since the last connection.
     var askedNearby = false
-    /// The network browser waits with PolicyDenied: Local Network access is off for Sill.
+    /// The network browser waits with PolicyDenied: Local Network access is off for Skopry.
     var localNetworkDenied = false
     /// The policy's next look (its 3 s mark).
     private var discoveryRecheck: DispatchWorkItem?
@@ -581,7 +581,7 @@ final class StreamClient: ObservableObject {
     /// The home viewport the move sends first on its connection: this session's last, at this
     /// device's full rate (no cap away from home), taken as the move starts.
     private var homeMoveViewport: Viewport?
-    /// How the move's connections speak to the home door: TLS `sill/1` pinned to the saved Mac's key
+    /// How the move's connections speak to the home door: TLS `skopry/1` pinned to the saved Mac's key
     /// (DiscoveryPolicy.moveHomeTrust), the session's trust once it is home; and the row it went to,
     /// the session's row afterwards (a pin that fails later, docs/home-pairing-plan.md §7.6).
     private var homeMoveTrust: DiscoveryPolicy.HomeTrust?
@@ -624,7 +624,7 @@ final class StreamClient: ObservableObject {
     private var lastMoveUp: Double?
     private var lastMoveDown: Double?
     /// The listing of the cable (its `paths.wiredSince`) the last move up went to; the one a move
-    /// up found to reach another Mac, or another launch of Sill, which is not tried again while it
+    /// up found to reach another Mac, or another launch of Skopry, which is not tried again while it
     /// lasts; and the moves up to one listing that did not complete, in a row, after which the next
     /// waits longer (DiscoveryPolicy.upWait).
     private var upListing: Double?
@@ -655,14 +655,14 @@ final class StreamClient: ObservableObject {
         var reported: Bool { unsatisfied || notViable || waiting }
     }
     #if DEBUG
-    /// `-SillMoveTest` with `-SillConnect host:port`: rows the network browser did not list, so the
+    /// `-SkopryMoveTest` with `-SkopryConnect host:port`: rows the network browser did not list, so the
     /// move to the network runs against synthetic hosts, which no browser lists and which are not
     /// on AWDL (see `beginMoveTest`).
     private var testNetworkRows: [(name: String, endpoint: NWEndpoint)] = []
-    /// `-SillMoveHomeTest`: the remote session's saved Mac as a network row, with its Mac ID (see
+    /// `-SkopryMoveHomeTest`: the remote session's saved Mac as a network row, with its Mac ID (see
     /// `beginMoveHomeTest`).
     private var testHomeRows: [(name: String, endpoint: NWEndpoint, macID: String)] = []
-    /// `-SillPathTest`: the session's Mac as a network row whose interfaces the test changes, and
+    /// `-SkopryPathTest`: the session's Mac as a network row whose interfaces the test changes, and
     /// the addresses its "cable" and "Wi-Fi" are dialled at (see `beginPathTest`).
     private var pathTest: PathTest?
     #endif
@@ -670,9 +670,9 @@ final class StreamClient: ObservableObject {
     /// keyed by the Bonjour name the connection was made to, the name both browsers list the Mac
     /// under. A discovery hint only: the panel never reads it, so a Mac's settings are still only ever
     /// the ones it sent on this connection. A launch argument seeds it for one run:
-    /// -Sill.directWirelessMacs '("Mac mini")', or '()' to clear it.
+    /// -Skopry.directWirelessMacs '("Mac mini")', or '()' to clear it.
     var directWirelessMacs = UserDefaults.standard.stringArray(forKey: StreamClient.directWirelessMacsKey) ?? []
-    private static let directWirelessMacsKey = "Sill.directWirelessMacs"
+    private static let directWirelessMacsKey = "Skopry.directWirelessMacs"
     /// What the network browser has shown of each saved Mac, by Mac ID (DiscoveryPolicy.sightings,
     /// the rule `sightings` follows by Bonjour name; the ID outlasts a rename to "Mac mini (2)"): a
     /// lost saved Mac gets no remote dial within `networkGrace` of the moment its network row went,
@@ -774,7 +774,7 @@ final class StreamClient: ObservableObject {
     }
     @Published var notice: Notice?
     /// The Mac's version and protocol from this session's window lists (`WindowList.hostVersion`,
-    /// `protocol`): nil from SillHost and from Macs before 2026-09-25. Shown nowhere yet; kept so a
+    /// `protocol`): nil from SkopryHost and from Macs before 2026-09-25. Shown nowhere yet; kept so a
     /// later device can tell a Mac from the first public build from what it needs (§14). Cleared
     /// with the session.
     @Published var hostVersion: String?
@@ -794,7 +794,7 @@ final class StreamClient: ObservableObject {
     @Published var clipboardNote: ClipboardNote?
     /// This connection sent its subscription and no stop since (ClipboardPolicy.deviceSubscription).
     var clipboardSubscribed = false
-    /// When Sill last became active: a session that starts soon after gets the chip's look too.
+    /// When Skopry last became active: a session that starts soon after gets the chip's look too.
     var clipboardActivatedAt: TimeInterval?
     /// What this device sent last, and its clipboard's change count right after: the Mac's echo of it
     /// is not written again (ClipboardPolicy.deviceWrites).
@@ -802,7 +802,7 @@ final class StreamClient: ObservableObject {
     var clipboardChipExpiry: DispatchWorkItem?
     var clipboardNoteExpiry: DispatchWorkItem?
     /// The chip is on screen (StreamScreen: nothing open over the stream, no note in its place), its time
-    /// on screen so far, since when that counts, and whether VoiceOver was told it came; Sill is active
+    /// on screen so far, since when that counts, and whether VoiceOver was told it came; Skopry is active
     /// (ClipboardPolicy.chipCounts: its 20 s run only while all say so, and VoiceOver is off).
     var clipboardChipOnScreen = false
     var clipboardChipShownFor: TimeInterval = 0
@@ -834,7 +834,7 @@ final class StreamClient: ObservableObject {
     /// Where every message to the Mac goes, in the order sent, also across a move's hand-over from
     /// the direct connection to the network one (SessionLink).
     private let link = SessionLink()
-    let queue = DispatchQueue(label: "sill.net", qos: .userInteractive)
+    let queue = DispatchQueue(label: "skopry.net", qos: .userInteractive)
     private var lastParameterSets: ParameterSets?
 
     // Liveness, on `queue` (docs/remote-access-plan.md §7.6). The host answers every ping, so a
@@ -878,7 +878,7 @@ final class StreamClient: ObservableObject {
     private var lastMoveAt = 0.0              // CACurrentMediaTime
     private var moveFlushScheduled = false
 
-    /// DEBUG: saved Macs seeded for this run by `-Sill.savedMacs '<JSON>'`; nothing is written back.
+    /// DEBUG: saved Macs seeded for this run by `-Skopry.savedMacs '<JSON>'`; nothing is written back.
     private(set) var savedMacsSeeded = false
 
     init() {
@@ -895,11 +895,11 @@ final class StreamClient: ObservableObject {
         } else {
             savedMacs = SavedMacs.decode(UserDefaults.standard.string(forKey: SavedMacs.defaultsKey))
         }
-        // A bracketed IPv6 address starts so too (`-SillConnect '[::1]:P'`): an address argument
+        // A bracketed IPv6 address starts so too (`-SkopryConnect '[::1]:P'`): an address argument
         // the argument domain dropped goes into the registration domain (this run's memory, never
         // saved), where every reader of UserDefaults finds it. Its readers are this client's
         // methods, and statics first touched once it exists, so this runs before any of them.
-        for key in ["SillConnect", "SillWiredTest", "SillPairAddress"] {
+        for key in ["SkopryConnect", "SkopryWiredTest", "SkopryPairAddress"] {
             guard UserDefaults.standard.object(forKey: key) == nil,
                   let i = arguments.firstIndex(of: "-" + key), i + 1 < arguments.count else { continue }
             UserDefaults.standard.register(defaults: [key: arguments[i + 1]])
@@ -917,7 +917,7 @@ final class StreamClient: ObservableObject {
         NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
             self?.appInForeground = false
         }
-        // The clipboard's chip looks when Sill becomes active (StreamClient+Clipboard).
+        // The clipboard's chip looks when Skopry becomes active (StreamClient+Clipboard).
         observeClipboardActivation()
     }
 
@@ -935,7 +935,7 @@ final class StreamClient: ObservableObject {
     /// Makes `kind`'s browser and starts it. The network one never peer-to-peer: includePeerToPeer stays
     /// at its default, false. A peer-to-peer browse makes the kernel bring AWDL up, which takes the radio
     /// off its Wi-Fi channel up to ~100 ms twice a second (CLAUDE.md, trackpad stutter), and on a shared
-    /// network AWDL carries nothing of Sill's. Direct Wireless Connection is the Mac's opt-in for that
+    /// network AWDL carries nothing of Skopry's. Direct Wireless Connection is the Mac's opt-in for that
     /// route: the nearby browser, for a Mac whose Direct Wireless Connection is on and that shares no
     /// network with this device, started and stopped by `updateDiscovery` only. Each browser's results
     /// and state reach main, and only while it is still that kind's browser. Main thread.
@@ -965,7 +965,7 @@ final class StreamClient: ObservableObject {
         if kind == .network, self[keyPath: lifeKey(kind)].made <= Self.browserFailCount {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self, weak browser] in
                 guard let self, let browser, self.networkBrowser === browser else { return }
-                print("browser: -SillBrowserFail: the network browser reported failed (-65569), as a suspended app's is")
+                print("browser: -SkopryBrowserFail: the network browser reported failed (-65569), as a suspended app's is")
                 self.browserChanged(.network, .failed(.dns(DNSServiceErrorType(kDNSServiceErr_DefunctConnection))))
             }
         }
@@ -1158,7 +1158,7 @@ final class StreamClient: ObservableObject {
     /// reconnect still finds it by the Bonjour name last used with it). Then a Remote row for each
     /// saved Mac neither browser lists, once the network has had its 3 s. Each row also carries its
     /// home door, from its TXT record's `p`, and the word that follows from it and from what this
-    /// device knows of that Mac (DiscoveryPolicy.rowWord: "Not paired", "Update Sill"…); a saved Mac
+    /// device knows of that Mac (DiscoveryPolicy.rowWord: "Not paired", "Update Skopry"…); a saved Mac
     /// seen with `p` is remembered as one whose door speaks TLS (`homeTLS`, docs/home-pairing-plan.md
     /// §7.3). Main thread.
     func recomputeMacs() {
@@ -1167,8 +1167,8 @@ final class StreamClient: ObservableObject {
         #endif
         // Each result's interfaces twice, as NWInterface, to dial on, and as the policy spells them,
         // its TXT tag, which names a saved Mac, and its home door (`p`). `stands` is the DEBUG test
-        // rows' saved Mac (they carry no tag): the one a `-SillConnect` address counts as, and the
-        // remote session's for `-SillMoveHomeTest`'s row.
+        // rows' saved Mac (they carry no tag): the one a `-SkopryConnect` address counts as, and the
+        // remote session's for `-SkopryMoveHomeTest`'s row.
         typealias Seen = (name: String, endpoint: NWEndpoint, interfaces: [NWInterface], policy: [DiscoveryPolicy.Interface],
                           tag: String?, door: DiscoveryPolicy.HomeDoor, stands: String?)
         var network: [Seen] = networkResults.map {
@@ -1176,12 +1176,12 @@ final class StreamClient: ObservableObject {
              Self.door(of: $0), nil)
         }
         #if DEBUG
-        // The move and path tests' rows are the -SillConnect address's Mac: with `-SillHomeDoor`, the
+        // The move and path tests' rows are the -SkopryConnect address's Mac: with `-SkopryHomeDoor`, the
         // one saved Mac when exactly one is saved (docs/home-pairing-plan.md §7.9).
         let stands = Self.testHomeDoor != .plain && savedMacs.count == 1 ? savedMacs[0].macID : nil
         network += testNetworkRows.map { ($0.name, $0.endpoint, [], [], nil, Self.testHomeDoor, stands) }
         // The move home test's row is the remote session's saved Mac at a home door that speaks TLS
-        // (`-SillMoveHomeTest`: its host runs --pairing, as Sill.app's home door does).
+        // (`-SkopryMoveHomeTest`: its host runs --pairing, as Skopry.app's home door does).
         network += testHomeRows.map { ($0.name, $0.endpoint, [], [], nil, .pairingRequired, $0.macID) }
         if let row = pathTest?.row { network.append((row.name, row.endpoint, [], row.interfaces, nil, Self.testHomeDoor, stands)) }
         #endif
@@ -1195,7 +1195,7 @@ final class StreamClient: ObservableObject {
         sightings = DiscoveryPolicy.sightings(sightings, listed: Set(network.map(\.name)), now: now)
         paths = DiscoveryPolicy.pathSightings(paths, network: network.map { ($0.name, $0.policy) }, now: now)
         // A saved Mac seen with `p` has a door that speaks TLS: remembered first, so a row of it
-        // without `p` (a replayed tag, or an older Sill.app put back) reads "Update Sill" at once.
+        // without `p` (a replayed tag, or an older Skopry.app put back) reads "Update Skopry" at once.
         let listed = rows.compactMap { row in (row.direct ? nearby : network).first { $0.name == row.name } }
         let seenTLS = Set(listed.filter { $0.door != .plain }.compactMap { SavedMacs.recognize(tag: $0.tag, in: savedMacs) })
         if let marked = SavedMacs.seenOverTLS(seenTLS, in: savedMacs) {
@@ -1384,7 +1384,7 @@ final class StreamClient: ObservableObject {
     /// of its Mac (DiscoveryPolicy.homeDial, docs/home-pairing-plan.md §7.4): a saved Mac's session
     /// pinned to its key; an unsaved Mac's on an open door with any key; the ask (a tap's only) for
     /// a Mac that requires pairing or removed this device; a plain one to a plain door (a DEBUG
-    /// build, a Mac never seen with `p`); nothing for a Mac whose Sill is too old for this build.
+    /// build, a Mac never seen with `p`); nothing for a Mac whose Skopry is too old for this build.
     /// `macID`: the saved Mac it is (its tag's, or the reconnect's by Bonjour name). True when it
     /// dialed something. Main thread.
     @discardableResult
@@ -1392,8 +1392,8 @@ final class StreamClient: ObservableObject {
         let saved = macID.flatMap { savedMac($0) }
         let decision = homeDecision(mac, macID: macID, tap: tap)
         switch decision {
-        case .updateSill:
-            status = DiscoveryPolicy.updateSillStatus(mac: mac.name)
+        case .updateSkopry:
+            status = DiscoveryPolicy.updateSkopryStatus(mac: mac.name)
             return false
         case .waitForTap:
             return false
@@ -1467,7 +1467,7 @@ final class StreamClient: ObservableObject {
     }
 
     /// Connects to a Bonjour result's endpoint through the home door, or straight to an address
-    /// (DEBUG `-SillConnect`). `name` is what the status line calls the Mac until its window list
+    /// (DEBUG `-SkopryConnect`). `name` is what the status line calls the Mac until its window list
     /// brings its own name. `peerToPeer` only for a Mac seen over peer-to-peer Wi-Fi alone. `macID`:
     /// the saved Mac the row is, when its tag said so. With a `fallback` this is a wired dial
     /// (`wiredDial`): not ready within DiscoveryPolicy.wiredWait, or unable to go on, it gives way
@@ -1621,7 +1621,7 @@ final class StreamClient: ObservableObject {
         connection = c        // before start: .ready can be delivered before the next line runs
         c.start(queue: queue)
         if reconnect == nil {
-            // Not the automatic reconnect's dial (a tap's, the session after a pairing, `-SillConnect`):
+            // Not the automatic reconnect's dial (a tap's, the session after a pairing, `-SkopryConnect`):
             // its first window list within DiscoveryPolicy.tapDialDeadline, or it ends with words, so
             // "Connecting to…" never stays (a wired dial's fallback counts afresh from its own dial).
             DispatchQueue.main.asyncAfter(deadline: .now() + DiscoveryPolicy.tapDialDeadline) { [weak self] in
@@ -1644,7 +1644,7 @@ final class StreamClient: ObservableObject {
             // The automatic reconnect's dial (a tap clears `reconnect` first) must get ready. Every
             // look of the reconnect needs `connection == nil` (its remote dial too), so a dial that
             // never does would hold it for good, and one can: a row dialed as its registration goes
-            // (Sill quit or died without a goodbye, the row's last second) leaves the Bonjour resolve
+            // (Skopry quit or died without a goodbye, the row's last second) leaves the Bonjour resolve
             // waiting with no end, in `.preparing`, where only `.waiting` has a limit (above), and so
             // does one to a Mac a Bonjour Sleep Proxy answers for (its record stays while the Mac
             // sleeps, issue #69), or a Mac stopped mid-handshake. Let go after reconnectDialWait,
@@ -1685,10 +1685,10 @@ final class StreamClient: ObservableObject {
         status = "Connected to \(name)"
         updateDiscovery()   // stops the nearby browser; the network one keeps running
         #if DEBUG
-        if let endpoint, let test = UserDefaults.standard.string(forKey: "SillMoveTest") {
+        if let endpoint, let test = UserDefaults.standard.string(forKey: "SkopryMoveTest") {
             beginMoveTest(endpoint: endpoint, name: name, mode: test)
         }
-        if let test = UserDefaults.standard.string(forKey: "SillPathTest") {
+        if let test = UserDefaults.standard.string(forKey: "SkopryPathTest") {
             beginPathTest(name: name, spec: test)
         }
         #endif
@@ -1738,14 +1738,14 @@ final class StreamClient: ObservableObject {
     }
 
     /// This device's hello (kind 23): its version, build, protocol and name, built once. DEBUG:
-    /// `-SillHelloVersion <v>` replaces the version, for a host's device floor under test.
+    /// `-SkopryHelloVersion <v>` replaces the version, for a host's device floor under test.
     private static let helloPayload: Data = {
         var version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         #if DEBUG
-        if let v = UserDefaults.standard.string(forKey: "SillHelloVersion"), !v.isEmpty { version = v }
+        if let v = UserDefaults.standard.string(forKey: "SkopryHelloVersion"), !v.isEmpty { version = v }
         #endif
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        return Wire.encode(Hello(appVersion: version, build: build, protocol: SillProtocol.current, device: ClientStatsReporter.deviceName))
+        return Wire.encode(Hello(appVersion: version, build: build, protocol: SkopryProtocol.current, device: ClientStatsReporter.deviceName))
     }()
 
     /// The hello, the first thing on every session connection, written straight to `c` before
@@ -1762,7 +1762,7 @@ final class StreamClient: ObservableObject {
         c.send(content: message.serialized(), completion: .contentProcessed { _ in })
         #if DEBUG
         if let hello = Wire.decode(Hello.self, from: Self.helloPayload) {
-            print("hello: sent Sill \(hello.appVersion ?? "?") (\(hello.build ?? "?")), protocol \(hello.protocol ?? 0)")
+            print("hello: sent Skopry \(hello.appVersion ?? "?") (\(hello.build ?? "?")), protocol \(hello.protocol ?? 0)")
         }
         #endif
     }
@@ -1952,11 +1952,11 @@ final class StreamClient: ObservableObject {
     }
 
     #if DEBUG
-    /// `-SillMoveHomeTest to:HOST:PORT|refused|other:PORT` with `-SillDialSaved 1` (docs/remote-bundle-
+    /// `-SkopryMoveHomeTest to:HOST:PORT|refused|other:PORT` with `-SkopryDialSaved 1` (docs/remote-bundle-
     /// plan.md S4): a second after the remote session's first window list, the saved Mac is listed as
     /// a network row with the session's Mac ID at a door that requires pairing, so the move home runs
-    /// for real against a synthetic host (`SillHost --synthetic --remote --pairing`, its remote door
-    /// counting loopback as a VPN, SILL_TEST_REMOTE_ORIGIN=vpn, and its home door at home, speaking
+    /// for real against a synthetic host (`SkopryHost --synthetic --remote --pairing`, its remote door
+    /// counting loopback as a VPN, SKOPRY_TEST_REMOTE_ORIGIN=vpn, and its home door at home, speaking
     /// TLS: the move dials it pinned to the saved Mac's key). `to:` lists that address (the host's home
     /// door, 127.0.0.1:PORT); `refused` lists port 1 of the remote session's own host, where nothing
     /// listens (each try fails; the back-off); `other:PORT` that host's PORT, another synthetic host:
@@ -1976,7 +1976,7 @@ final class StreamClient: ObservableObject {
             print("remote: move home test: \(mode)? (to:HOST:PORT, refused or other:PORT)")
             return
         }
-        // A name of its own: on this Mac the simulator's browser also lists Sill.app under the Mac's
+        // A name of its own: on this Mac the simulator's browser also lists Skopry.app under the Mac's
         // name, and a row of the same name would hide this one.
         let name = hostName + " (home test)"
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
@@ -2121,7 +2121,7 @@ final class StreamClient: ObservableObject {
                 if isComplete || error != nil { c.cancel() }
                 return
             }
-            // The session reader's caps (docs/remote-access-plan.md §3.7): nothing a Sill host sends
+            // The session reader's caps (docs/remote-access-plan.md §3.7): nothing a Skopry host sends
             // is bigger, and waiting for what such a header announces would hold whatever follows
             // until the move's 5 s run out.
             let cap = header.kind == .frame ? StreamMessage.maxFramePayload : StreamMessage.maxOtherHostPayload
@@ -2164,14 +2164,14 @@ final class StreamClient: ObservableObject {
         }
     }
 
-    /// The move home's first window list is in: another launch of Sill, or another Mac, is refused at
+    /// The move home's first window list is in: another launch of Skopry, or another Mac, is refused at
     /// once (a host without an identity sends no kind 18 to wait for); the same launch is read on
     /// to its kind 18 (`probeMove`, then `moveProbed`). Main thread.
     private func homeListProbed(_ c: NWConnection, kept: [(header: StreamHeader, payload: Data)], host: String?) {
         guard let move = moving, move.connection === c else { c.cancel(); return }   // given up meanwhile
         guard c.state == .ready else { c.cancel(); return }                          // its moveEnded follows
         guard DiscoveryPolicy.sameHost(sessionHost, host) else {
-            refuseHomeMove(c, why: "\(hostName) on the network is another launch of Sill, or another Mac")
+            refuseHomeMove(c, why: "\(hostName) on the network is another launch of Skopry, or another Mac")
             return
         }
         probeMove(c, kept: kept, untilMacInfo: true, listed: .some(host))
@@ -2193,14 +2193,14 @@ final class StreamClient: ObservableObject {
         // Failed since its list came: its handler's `moveEnded` follows, so `moving` is left for it.
         guard c.state == .ready else { c.cancel(); return }
         if move.kind == .fromRemote {
-            // The same launch of Sill, and a kind 18 the saved Mac signed at least as recently as this
+            // The same launch of Skopry, and a kind 18 the saved Mac signed at least as recently as this
             // session's own when the move began. The handshake, pinned to the saved Mac's key, has
             // proved the Mac already (pairing at home: the home door speaks TLS, and nothing of this
             // device reaches another key); this says it a second time, for a millisecond: a TXT tag
             // and a kind 18 captured before this session are not enough either way.
             let why: String?
             if !DiscoveryPolicy.sameHost(sessionHost, host) {
-                why = "\(hostName) on the network is another launch of Sill, or another Mac"
+                why = "\(hostName) on the network is another launch of Skopry, or another Mac"
             } else if !homeInfoChecks(macInfo) {
                 why = "the home door's kind 18 is not this Mac's, or older than this session's"
             } else {
@@ -2220,11 +2220,11 @@ final class StreamClient: ObservableObject {
                 print("move to the network refused: \(hostName) on the network is another Mac")
                 refusedListing = sightings.since[hostName]
             } else {
-                // Sill relaunched on the Mac, most likely: the session's own connection is to the
+                // Skopry relaunched on the Mac, most likely: the session's own connection is to the
                 // launch that went, and the reconnect joins the new one when that connection ends.
                 // Or another Mac of this name on the cable: a move up does not try that listing of
                 // the cable again (DiscoveryPolicy's `refusedCable`).
-                print("path: move refused: \(hostName) there is another Mac, or another launch of Sill")
+                print("path: move refused: \(hostName) there is another Mac, or another launch of Skopry")
                 if move.kind == .toCable, !sessionDead { refusedCable = upListing }
             }
             c.cancel()   // moveEnded, from .cancelled
@@ -2234,7 +2234,7 @@ final class StreamClient: ObservableObject {
     }
 
     /// The Mac said goodbye on the move's connection before its first window list: it closes that
-    /// connection unserved (a device floor above this build refused it, "update", or Sill is
+    /// connection unserved (a device floor above this build refused it, "update", or Skopry is
     /// quitting), and its close ends the move (`moveEnded`) right after this. A session whose own
     /// connection has gone (`sessionDead`: a rescue's reconnect, or a move to Wi-Fi that carries
     /// it) then ends as a refusal on any connection ends (StreamClient+Remote's `sessionEnded`): with
@@ -2741,16 +2741,16 @@ final class StreamClient: ObservableObject {
     }
 
     #if DEBUG
-    /// `-SillMoveTest <mode>` with `-SillConnect host:port`: the address connection counts as a
+    /// `-SkopryMoveTest <mode>` with `-SkopryConnect host:port`: the address connection counts as a
     /// direct one, and a second later an address is listed as that Mac's network row, so the move
     /// runs for real (policy, timer, second connection, its first window list, the fence, the
     /// hand-over) against synthetic hosts. `1` lists the same address. `refused` lists port 1 of
     /// that host, where nothing listens: every try waits, is given up after 5 s, and the session
     /// stays direct. `other:PORT` lists that port of the same host address: another synthetic host
     /// there is another launch (one try, refused at its first list, none again while it stays
-    /// listed); the same host's own port, with `-SillConnect` through a proxy that delays each
+    /// listed); the same host's own port, with `-SkopryConnect` through a proxy that delays each
     /// direction, is the same launch behind a slow direct link (moved once the fence has waited out
-    /// the proxy's round trip). `to:HOST:PORT` lists that address, read as `-SillConnect`'s is
+    /// the proxy's round trip). `to:HOST:PORT` lists that address, read as `-SkopryConnect`'s is
     /// (`address(_:)`, so `to:[::1]:P` lists ::1 rather than the name "[::1]", which never
     /// connected): the same host reached another way, so the route can change at the hand-over
     /// (from 127.0.0.1, no word, to this Mac's fe80::…%en0 address, "Wi-Fi"). Main thread.
@@ -2778,7 +2778,7 @@ final class StreamClient: ObservableObject {
         }
     }
 
-    /// `-SillPathTest '<spec>'` with `-SillConnect HOST:PORT`: the session's Mac is listed as a
+    /// `-SkopryPathTest '<spec>'` with `-SkopryConnect HOST:PORT`: the session's Mac is listed as a
     /// network row whose interfaces the test changes, so `followBestPath` runs for real against a
     /// synthetic host (the plan, its timers, the second connection, its first window list, the fence
     /// or the hold, the hand-over). The spec, space-separated: `wifi=HOST:PORT` (the row's endpoint,
@@ -2795,7 +2795,7 @@ final class StreamClient: ObservableObject {
     /// so the route word changes at each hand-over as it would. A `cable=` that never answers
     /// (192.0.2.1:9), refuses (127.0.0.1:1), accepts and says nothing, or is another synthetic host
     /// (another launch) makes each move to the cable fail its way. `direct` makes the session count
-    /// as one over AWDL (as `-SillMoveTest` does), so the row is where the move from AWDL takes it
+    /// as one over AWDL (as `-SkopryMoveTest` does), so the row is where the move from AWDL takes it
     /// once listed for 2 s: behind delay proxies, a move to the cable can then land while that
     /// move's fence is still up.
     struct PathTest {
@@ -3050,7 +3050,7 @@ final class StreamClient: ObservableObject {
 
     /// The connection ended: the Mac went away (host quit, Wi-Fi dropped, connection reset, a
     /// goodbye), or a remote dial's winner failed before its window list. `end` overrides what the
-    /// error says (a message no Sill sends). A session at home whose connection ran over the cable
+    /// error says (a message no Skopry sends). A session at home whose connection ran over the cable
     /// goes on at once over a new one when it can (`rescue`); otherwise StreamClient+Remote decides
     /// the words and whether and how to reconnect (`endSession`). Any thread.
     func connectionLost(_ c: NWConnection, error: NWError? = nil, end: RemoteDialPolicy.End? = nil) {
@@ -3061,7 +3061,7 @@ final class StreamClient: ObservableObject {
         DispatchQueue.main.async {
             guard self.connection === c else { return }   // stale callback from a connection we already replaced
             // A move carries the session on (`rescue`), not when this device closed the connection
-            // itself (`end`: a message no Sill sends): that one ends with the words it deserves.
+            // itself (`end`: a message no Skopry sends): that one ends with the words it deserves.
             if self.sessionDead || (end == nil && self.rescue(from: c)) { return }
             self.endSession(error: error, end: end)
         }
@@ -3232,7 +3232,7 @@ final class StreamClient: ObservableObject {
         windowOrder = saved.map { UInt32(truncatingIfNeeded: $0) }
     }
 
-    private static func orderKey(for mac: String) -> String { "Sill.windowOrder." + mac }
+    private static func orderKey(for mac: String) -> String { "Skopry.windowOrder." + mac }
 
     /// Ask the host to launch an installed app; the host selects its first window itself.
     func launch(bundleID: String) {
@@ -3298,7 +3298,7 @@ final class StreamClient: ObservableObject {
 
     /// This device's switch for three-finger gestures (the Settings panel's This iPad group): on
     /// unless turned off. The device's own preference, never sent to the Mac; read at each gesture.
-    static let gesturesKey = "Sill.trackpadGestures"
+    static let gesturesKey = "Skopry.trackpadGestures"
     static var gesturesOn: Bool {
         // `bool(forKey:)`, not `as? Bool`: a launch argument's "0" is a string, which it reads as
         // @AppStorage does, so the switch and the panel always agree.
@@ -3310,7 +3310,7 @@ final class StreamClient: ObservableObject {
     /// docs/larger-picture-plan.md): off unless turned on. The device's own preference, never sent to
     /// the Mac; the stream screen reads it with what streams (`active`): it acts only while a window
     /// does (`PhonePortraitLayout.largerPicture(switchOn:streaming:)`).
-    static let largerPictureKey = "Sill.largerPicture"
+    static let largerPictureKey = "Skopry.largerPicture"
 
     /// A three- or four-finger gesture a surface decided (TrackpadGestures, StrokeObserver), to the
     /// Mac as kind 28, which turns it into its own shortcut (docs/trackpad-gestures-plan.md §6.3):
@@ -3520,10 +3520,10 @@ final class StreamClient: ObservableObject {
     }
 
     #if DEBUG
-    /// The layout harness (`-SillPointer`, ContentView): the mock's pointer in one of the plan's
+    /// The layout harness (`-SkopryPointer`, ContentView): the mock's pointer in one of the plan's
     /// states, as the feed and this device's input would leave it: `mac@X,Y` (the Mac has it, over
     /// the stream), `hidden` (the Mac has it, off the stream), `device@X,Y` (this device's trackpad)
-    /// or `pencil@X,Y` (its Pencil); `pencilShows` is Q2's flip (`-SillPencilPointer 1`). False for
+    /// or `pencil@X,Y` (its Pencil); `pencilShows` is Q2's flip (`-SkopryPencilPointer 1`). False for
     /// a state it does not know. Main thread.
     func debugSeedPointer(_ state: String, pencilShows: Bool) -> Bool {
         let parts = state.lowercased().split(separator: "@", maxSplits: 1).map(String.init)
@@ -3578,10 +3578,10 @@ final class StreamClient: ObservableObject {
             if let error { print("read error: \(error)") }
             connectionLost(c, error: error)
         case .tooBig(let header):
-            // Nothing a Sill host sends is bigger (docs/remote-access-plan.md §3.7): closed, and on
-            // a remote dial that is "not Sill".
+            // Nothing a Skopry host sends is bigger (docs/remote-access-plan.md §3.7): closed, and on
+            // a remote dial that is "not Skopry".
             print("closing: the host announced a \(header.payloadLength)-byte message (kind \(header.kind.rawValue))")
-            connectionLost(c, end: .notSill)
+            connectionLost(c, end: .notSkopry)
             c.cancel()
         }
     }
@@ -3639,7 +3639,7 @@ final class StreamClient: ObservableObject {
                     switch (list.hostVersion, list.protocol) {
                     case (nil, nil): print("host: no version (a Mac from before 2026-09-25)")
                     case (nil, let p?): print("host: no version, protocol \(p)")
-                    case (let v?, let p): print("host: Sill \(v), protocol \(p.map(String.init) ?? "?")")
+                    case (let v?, let p): print("host: Skopry \(v), protocol \(p.map(String.init) ?? "?")")
                     }
                     #endif
                     self.moveToNetworkIfListed()
@@ -3649,9 +3649,9 @@ final class StreamClient: ObservableObject {
                     // their top level now and again whenever it changes (a Mac from before them skips it).
                     self.subscribeToMenus()
                     #if DEBUG
-                    InputScript.sessionListed(self)   // -SillInputScript: its clock starts here
-                    SettingsScript.sessionListed(self)   // -SillSettingsScript: and this one's
-                    if let test = UserDefaults.standard.string(forKey: "SillMoveHomeTest") { self.beginMoveHomeTest(test) }
+                    InputScript.sessionListed(self)   // -SkopryInputScript: its clock starts here
+                    SettingsScript.sessionListed(self)   // -SkoprySettingsScript: and this one's
+                    if let test = UserDefaults.standard.string(forKey: "SkopryMoveHomeTest") { self.beginMoveHomeTest(test) }
                     #endif
                 }
                 if self.macName != list.macName { self.macName = list.macName; self.loadWindowOrder() }
@@ -3985,7 +3985,7 @@ extension StreamClient {
     /// policy compares with the browsers' results, not the window list's Mac name: Bonjour renames
     /// a registration that clashes ("Mac (2)") while the window list still says "Mac", and that Mac
     /// would then look missing from the network at every launch. A connection by address
-    /// (-SillConnect) has no such name and teaches nothing, and neither do the DEBUG mock's answers
+    /// (-SkopryConnect) has no such name and teaches nothing, and neither do the DEBUG mock's answers
     /// (no connection). Main thread.
     private func rememberDirectWireless(_ state: HostSettingsState) {
         guard let c = connection, case .service(let name, _, _, _) = c.endpoint else { return }
@@ -4049,28 +4049,28 @@ extension StreamClient {
         }
     }
 
-    /// `-SillConnect host:port`: connect straight to an address, through the home door. The
-    /// synthetic test hosts stay off Bonjour, so this is how the simulator reaches `SillHost
-    /// --synthetic` and the bare `SillMenuBar --synthetic` (`address(argument:)` reads it). It never
+    /// `-SkopryConnect host:port`: connect straight to an address, through the home door. The
+    /// synthetic test hosts stay off Bonjour, so this is how the simulator reaches `SkopryHost
+    /// --synthetic` and the bare `SkopryMenuBar --synthetic` (`address(argument:)` reads it). It never
     /// saves anything by itself. If such a connection drops, the reconnect timer looks for it on
     /// Bonjour, never finds it and backs off to 10 s (or, when its kind 18 named a saved Mac, dials
     /// that Mac remotely).
     ///
-    /// An address has no TXT record, so `-SillHomeDoor paired|open|plain` says what it counts as
+    /// An address has no TXT record, so `-SkopryHomeDoor paired|open|plain` says what it counts as
     /// (docs/home-pairing-plan.md §7.9), as a tap on a row with that door: `plain` (the default) a
     /// plain door, as before; `paired` the one saved Mac when exactly one is saved (dialed pinned,
     /// as its row would be; also a later launch), else an unsaved Mac whose door requires pairing
     /// (the ask); `open` that saved Mac, else an unsaved Mac on an open door (any key).
     func connectFromLaunchArgument() {
-        guard let raw = UserDefaults.standard.string(forKey: "SillConnect"),
-              let address = Self.address(argument: "SillConnect") else { return }
+        guard let raw = UserDefaults.standard.string(forKey: "SkopryConnect"),
+              let address = Self.address(argument: "SkopryConnect") else { return }
         var trust = DiscoveryPolicy.HomeTrust.plain
         var macID: String?
         if Self.testHomeDoor != .plain {
             let one = savedMacs.count == 1 ? savedMacs[0] : nil
             let decision = DiscoveryPolicy.homeDial(door: Self.testHomeDoor, saved: one != nil, revoked: one?.revoked == true,
                                                     homeTLS: one?.homeTLS == true, debug: true, tap: true, newKey: one?.newKey == true)
-            print("home: -SillConnect \(raw) counts as a \(Self.testHomeDoor) door\(one.map { " of \($0.name) (saved)" } ?? ""): \(decision)")
+            print("home: -SkopryConnect \(raw) counts as a \(Self.testHomeDoor) door\(one.map { " of \($0.name) (saved)" } ?? ""): \(decision)")
             if case .ask(let pinned) = decision {
                 startAsk(HomeAsk(target: HomeDialer.Target(endpoint: address, label: raw), name: raw, cableRow: false,
                                  savedID: pinned ? one?.macID : nil, tagNamed: true,
@@ -4089,31 +4089,31 @@ extension StreamClient {
         }
     }
 
-    /// `-SillHomeDoor paired|open|plain`: what a `-SillConnect` address, and the rows the move and
+    /// `-SkopryHomeDoor paired|open|plain`: what a `-SkopryConnect` address, and the rows the move and
     /// path tests list, count as (§7.9). `plain` unless given.
     static var testHomeDoor: DiscoveryPolicy.HomeDoor {
-        switch UserDefaults.standard.string(forKey: "SillHomeDoor") {
+        switch UserDefaults.standard.string(forKey: "SkopryHomeDoor") {
         case "paired": return .pairingRequired
         case "open": return .open
         default: return .plain
         }
     }
 
-    /// `-SillWiredTest host:port`: the fallback of a wired dial, under test in the simulator against
-    /// a synthetic host. `-SillConnect`'s dial, any network row's (each counts as Wired; a Direct or
-    /// Remote row's never) and a move's under `-SillMoveTest` go to that address first, the way a
+    /// `-SkopryWiredTest host:port`: the fallback of a wired dial, under test in the simulator against
+    /// a synthetic host. `-SkopryConnect`'s dial, any network row's (each counts as Wired; a Direct or
+    /// Remote row's never) and a move's under `-SkopryMoveTest` go to that address first, the way a
     /// "Wired" row's goes to its cable, with the address they would have dialled as the fallback:
     /// `192.0.2.1:9` (TEST-NET-1, never answers) is given up after DiscoveryPolicy.wiredWait,
     /// `127.0.0.1:1` (nothing listens) at once.
-    private static let wiredTest = address(argument: "SillWiredTest")
+    private static let wiredTest = address(argument: "SkopryWiredTest")
 
     /// A `host:port` launch argument as an address (`address(_:)`).
     private static func address(argument key: String) -> NWEndpoint? {
         UserDefaults.standard.string(forKey: key).flatMap(address(_:))
     }
 
-    /// `host:port` as an address (a launch argument's, `-SillPathTest`'s `wifi=` and `cable=`,
-    /// `-SillMoveTest`'s `to:`): by the strict address parser, so `[::1]:P` works (a split at the
+    /// `host:port` as an address (a launch argument's, `-SkopryPathTest`'s `wifi=` and `cable=`,
+    /// `-SkopryMoveTest`'s `to:`): by the strict address parser, so `[::1]:P` works (a split at the
     /// last colon broke IPv6), else, for what the parser refuses, split at the last colon as
     /// before, so a scoped link-local address works too (`fe80::…%en0:P`: a zone means nothing to a
     /// saved address, which the parser is for, and everything to a test on this Mac's own link).
@@ -4361,9 +4361,9 @@ extension StreamClient {
     }
 
     /// Why the harness must not open menus by their path or choose an item in this session
-    /// (`-SillMenusOpen 'File/…'`, `-SillMenuPress`), or nil when it may: the mock's menus, or the
+    /// (`-SkopryMenusOpen 'File/…'`, `-SkopryMenuPress`), or nil when it may: the mock's menus, or the
     /// test app's (Scripts/menufixture.swift) through a test host, a session dialled to a loopback
-    /// address whose Mac's window list gives no version (SillHost; Sill.app always gives one) and
+    /// address whose Mac's window list gives no version (SkopryHost; Skopry.app always gives one) and
     /// whose top level is menufixture's. Never a real Mac's menus: a choice there is made in whatever
     /// app it streams, and each menu opened is validated by that app.
     var menuHarnessRefusal: String? {
@@ -4375,16 +4375,16 @@ extension StreamClient {
         return nil
     }
 
-    /// `-SillMenuPress 'File/Save'`: once the first top level is in, the item at that path is chosen
+    /// `-SkopryMenuPress 'File/Save'`: once the first top level is in, the item at that path is chosen
     /// as a tap on it would choose it (the menus on the way fetched, the kind 25 sent), once per
-    /// client. The harness cannot tap; against a synthetic host with SILL_TEST_MENU_PID this is the
+    /// client. The harness cannot tap; against a synthetic host with SKOPRY_TEST_MENU_PID this is the
     /// fixture's item pressed through the host. Only where `menuHarnessRefusal` lets it.
     private func pressFromLaunchArgument() {
         guard !menuPressArgumentDone, menus.version != nil, !menus.menus.isEmpty,
-              let raw = UserDefaults.standard.string(forKey: "SillMenuPress"), !raw.isEmpty else { return }
+              let raw = UserDefaults.standard.string(forKey: "SkopryMenuPress"), !raw.isEmpty else { return }
         menuPressArgumentDone = true
         if let why = menuHarnessRefusal {
-            print("menus: harness: -SillMenuPress \(raw) refused: \(why)")
+            print("menus: harness: -SkopryMenuPress \(raw) refused: \(why)")
             return
         }
         let path = raw.split(separator: "/").map { String($0) }

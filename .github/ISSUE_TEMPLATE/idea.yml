@@ -1,12 +1,12 @@
 name: Idea
-description: Something Sill could do, or do better.
+description: Something Skopry could do, or do better.
 labels: ["enhancement"]
 body:
   - type: textarea
     id: idea
     attributes:
       label: Your idea
-      description: What you would like Sill to do, and what it would let you do that you can't today.
+      description: What you would like Skopry to do, and what it would let you do that you can't today.
     validations:
       required: true
   - type: input

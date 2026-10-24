@@ -1,5 +1,5 @@
 # Compiled as one module by ../module.py, each file's `import StreamProtocol` dropped, with main.swift.
 Sources/StreamProtocol/*.swift
-Sources/SillHost/OriginPolicy.swift
-Sources/SillHost/PairingWindow.swift
-Sources/SillHost/DoorPolicy.swift
+Sources/SkopryHost/OriginPolicy.swift
+Sources/SkopryHost/PairingWindow.swift
+Sources/SkopryHost/DoorPolicy.swift

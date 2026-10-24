@@ -57,7 +57,7 @@ MUTANTS = [
     (A, "a colon kept in the Pascal names", 'let bytes = Array(string.replacingOccurrences(of: ":", with: "/").utf8)', "let bytes = Array(string.utf8)"),
     (A, "a name of 28 bytes let in", "bytes.count < size else {", "bytes.count <= size else {"),
     # what make-dmg.sh and the picture give it
-    ("Scripts/make-dmg.sh", "the icons swapped", "--item Sill.app=170,180 --item Applications=490,180", "--item Sill.app=490,180 --item Applications=170,180"),
+    ("Scripts/make-dmg.sh", "the icons swapped", "--item Skopry.app=170,180 --item Applications=490,180", "--item Skopry.app=490,180 --item Applications=170,180"),
     ("Scripts/make-dmg.sh", "the old grey edge", "edge=ffffff", "edge=f2f3f5"),
     ("design/DMGBackground.svg", "a picture 4 points taller", 'width="660" height="400" viewBox="0 0 660 400"', 'width="660" height="404" viewBox="0 0 660 404"'),
     ("design/DMGBackground.svg", "a gradient to the edges again", '<rect x="0" y="0" width="660" height="400" fill="#ffffff">', '<rect x="0" y="0" width="660" height="400" fill="url(#d-bg)">'),

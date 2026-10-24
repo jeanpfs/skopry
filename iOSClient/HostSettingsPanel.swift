@@ -2,8 +2,8 @@ import SwiftUI
 import UIKit
 import StreamProtocol
 
-/// The Settings panel: the Mac's streaming settings, changed from here the way the Sill menu on
-/// the Mac changes them (one change, one apply, at most one short restart; Sill.app saves them).
+/// The Settings panel: the Mac's streaming settings, changed from here the way the Skopry menu on
+/// the Mac changes them (one change, one apply, at most one short restart; Skopry.app saves them).
 ///
 /// A panel in the view hierarchy, mirroring the Apps drawer on the trailing edge; not a sheet,
 /// popover or Menu. The client has no system presentation anywhere; sheets and popovers adapt by
@@ -34,7 +34,7 @@ struct HostSettingsPanel: View {
     var takeTour: () -> Void = {}
 
     @AccessibilityFocusState private var headerFocused: Bool
-    /// Two seconds on this connection and still no state: the Mac runs a Sill without settings.
+    /// Two seconds on this connection and still no state: the Mac runs a Skopry without settings.
     @State private var olderMac = false
     /// Bumped when Low Power Mode toggles, so the frame rate note is read again.
     @State private var powerState = 0
@@ -56,31 +56,31 @@ struct HostSettingsPanel: View {
 
     private var mac: String { client.macName.isEmpty ? "the Mac" : client.macName }
     private static let shape = RoundedRectangle(cornerRadius: 20, style: .continuous)
-    /// DEBUG `-SillSettingsEnd 1`: the rows start scrolled to their end, so a photo of a short
+    /// DEBUG `-SkoprySettingsEnd 1`: the rows start scrolled to their end, so a photo of a short
     /// screen shows the last groups (Direct Wireless, Away from home, This iPad, Take the Tour).
     private static var startsAtEnd: Bool {
         #if DEBUG
-        return UserDefaults.standard.bool(forKey: "SillSettingsEnd")
+        return UserDefaults.standard.bool(forKey: "SkoprySettingsEnd")
         #else
         return false
         #endif
     }
-    /// DEBUG `-SillSettingsScroll gestures`: the rows start scrolled to the This iPad group, so a
+    /// DEBUG `-SkoprySettingsScroll gestures`: the rows start scrolled to the This iPad group, so a
     /// photo of a short screen shows its switch and rows, which the footnote under them pushes out
-    /// of `-SillSettingsEnd`'s view.
+    /// of `-SkoprySettingsEnd`'s view.
     private static var startsAtGestures: Bool {
         #if DEBUG
-        return UserDefaults.standard.string(forKey: "SillSettingsScroll") == "gestures"
+        return UserDefaults.standard.string(forKey: "SkoprySettingsScroll") == "gestures"
         #else
         return false
         #endif
     }
     private static let gesturesGroupID = "thisDevice"
-    /// `UIAccessibility.isVoiceOverRunning`; DEBUG `-SillVoiceOver 1` says it is, for the harness's
+    /// `UIAccessibility.isVoiceOverRunning`; DEBUG `-SkopryVoiceOver 1` says it is, for the harness's
     /// photos of the group's VoiceOver footnote.
     static var voiceOverRunning: Bool {
         #if DEBUG
-        if UserDefaults.standard.bool(forKey: "SillVoiceOver") { return true }
+        if UserDefaults.standard.bool(forKey: "SkopryVoiceOver") { return true }
         #endif
         return UIAccessibility.isVoiceOverRunning
     }
@@ -307,11 +307,11 @@ struct HostSettingsPanel: View {
                     Footnote(text: remoteRoute != nil ? "Change this on \(mac), or from a device near it." : directFooter(on: direct))
                 }
                 if !state.persistent {
-                    Footnote(text: "SillHost keeps these until it quits.")
+                    Footnote(text: "SkopryHost keeps these until it quits.")
                 }
                 awayFromHome
             } else if olderMac {
-                Label("Update Sill on \(mac) to change these from here.", systemImage: "arrow.down.circle")
+                Label("Update Skopry on \(mac) to change these from here.", systemImage: "arrow.down.circle")
                     .font(.body)
                     .foregroundStyle(Palette.text)
                     .fixedSize(horizontal: false, vertical: true)
@@ -429,7 +429,7 @@ struct HostSettingsPanel: View {
                 case .connected:
                     if let r = remoteRoute { Footnote(text: "Connected \(r.phrase).") }
                 case .reaches:
-                    Footnote(text: "Away from home, Sill reaches \(mac) \(Self.reach(info)).")
+                    Footnote(text: "Away from home, Skopry reaches \(mac) \(Self.reach(info)).")
                 case .turnOnRemoteAccess:
                     Footnote(text: Self.turnOnRemoteAccess(mac))
                 }
@@ -454,7 +454,7 @@ struct HostSettingsPanel: View {
 
     /// With Remote Access off on the Mac: how to reach it away from home.
     static func turnOnRemoteAccess(_ mac: String) -> String {
-        "To reach \(mac) away from home, turn on Remote Access in Sill’s Settings on the Mac."
+        "To reach \(mac) away from home, turn on Remote Access in Skopry’s Settings on the Mac."
     }
 
     // MARK: This device
@@ -547,8 +547,8 @@ struct HostSettingsPanel: View {
     /// Under the switch: where the gestures go and what they do, or why nothing happens.
     private var gesturesFooter: String {
         guard gesturesOn else { return "Three-finger strokes do nothing while this is off." }
-        guard macTakesGestures else { return "Update Sill on \(mac) to use these." }
-        // VoiceOver keeps three-finger swipes and taps for itself, and no touch of them reaches Sill.
+        guard macTakesGestures else { return "Update Skopry on \(mac) to use these." }
+        // VoiceOver keeps three-finger swipes and taps for itself, and no touch of them reaches Skopry.
         var text = voiceOver ? "VoiceOver keeps three-finger gestures for itself, so the rows above do them on \(mac) instead."
             : "Three fingers on the trackpad or over the stream."
         text += " While a window streams, a gesture shows the Desktop first, and the opposite gesture closes what one opened. \(mac) does these with its own keyboard shortcuts: one turned off in its Keyboard settings does nothing."

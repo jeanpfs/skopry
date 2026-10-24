@@ -4,7 +4,7 @@
 origin/main at 985a733. Issue #58 (rosstex: "The menu and touchpad take up more than half of the
 vertical space on the iOS app. When using Mac apps that rely heavily on scrolling like Notes,
 Chrome, etc. they feel tiny on the phone screen."), which Noah answered on 2026-10-12 with a
-settings option. The triage of 2026-10-13 (sill-handoff `triage/2026-10-13-open-items.md`, #58)
+settings option. The triage of 2026-10-13 (skopry-handoff `triage/2026-10-13-open-items.md`, #58)
 recommended the design below, and the run that started this branch took it as the default. Device
 only: no wire change, nothing on the host, the switch is the device's own and never sent. An
 adversarial review the same day found five things, each fixed on this branch (Results, "The review
@@ -29,7 +29,7 @@ Below the key row there is only the trackpad, which the keyboard covers anyway.
 
 ### In one paragraph
 
-Settings › This iPhone gains **Larger Picture** (off by default; `Sill.largerPicture` in the app's
+Settings › This iPhone gains **Larger Picture** (off by default; `Skopry.largerPicture` in the app's
 defaults; shown only on an iPhone without a hinge whose picture it makes larger, where it acts: not
 where Display Zoom makes the screen 320 pt wide). With it on, a phone held upright
 draws the Larger Picture arrangement while a window streams (the Desktop, which Aa never resizes,
@@ -82,7 +82,7 @@ W × H is the stream screen (the screen less its top inset, as before); K the ke
    own search field brings, left only its padding and search field in view (62 pt on every phone;
    the review). The panel stays under row 1: opening it takes the keyboard down, and the picture
    stays in view while a setting changes.
-9. **The keyboard's height** K: the software keyboard as Sill's input view shows it (autocorrection
+9. **The keyboard's height** K: the software keyboard as Skopry's input view shows it (autocorrection
    off: no suggestions bar), from the stream screen's shape and width, since it is only known once
    it shows. A stream screen under 1.9 times as tall as wide is a Home-button iPhone (the SE's
    375×647 is 1.73, with Display Zoom 320×548 1.71): 233 pt. Else one with Face ID (2.0 and more,
@@ -230,19 +230,19 @@ under Larger Picture's row 1 kept 62 pt in view on every phone, today's keeps 21
   placed against the picture's room (`TourPolicy.place`'s new `room`), so it can stand in the black
   under a short picture with its tail at row 1; the picture's card still lights and centres on the
   picture itself. The layout stays `.phone` for the tour's rule (toggling is no turn).
-- **DEBUG:** `-Sill.largerPicture 1` (the switch for one run, as `-Sill.trackpadGestures 0`);
-  `-SillVideoSize 848x844` (the mock's frame, so the harness can draw a window fitted to the room);
-  `-SillLargerPictureToggle 4,8` (the switch flipped at those seconds, as the panel's does; with the
-  panel open it says it waits for the panel to close); `-SillDrawerSearch <text>` (the open drawer
+- **DEBUG:** `-Skopry.largerPicture 1` (the switch for one run, as `-Skopry.trackpadGestures 0`);
+  `-SkopryVideoSize 848x844` (the mock's frame, so the harness can draw a window fitted to the room);
+  `-SkopryLargerPictureToggle 4,8` (the switch flipped at those seconds, as the panel's does; with the
+  panel open it says it waits for the panel to close); `-SkopryDrawerSearch <text>` (the open drawer
   searches with its field's keyboard up);
-  `-SillAXDump <s>` (the screen's accessibility elements in the tree's order, VoiceOver's order
+  `-SkopryAXDump <s>` (the screen's accessibility elements in the tree's order, VoiceOver's order
   without VoiceOver, once a private simulator's `ApplicationAccessibilityEnabled` is on); console
   lines `keyboard: up, 320 pt tall, its top at 574 pt in the stream screen; the key row ends 10 pt
   above it, …` and `trackpad: 412×304 pt, vertical span 410.1 pt (Larger Picture: …)` in the
   phone's arrangement, and (rule 12) `larger picture: the switch on, the Desktop streams: the
   standard arrangement` or `…, a window streams: Larger Picture above a 320 pt keyboard` whenever
   the switch, what streams or the outcome changes (nothing while the switch is off); the mock streams
-  a window unless `-SillActive desktop|none`.
+  a window unless `-SkopryActive desktop|none`.
 
 ## Open questions for Noah (the default is taken unless Noah says otherwise)
 
@@ -308,11 +308,11 @@ under Larger Picture's row 1 kept 62 pt in view on every phone, today's keeps 21
 
 ## Test plan
 
-Hard rules: only this worktree; nothing on Noah's devices, Sill.app, his windows or his keychain;
-simulators private (named "Sill larger-picture …"), one at a time, deleted after; `simctl io
-screenshot` only (no recording, no XCUITest, no simulator panel); live hosts only `SillHost
---synthetic` with `SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1`, reached
-with `-SillConnect 127.0.0.1:P`, each under a minute and killed by PID; DerivedData in the session's
+Hard rules: only this worktree; nothing on Noah's devices, Skopry.app, his windows or his keychain;
+simulators private (named "Skopry larger-picture …"), one at a time, deleted after; `simctl io
+screenshot` only (no recording, no XCUITest, no simulator panel); live hosts only `SkopryHost
+--synthetic` with `SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1`, reached
+with `-SkopryConnect 127.0.0.1:P`, each under a minute and killed by PID; DerivedData in the session's
 scratchpad.
 
 | # | Check | Pass when |
@@ -322,8 +322,8 @@ scratchpad.
 | H3 | `Tests/checks/tour`: Apps' target, the bar card without thumbnails (targets, rows, VoiceOver rows, hints), the laptop hint, the room's placement (pinned, an oracle, the grid with the Larger Picture screens), mutants | All pass, every mutant caught |
 | H4 | `Tests/checks/run-all.sh` | All pass |
 | H5 | Harness photos, switch off, at the phone sizes against main's build | Pixel for pixel equal, but for the Settings panel's new row |
-| S1 | Harness photos, switch on: 440x894, 402x812, 393x793, 390x797, 375x647 plain, `-SillDrawer 1`, `-SillSettings 1`, `-SillScaleOpen 1`, `-SillVideoSize` a fitted window and a tall one, `-SillTour bar` | Against the table |
-| S2 | Live, the normal app with `-Sill.largerPicture 1 -SillKeyboard 1 -SillKeyboardToggle 9` against a synthetic host, on every iPhone size the iOS 27 runtime has a simulator of; `-SillLargerPictureToggle` once | The keyboard's top where the estimate puts it, the key row ≥ 10 pt above it, the photos on the rule, the `viewport:` line the room, the `trackpad:` line's span, one viewport per switch |
+| S1 | Harness photos, switch on: 440x894, 402x812, 393x793, 390x797, 375x647 plain, `-SkopryDrawer 1`, `-SkoprySettings 1`, `-SkopryScaleOpen 1`, `-SkopryVideoSize` a fitted window and a tall one, `-SkopryTour bar` | Against the table |
+| S2 | Live, the normal app with `-Skopry.largerPicture 1 -SkopryKeyboard 1 -SkopryKeyboardToggle 9` against a synthetic host, on every iPhone size the iOS 27 runtime has a simulator of; `-SkopryLargerPictureToggle` once | The keyboard's top where the estimate puts it, the key row ≥ 10 pt above it, the photos on the rule, the `viewport:` line the room, the `trackpad:` line's span, one viewport per switch |
 | S3 | VoiceOver's order with the strip hidden; the Settings row at accessibility sizes | Apps … Settings, the keys, the trackpad; the row whole |
 | R1 | The review: harness photos with the switch on at Display Zoom's 320x645 and 320x548, plain and Settings at its end, against main's build | Pixel for pixel main's (no arrangement, no row) |
 | R2 | The review: live, the drawer with the Mac's keyboard up and with its search field's, on the 18 Pro Max, the 15 Pro and the SE; the switch off for comparison | The whole drawer above the keyboard, at the rule's rect |
@@ -331,8 +331,8 @@ scratchpad.
 | R4 | The review: VoiceOver's order with the drawer open above row 1 | Row 1, then the drawer |
 | D1 | Rule 12: `Tests/checks/phone-portrait`: the rule's table; on every phone of the table the Desktop and nothing streaming with the switch on against the switch off (every rect, the viewport, the frames and the spans), a window against Larger Picture; the grid (a window gets the keyboard, the Desktop and nothing none, the switch off none, a hinge none); Noah's numbers; the Duo's cover; mutants of the rule | All pass, every mutant caught |
 | D2 | Rule 12: `Tests/checks/tour`: the tour as StreamScreen hands it to the overlay, from the rule: with the switch on, every card of the Desktop's and of nothing's (words, lights, places, under VoiceOver too) against the switch off's, a window's against Larger Picture's; mutants of the rule | All pass, every mutant caught |
-| D3 | Rule 12: harness photos on a private iPhone 18 Pro Max simulator, at its own stream screen (`-SillLayout 440x956 -SillSafeArea 62,0,34,0`) and the 15 Pro's (393x793): the switch on against off with the Desktop and with nothing streaming (plain, the drawer, the ruler, the tour's bar card, Settings); a window against the branch's build before the change (af462f7) | The Desktop's and nothing's the switch off's pixel for pixel (Settings: but the switch); a window's the branch's (Settings: but the footnote) |
-| D4 | Rule 12, live: the new build against `SillHost --synthetic` (loopback, software encoder), Larger Picture on, Aa at 1× and not set, a test client switching the Mac between the Desktop and a test window of the agent's own (all but invisible, behind every window, never key) | The arrangement and the viewport follow each switch; at most one restart per switch |
+| D3 | Rule 12: harness photos on a private iPhone 18 Pro Max simulator, at its own stream screen (`-SkopryLayout 440x956 -SkoprySafeArea 62,0,34,0`) and the 15 Pro's (393x793): the switch on against off with the Desktop and with nothing streaming (plain, the drawer, the ruler, the tour's bar card, Settings); a window against the branch's build before the change (af462f7) | The Desktop's and nothing's the switch off's pixel for pixel (Settings: but the switch); a window's the branch's (Settings: but the footnote) |
+| D4 | Rule 12, live: the new build against `SkopryHost --synthetic` (loopback, software encoder), Larger Picture on, Aa at 1× and not set, a test client switching the Mac between the Desktop and a test window of the agent's own (all but invisible, behind every window, never key) | The arrangement and the viewport follow each switch; at most one restart per switch |
 
 **Untested, for Noah (P), on the iPhone 15 Pro:** since rule 12, with the switch on, the Desktop
 as with the switch off (the 16:10 picture and the thumbnails, no black under it); a window picked
@@ -350,7 +350,7 @@ was measured on iOS 27 simulators).
 
 ## Results
 
-2026-10-14 (every simulator private and deleted after; every host `SillHost --synthetic` of this
+2026-10-14 (every simulator private and deleted after; every host `SkopryHost --synthetic` of this
 worktree on 127.0.0.1 alone, on the software encoder, each under a minute and killed by PID; no
 device touched). H1 to H4 are the final code's, after the review's fixes; H5 and S1 to S3 were run
 on the build the review read, and "The review and its fixes" below has what changed since and its
@@ -373,23 +373,23 @@ own runs (R1 to R4).
   Settings, 710x1000. 25 identical; the 5 lights photos differ by the held thumbnail's wiggle (main
   against itself differs the same way, 11,630 and 7,417 px in that thumbnail); 3 Settings photos by
   a sub-point offset of their last rows (max 21 levels: the panel is one row taller, the new row
-  above them out of view). 440x894, drawn as a phone on an iPad simulator (`-SillIdiom phone`):
+  above them out of view). 440x894, drawn as a phone on an iPad simulator (`-SkopryIdiom phone`):
   plain, drawer, ruler and Settings identical, the lights the wiggle. The viewport lines identical
   (`viewport: 386×241 pt` at 402x812, and so on). With the switch on, the iPhone Duo is main's pixel
-  for pixel (the cover with `-SillHinge closed`, its Settings panel, which has no row, and the inner
-  display half folded), and so are an iPad's 500x710 window (`-SillIdiom pad`) and a phone on its
+  for pixel (the cover with `-SkopryHinge closed`, its Settings panel, which has no row, and the inner
+  display half folded), and so are an iPad's 500x710 window (`-SkopryIdiom pad`) and a phone on its
   side (874x402); the sideways Settings panel differs by the new row alone.
 - **S1, the switch on:** 55 harness photos at the five phone sizes (plain, a window fitted to the
-  room with `-SillVideoSize`, one twice as tall as wide, the drawer, Settings, the ruler, no menus,
+  room with `-SkopryVideoSize`, one twice as tall as wide, the drawer, Settings, the ruler, no menus,
   the Desktop, the tour's bar, laptop and picture cards) and 440x894 on the iPad. Measured by a tool
   compiled with `PhonePortraitLayout.swift` (each part's four edges: the pixel inside is the part's,
   the one outside the screen's black): the picture's frame, row 1 (five or six), the six caps and the
   trackpad within 1 px at 3x in all 24 photos measured (0 at 402x812, 390x797 and 440x894). The bar
   card stands in the room under a short picture, its tail at row 1 (440x894: card 16,165.5
   360×252.5, tail down at 150); the picture's card rings the picture itself. The Menus pull-down
-  opens from row 1 (`-SillMenusOpen 1`).
-- **S2, live, the keyboard measured:** the normal app with `-Sill.largerPicture 1 -SillKeyboard 1
-  -SillKeyboardToggle 9`, on a simulator of every iPhone size the iOS 27 runtime has (the iOS 27.1
+  opens from row 1 (`-SkopryMenusOpen 1`).
+- **S2, live, the keyboard measured:** the normal app with `-Skopry.largerPicture 1 -SkopryKeyboard 1
+  -SkopryKeyboardToggle 9`, on a simulator of every iPhone size the iOS 27 runtime has (the iOS 27.1
   runtime has only the iPhone Duo). The keyboard as its frame reports it, and where the key row ends:
 
   | Phone (stream screen) | Keyboard | Key row |
@@ -411,11 +411,11 @@ own runs (R1 to R4).
   where the frame put it (636 pt on the 18 Pro Max's screen). The viewport is the room (`viewport:
   424×422 pt` on the Pro Max, 386×359 on the 18 Pro, 377×340 on the 15 Pro, 359×262 on the SE), and
   the span follows the picture (`trackpad: 374×285 pt, vertical span 234.5 pt` for the test
-  pattern's 386×242 frame on the 18 Pro). `-SillLargerPictureToggle 4,8` on the Pro Max: one
+  pattern's 386×242 frame on the 18 Pro). `-SkopryLargerPictureToggle 4,8` on the Pro Max: one
   viewport per switch (424×265, 424×422, 424×265) and the trackpad 389, 304, 389 pt tall. The
   host logged the device connecting once and leaving once each run.
 - **S3, VoiceOver's order and larger text:** with the simulator's app accessibility on
-  (`ApplicationAccessibilityEnabled`), `-SillAXDump` lists, with Larger Picture: Open the app list,
+  (`ApplicationAccessibilityEnabled`), `-SkopryAXDump` lists, with Larger Picture: Open the app list,
   ‹App› menus, Text size, Show the keyboard, Show the full Mac desktop, Settings for ‹Mac›, Escape,
   Tab, Control, Option, Command, Shift, the trackpad's hint (13; the picture none, as before;
   live, without the Mac's menus, 12); with the drawer open, row 1, then the drawer's search field
@@ -467,8 +467,8 @@ created for its runs and deleted after), against main's build (985a733, from `gi
   at 402x812 and 375x647 with the drawer); 2 differ only in the simulator's own home indicator,
   outside the drawn screen (the switch off at 402x812, and Settings sideways); 1 only in the
   Settings panel's scroll indicator, shorter by the new row (the switch off, Settings at its end).
-- **R2, the drawer with the keyboard up:** live, the switch on, `-SillKeyboard 1 -SillDrawer 1`
-  and `-SillDrawer 1 -SillDrawerSearch Go` (its field's keyboard): on the 18 Pro Max, the 15 Pro and
+- **R2, the drawer with the keyboard up:** live, the switch on, `-SkopryKeyboard 1 -SkopryDrawer 1`
+  and `-SkopryDrawer 1 -SkopryDrawerSearch Go` (its field's keyboard): on the 18 Pro Max, the 15 Pro and
   the SE the whole drawer above the keyboard, its edges where the rule puts them to the pixel (the
   SE: 28 to 306 pt on the screen, row 1 from 314; the 15 Pro: 67 to 423, row 1 from 431), the search
   results in view ("Google Chrome", "Gotham Sports"). The search field's keyboard is taller than the
@@ -476,14 +476,14 @@ created for its runs and deleted after), against main's build (985a733, from `gi
   covers the key row by 17 pt then, dimmed under the drawer, and leaves row 1 43 pt clear. The
   switch off: today's drawer under row 1, the second result under the keyboard, as on main. Harness
   photos of the drawer at 402x812, 375x647 and 375x762, measured: 0 px off the rule.
-- **R3, the switch with Settings open:** the harness at 402x812 (`-SillSettings 1
-  -SillSettingsScroll gestures -SillLargerPictureToggle 5`, the review's own case): the photos at 4
+- **R3, the switch with Settings open:** the harness at 402x812 (`-SkoprySettings 1
+  -SkoprySettingsScroll gestures -SkopryLargerPictureToggle 5`, the review's own case): the photos at 4
   and 8 s differ only in the switch (12,428 px within 63×28 pt), no new viewport. Live on the Pro Max
-  (`-SillSettings 1 -SillLargerPictureToggle 4 -SillKeyboardToggle 9`): "Larger Picture switched on
+  (`-SkoprySettings 1 -SkopryLargerPictureToggle 4 -SkopryKeyboardToggle 9`): "Larger Picture switched on
   at 4 s; the Settings panel is open, so it applies when the panel closes", row 1 and the panel at
   the same pixels at 3 and 6 s, then the panel closing at 9 s with one viewport, 424×422, and the
   key row 10 pt above the keyboard.
-- **R4, VoiceOver's order with the drawer open:** `-SillAXDump`, the switch on: Close the app list,
+- **R4, VoiceOver's order with the drawer open:** `-SkopryAXDump`, the switch on: Close the app list,
   Text size, Show the keyboard, Show the full Mac desktop, Settings, then the drawer's search field,
   its two headers and its 119 rows. (Before `AfterRow1` the tree put the drawer's 123 elements first, row 1 after.)
   The switch off: main's order, row 1 then the drawer; the switch on with nothing open: as in S3.
@@ -502,9 +502,9 @@ words and room all follow it; nothing streaming keeps the standard arrangement t
 13); the Settings panel holds the arrangement itself while it is open (rule 11), and its footnote
 says the switch is for a window's picture. The iPhone Duo's cover is as the branch left it (no
 keyboard on a hinge, whatever streams). Device only, as before. Run on 2026-10-15 (the simulator
-private, "Sill larger-picture desktop", an iPhone 18 Pro Max on iOS 27.0, deleted after; every host
-`SillHost --synthetic` of this worktree on 127.0.0.1 alone and on the software encoder, killed by
-PID; Noah's iPhone was streaming from Sill.app over the cable meanwhile, so nothing used the
+private, "Skopry larger-picture desktop", an iPhone 18 Pro Max on iOS 27.0, deleted after; every host
+`SkopryHost --synthetic` of this worktree on 127.0.0.1 alone and on the software encoder, killed by
+PID; Noah's iPhone was streaming from Skopry.app over the cable meanwhile, so nothing used the
 hardware encoder):
 
 - **D1, `phone-portrait`:** 484 checks (401 before; among the new, the rule's table, every phone of
@@ -522,8 +522,8 @@ hardware encoder):
   warning (StreamClient.swift:3436); the Release binary holds the new footnote and none of the DEBUG
   lines (the new `larger picture:` line included). `Tests/checks/run-all.sh`: all 40 passed (6 min).
 - **D3, harness photos** (36 of the new build, 16 of the branch's before the change, af462f7 from
-  `git archive`; the 18 Pro Max's own stream screen, `-SillLayout 440x956 -SillSafeArea 62,0,34,0`,
-  its console's `trackpad: 412×389 pt`, and the 15 Pro's, `-SillLayout 393x793`):
+  `git archive`; the 18 Pro Max's own stream screen, `-SkopryLayout 440x956 -SkoprySafeArea 62,0,34,0`,
+  its console's `trackpad: 412×389 pt`, and the 15 Pro's, `-SkopryLayout 393x793`):
   - The Desktop with the switch on against off, both sizes: plain, the drawer, the Aa ruler and the
     tour's bar card pixel for pixel identical; the Settings panel (at This iPhone) only in the switch
     itself, 12,428 px within 63×28 pt (the review's R3 measured the same).
@@ -534,10 +534,10 @@ hardware encoder):
     the Pro Max it is a line longer, seven against six).
   - The branch's Desktop with the switch on, Noah's finding: the Desktop's frame at the top of the
     room, the black under it, which the new build no longer draws.
-- **D4, live** (the normal app with `-SillConnect 127.0.0.1:P -Sill.largerPicture 1`, the 18 Pro Max;
+- **D4, live** (the normal app with `-SkopryConnect 127.0.0.1:P -Skopry.largerPicture 1`, the 18 Pro Max;
   a test window of the agent's own, 1 % opaque, ignoring clicks, behind every window and refusing to
-  be raised or made key; `sillclient.py` picking it, the Desktop, it and the Desktop 4, 12, 20 and
-  28 s in). With Aa at 1× (`-SillScaleOpen 1 -SillScale 1`), the device's console: `larger picture:
+  be raised or made key; `skopryclient.py` picking it, the Desktop, it and the Desktop 4, 12, 20 and
+  28 s in). With Aa at 1× (`-SkopryScaleOpen 1 -SkopryScale 1`), the device's console: `larger picture:
   the switch on, nothing streams: the standard arrangement` and `viewport: 424×265 pt` as it
   connected; the Desktop: the standard arrangement, 424×265; each pick of the window: `larger
   picture: the switch on, a window streams: Larger Picture above a 320 pt keyboard`, then
@@ -555,7 +555,7 @@ hardware encoder):
 - **The lights:** a thumbnail's lights hang from the strip, so with the arrangement now changing by
   itself (what streams) they would have stayed open unseen in Larger Picture and come back with the
   strip; they now close when the arrangement changes (StreamScreen). The harness with a window,
-  `-SillWindowMenu 1 -SillLargerPictureToggle 4,8` on a second private simulator (deleted after):
+  `-SkopryWindowMenu 1 -SkopryLargerPictureToggle 4,8` on a second private simulator (deleted after):
   "lights: closed, the phone's arrangement changed under them" at the 4 s switch. Five photos of
   this final build (the Desktop and a window, both sizes, the tour's card, the drawer) are pixel for
   pixel the ones above.
@@ -566,7 +566,7 @@ hardware encoder):
   the source changes, then the arrangement's own); the Mac's 2 pt compare makes the second a no-op.
 
 **Not verified here:** a real window fitted to the room (a synthetic host's Desktop is never
-resized; the harness drew it with `-SillVideoSize`; the live run fitted the agent's own test window,
+resized; the harness drew it with `-SkopryVideoSize`; the live run fitted the agent's own test window,
 whose picture is all but transparent); a device's own keyboard (only simulators were
 measured, and only iOS 27's), input methods with a candidate bar, third-party keyboards and Display
 Zoom's keyboards; VoiceOver itself (the dump is the tree's order); the tour on a fresh install on a
@@ -578,14 +578,14 @@ the Desktop and a window switching on a device with Noah's own windows.
 - 2026-10-14: the plan (22055ed); the layout and its check (d0343a2); the tour and its check
   (812d7df); the keyboards measured and the estimate corrected (0444d80); the views, Settings and
   the DEBUG arguments (127f5ec); the docs and these results (a251edf). Simulators deleted; photos
-  in `~/Downloads/sill-handoff/larger-picture/` (harness and live). PR #79 opened, left for Noah.
+  in `~/Downloads/skopry-handoff/larger-picture/` (harness and live). PR #79 opened, left for Noah.
 - 2026-10-14, the review's fixes: Larger Picture only where it is larger, and the panel's switch
   only there (0e9aa0e); the drawer above row 1 (77abae3) and read after it by VoiceOver (d6322a9);
   the switch applying as Settings closes (0cbe883); the docs, these results and the review's section
   (cfad7f3, and this line). Simulators deleted; the review's photos in
-  `~/Downloads/sill-handoff/larger-picture/review-fixes/`. PR #79's body updated; left for Noah.
+  `~/Downloads/skopry-handoff/larger-picture/review-fixes/`. PR #79's body updated; left for Noah.
 - 2026-10-15, Noah's test on his iPhone 15 Pro (the Desktop's negative space): Larger Picture only
   while a window streams (rule 12, open questions 12 to 14, the Results' "The Desktop keeps the
   standard arrangement"), the checks and their mutants, the docs and the support page, in one commit.
   The simulator deleted; the photos and the live run's logs in
-  `~/Downloads/sill-handoff/larger-picture/desktop/`. PR #79's body updated; left for Noah.
+  `~/Downloads/skopry-handoff/larger-picture/desktop/`. PR #79's body updated; left for Noah.

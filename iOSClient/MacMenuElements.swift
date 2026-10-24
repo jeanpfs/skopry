@@ -2,7 +2,7 @@ import UIKit
 import StreamProtocol
 
 /// The one builder of the Mac's menus as UIKit menu elements (docs/menu-bar-plan.md §7.3), for the
-/// iPad's menu bar (SillAppDelegate, MacMenuBar) and for the Menus button's pull-down
+/// iPad's menu bar (SkopryAppDelegate, MacMenuBar) and for the Menus button's pull-down
 /// (MacMenuButton): both run the same deferred elements, so a menu is fetched from the Mac when it
 /// opens, and fresh every time. Main thread.
 ///
@@ -85,13 +85,13 @@ enum MacMenuElements {
 
     /// The identifier of the bar's menu for the Mac menu `id` ("2"): unique within a build, since
     /// MacMenuState keeps each id of the top level once.
-    static func barIdentifier(_ id: String) -> UIMenu.Identifier { UIMenu.Identifier("me.saffer.sill.macmenu.\(id)") }
+    static func barIdentifier(_ id: String) -> UIMenu.Identifier { UIMenu.Identifier("app.skopry.macmenu.\(id)") }
 
     /// The `.one` layout's menu, which holds the Mac's menus (MacMenuBar).
-    static let barWrapper = UIMenu.Identifier("me.saffer.sill.macmenu")
+    static let barWrapper = UIMenu.Identifier("app.skopry.macmenu")
 
     /// Words in a menu: disabled, so they can never be chosen. A note that ends in a parenthesis,
-    /// as the Mac's "Allow Accessibility for Sill on the Mac (System Settings › Privacy & Security ›
+    /// as the Mac's "Allow Accessibility for Skopry on the Mac (System Settings › Privacy & Security ›
     /// Accessibility)." does, shows it as the subtitle: a menu cuts a long title short at its third
     /// line, and the part cut would be where to look.
     static func noteAction(_ text: String) -> UIAction {

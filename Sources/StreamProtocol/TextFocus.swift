@@ -59,8 +59,8 @@ public struct TextFocus: Codable, Hashable, Sendable {
 }
 
 /// Counts the times the front window's title changed to another one, for `TextFocus.switches`. A terminal's
-/// title carries a spinner and a status symbol that change as it works (`π ⠼ 🤖 SILL: Analisar…`, then
-/// `π > ⭐ SILL: Analisar…`), so only its letters and digits are compared: the same tab keeps them, another
+/// title carries a spinner and a status symbol that change as it works (`π ⠼ 🤖 SKOPRY: Analisar…`, then
+/// `π > ⭐ SKOPRY: Analisar…`), so only its letters and digits are compared: the same tab keeps them, another
 /// tab has other ones. Pure, so the check can drive it.
 public struct TitleSwitchCounter: Sendable {
     public private(set) var count = 0

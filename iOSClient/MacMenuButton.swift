@@ -7,7 +7,7 @@ import UIKit
 /// thumbnails, where the bar holds it and still a whole thumbnail (`fits`; a narrower window, a
 /// Slide Over, leaves it out), and on a phone held upright at the end of the thumbnails' row
 /// (`PhonePortraitLayout.menus`). The iPad's own menu bar shows the same menus on iPadOS 26
-/// (SillAppDelegate); this is the way in everywhere else, on iPhone, on the Duo's outer display,
+/// (SkopryAppDelegate); this is the way in everywhere else, on iPhone, on the Duo's outer display,
 /// before iPadOS 26, and with the bar hidden.
 ///
 /// The look is the bar's own BarButton, only drawn; the touch, the menu and VoiceOver belong to a
@@ -148,20 +148,20 @@ final class MacMenuTriggerButton: UIButton {
     private static var opened = false
     private static weak var current: MacMenuTriggerButton?
 
-    /// `-SillMenusOpen 1`: the pull-down opens after launch, as a tap would open it
-    /// (`performPrimaryAction`, iOS 17.4). `-SillMenusOpen 'File'` or `'Code/Settings'`: it opens on
+    /// `-SkopryMenusOpen 1`: the pull-down opens after launch, as a tap would open it
+    /// (`performPrimaryAction`, iOS 17.4). `-SkopryMenusOpen 'File'` or `'Code/Settings'`: it opens on
     /// that menu's own items instead, each level fetched on the way as a tap on it would, so a
     /// photo shows what a tap on File shows (a headless run cannot tap); only on the mock's menus or
-    /// the test app's through a test host (`StreamClient.menuHarnessRefusal`). `-SillMenusAt <s>`
-    /// opens it `s` seconds after the button first shows instead of 0.8, and `-SillMenusCloseAfter
+    /// the test app's through a test host (`StreamClient.menuHarnessRefusal`). `-SkopryMenusAt <s>`
+    /// opens it `s` seconds after the button first shows instead of 0.8, and `-SkopryMenusCloseAfter
     /// <s>` dismisses it `s` seconds after it opened, as a tap outside it would.
     func openFromLaunchArguments(client: StreamClient) {
         let defaults = UserDefaults.standard
         Self.current = self
-        guard !Self.opened, let raw = defaults.string(forKey: "SillMenusOpen"), !raw.isEmpty, raw != "0" else { return }
+        guard !Self.opened, let raw = defaults.string(forKey: "SkopryMenusOpen"), !raw.isEmpty, raw != "0" else { return }
         Self.opened = true
-        let at = defaults.double(forKey: "SillMenusAt") > 0 ? defaults.double(forKey: "SillMenusAt") : 0.8
-        let closeAfter = defaults.double(forKey: "SillMenusCloseAfter")
+        let at = defaults.double(forKey: "SkopryMenusAt") > 0 ? defaults.double(forKey: "SkopryMenusAt") : 0.8
+        let closeAfter = defaults.double(forKey: "SkopryMenusCloseAfter")
         func dismissLater() {
             guard closeAfter > 0 else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + closeAfter) {
@@ -174,7 +174,7 @@ final class MacMenuTriggerButton: UIButton {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak client] in
                 guard let client else { return }
                 guard let button = Self.current, let window = button.window, client.menus.version != nil else { open(after: 0.25); return }
-                guard #available(iOS 17.4, *) else { print("menus: harness: -SillMenusOpen needs iOS 17.4"); return }
+                guard #available(iOS 17.4, *) else { print("menus: harness: -SkopryMenusOpen needs iOS 17.4"); return }
                 // What a finger on the button's centre would reach: this button, unless something
                 // drawn over it takes the touch (the harness cannot tap; this is the hit test a tap runs).
                 let centre = button.convert(CGPoint(x: button.bounds.midX, y: button.bounds.midY), to: window)
@@ -188,7 +188,7 @@ final class MacMenuTriggerButton: UIButton {
                     return
                 }
                 if let why = client.menuHarnessRefusal {
-                    print("menus: harness: -SillMenusOpen \(path.joined(separator: "/")) refused: \(why)")
+                    print("menus: harness: -SkopryMenusOpen \(path.joined(separator: "/")) refused: \(why)")
                     return
                 }
                 client.resolveMenuPath(path) { [weak button, weak client] found in

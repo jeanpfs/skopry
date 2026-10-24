@@ -139,7 +139,7 @@ struct HardwareKeyboardPolicy: Equatable {
 
     /// `setKeyboard(shown:)`. True: the person's keyboard put back (the Settings panel or the tour
     /// closing over the keyboard they had up, the Menus pull-down after Settings; DEBUG
-    /// `-SillKeyboard 1`), while a view is in a window. False: whoever holds it lets go (the Settings
+    /// `-SkopryKeyboard 1`), while a view is in a window. False: whoever holds it lets go (the Settings
     /// panel, the tour and the pairing overlay opening).
     mutating func shown(_ show: Bool) -> [Action] {
         guard show else { return hold == .none ? [] : [.letGo] }

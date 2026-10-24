@@ -1,4 +1,4 @@
-# Sill keeps no reflection-based serialization: JSON goes through org.json by hand.
+# Skopry keeps no reflection-based serialization: JSON goes through org.json by hand.
 
 # The QR scanner (play-services-code-scanner) starts ML Kit, which builds its component registrars
 # by reflection from manifest metadata; R8's full mode strips their no-argument constructors, and

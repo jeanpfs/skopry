@@ -1,6 +1,6 @@
 #!/bin/bash
-# WindowRestore (Sources/SillHost/WindowRestore.swift; docs/restore-window-frames-plan.md, issue #57):
-# a window Sill sized for a device goes back when it stops streaming. The rule at its edges (`keep`,
+# WindowRestore (Sources/SkopryHost/WindowRestore.swift; docs/restore-window-frames-plan.md, issue #57):
+# a window Skopry sized for a device goes back when it stops streaming. The rule at its edges (`keep`,
 # `fitted` and `movedSince`, `decide` for every outcome, `homeForStage`, the ledger, the lines), the
 # sequences that fit a window and put it back (`fit`, `stop`, `stageHome`, `Ledger.restore`,
 # `keepsStreaming`, `coversDisplay`) against a stand-in window that logs every call, then a stand-in

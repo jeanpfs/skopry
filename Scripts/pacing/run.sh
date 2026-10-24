@@ -7,7 +7,7 @@
 #     home client over plain TCP), fed fake frames of the case's sizes (a keyframe when asked for
 #     and every 4 s);
 #   - bottleneck.py: a downlink of R Mbit/s behind a Q-byte queue, D ms of round trip (or, for the
-#     remote door's slow-link cases, Scripts/sillrelay.py: R Mbit/s read from the host through a
+#     remote door's slow-link cases, Scripts/skopryrelay.py: R Mbit/s read from the host through a
 #     64 KB buffer, D ms of round trip, a blackhole after S s);
 #   - device.py: the iPad's reader, pings, stats and liveness (--liveness-bytes: MessageReader's).
 # Then summarize.py's table: every run, and each case's base and new side by side with the new
@@ -37,7 +37,7 @@
 #   ext120   Extreme at 120 fps: 2 MB keyframes, 312.5 KB deltas through 600 Mbit/s: never a drop
 #   dip      Low's sizes, 8 Mbit/s with 0.5 from 20 s to 32 s behind a 1 MB queue: no loss, the
 #            frame age back at 45 ms within 10 s of the dip's end
-#   relay2   the remote door's slow link (the plan's H4; the remote plan's H14): sillrelay.py at
+#   relay2   the remote door's slow link (the plan's H4; the remote plan's H14): skopryrelay.py at
 #            2 Mbit/s and +150 ms for 90 s, a stream the size of the synthetic host's (100 KB
 #            keyframes, 2 KB deltas): no loss or eviction, a frame in every 5 s, keyframes a minute
 #            no more than its base run's
@@ -88,7 +88,7 @@ while [ $# -gt 0 ]; do
 done
 
 # name|seconds|repeats in --full|DOOR|RELAY|host args -- relay args -- device args
-# (DOOR: the host's door run.py waits for; RELAY: bottleneck.py or Scripts/sillrelay.py)
+# (DOOR: the host's door run.py waits for; RELAY: bottleneck.py or Scripts/skopryrelay.py)
 cases=(
   "real24|45|3|Remote|bottleneck|--kf 1500000 --delta 30000 -- --rate-mbps 24 --delay-ms 70 --queue-bytes 262144 -- --reconnect"
   "kf25m32|40|3|Remote|bottleneck|--kf 2500000 --delta 20000 -- --rate-mbps 32 --delay-ms 70 --queue-bytes 262144 -- --reconnect"
@@ -96,8 +96,8 @@ cases=(
   "slowkfB|50|1|Remote|bottleneck|--kf 1600000 --delta 1000 --gop 30 --icons 20 -- --rate-mbps 2 --delay-ms 70 --queue-bytes 262144 -- --reconnect --liveness-bytes"
   "ext120|25|1|Remote|bottleneck|--kf 2000000 --delta 312500 --fps 120 -- --rate-mbps 600 --delay-ms 6 --queue-bytes 262144 -- --reconnect"
   "dip|60|1|Remote|bottleneck|--kf 150000 --delta 8000 -- --rate-mbps 8 --delay-ms 70 --queue-bytes 1048576 --rate-at 20:0.5,32:8 -- --reconnect"
-  "relay2|90|1|Remote|sillrelay|--kf 100000 --delta 2000 -- --rate-mbps 2 --delay-ms 150 -- --reconnect --liveness-bytes"
-  "blackhole|30|1|Remote|sillrelay|--kf 100000 --delta 2000 -- --rate-mbps 2 --delay-ms 150 --blackhole-after 5 -- --reconnect --liveness-bytes"
+  "relay2|90|1|Remote|skopryrelay|--kf 100000 --delta 2000 -- --rate-mbps 2 --delay-ms 150 -- --reconnect --liveness-bytes"
+  "blackhole|30|1|Remote|skopryrelay|--kf 100000 --delta 2000 -- --rate-mbps 2 --delay-ms 150 --blackhole-after 5 -- --reconnect --liveness-bytes"
   "stillend|55|1|Remote|bottleneck|--kf 1500000 --delta 60000 --still-at 12:8,27:8,42:8 -- --rate-mbps 16 --delay-ms 70 --queue-bytes 262144 -- --reconnect"
   "restartkf|40|1|Remote|bottleneck|--kf 2500000 --delta 4000 --restart-at 10:0.1,20:0.1,30:0.1 -- --rate-mbps 32 --delay-ms 70 --queue-bytes 262144 -- --reconnect"
   "linkstill|55|1|Remote|bottleneck|--kf 1600000 --delta 1000 --gop 30 --icons 20 --still-at 31:10 -- --rate-mbps 2 --delay-ms 70 --queue-bytes 262144 -- --reconnect --liveness-bytes"
@@ -142,7 +142,7 @@ export PACING_OUT="$out" PACING_RUNS="$runs"
 {
     echo "Pacing harness, $(date '+%Y-%m-%d %H:%M')"
     echo "base: $base = $(git -C "$root" rev-parse --short "$base"), StreamServer.swift md5 $(md5 -q "$out/base/Sources/Harness/StreamServer.swift")"
-    dirty=""; git -C "$root" diff --quiet HEAD -- Sources/SillHost Sources/StreamProtocol Scripts/pacing || dirty=" with uncommitted changes"
+    dirty=""; git -C "$root" diff --quiet HEAD -- Sources/SkopryHost Sources/StreamProtocol Scripts/pacing || dirty=" with uncommitted changes"
     echo "new:  the working tree at $(git -C "$root" rev-parse --short HEAD)$dirty, StreamServer.swift md5 $(md5 -q "$out/new/Sources/Harness/StreamServer.swift")"
 } > "$runs/matrix.txt"
 

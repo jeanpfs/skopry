@@ -1,6 +1,6 @@
 #!/bin/bash
-# DeviceGate (Sources/SillHost), the host's device floor: which hello the floor admits, the refusal's
-# words ("Update Sill on your iPad to keep using Mac mini. It needs version 1.2 or later."), the
+# DeviceGate (Sources/SkopryHost), the host's device floor: which hello the floor admits, the refusal's
+# words ("Update Skopry on your iPad to keep using Mac mini. It needs version 1.2 or later."), the
 # Refused, count and hello log lines, and that the shipped floor parses and is "0"
 # (docs/update-notice-plan.md, section 4).
 # Compiled with StreamProtocol's sources as one module (build.sh strips `import StreamProtocol`).

@@ -17,7 +17,7 @@ VoiceOver one read in the code, the chord's inferred, since nothing may be poste
 strokes placed slowly or beside a resting thumb clicked, dragged or scrolled; a pinch led by the
 thumb read as a swipe; a brief extra contact decided a swipe as nothing; VoiceOver users were told
 to use three fingers; a chord could leave control or fn set for the next click; a scroll before a
-gesture broke the reversal; and what Sill opened never expired. Left: Noah's device tests, §9.5.
+gesture broke the reversal; and what Skopry opened never expired. Left: Noah's device tests, §9.5.
 
 
 The plan, 2026-09-26. It stands alone: the implementer needs no other design document. Written from a
@@ -75,7 +75,7 @@ into its own shortcut for that action, and changes nothing about one- and two-fi
    down only closes Mission Control.
 5. **The settings.** The group shows whatever state the Mac's settings are in, says when the Mac
    needs updating, and names the right device; the old claim that a Magic Keyboard's two-finger
-   scroll reaches Sill was wrong.
+   scroll reaches Skopry was wrong.
 6. **The tests.** No test sends input or a gesture to a host on this Mac (a synthetic host injects
    input into the real session); the old H4 was not pure and now is; a simulator touch rig checks
    the real surfaces; the project-file IDs move out of home-pairing's way.
@@ -84,18 +84,18 @@ into its own shortcut for that action, and changes nothing about one- and two-fi
 
 ## 1. Scope
 
-**In.** Three-finger gestures on the two glass surfaces Sill owns — the portrait trackpad
+**In.** Three-finger gestures on the two glass surfaces Skopry owns — the portrait trackpad
 (`TrackpadSurface`, `TrackpadView.swift`) and the landscape stream (`InputOverlayView`,
 `InputOverlay.swift`):
 
 | Gesture (three fingers) | What the Mac does |
 |---|---|
 | Swipe up | Mission Control |
-| Swipe down | App Exposé (the front app's windows); right after Sill opened Mission Control, closes it |
+| Swipe down | App Exposé (the front app's windows); right after Skopry opened Mission Control, closes it |
 | Swipe left | Next Space (the Space to the right) |
 | Swipe right | Previous Space (the Space to the left) |
-| Pinch in | Apps (Launchpad on macOS 14 and 15); right after Sill's Show Desktop, brings the windows back |
-| Spread | Show Desktop; right after Sill opened Apps, closes it |
+| Pinch in | Apps (Launchpad on macOS 14 and 15); right after Skopry's Show Desktop, brings the windows back |
+| Spread | Show Desktop; right after Skopry opened Apps, closes it |
 
 The device sends each as one kind 28 message (§4). The Mac posts its own current shortcut for that
 action (§7), so a shortcut Noah changed is followed and one he turned off does nothing. A
@@ -173,7 +173,7 @@ the table on the iPad.
 - **Four and five fingers** on an iPad are the multitasking gestures (Home, the app switcher,
   switching apps, a pinch to Home), on by default and switchable in Settings › Multitasking &
   Gestures. When iPadOS takes one it cancels the app's touches, after the app saw them begin. iOS on
-  an iPhone (the Duo is one) has no four-finger system gestures, so there four fingers reach Sill.
+  an iPhone (the Duo is one) has no four-finger system gestures, so there four fingers reach Skopry.
   → **Three fingers are the target**; four are best effort (§6.4).
 - **The three-finger text gestures** (undo and redo: a swipe left or right, or a double tap; copy,
   cut and paste: a pinch and a spread; the edit bar: a tap) follow the first responder's
@@ -184,7 +184,7 @@ the table on the iPad.
   enabled. Whether it then stays quiet the rig cannot see: its touches go to the app's own window
   and never reach another window's recognizer (an attempt through UIKit's own HID entry point,
   `_enqueueHIDEvent:`, delivered nothing). So `.none` on `InputOverlayView` is the defence and P6 is
-  the proof. It belongs there only: `InputOverlayView` is the one responder Sill makes first, in
+  the proof. It belongs there only: `InputOverlayView` is the one responder Skopry makes first, in
   both layouts (the portrait picture pane is the same overlay, `PortraitStreamScreen.swift:375-390`),
   and with a hardware keyboard it stays first responder to forward keys. `TrackpadSurface` never
   becomes first responder, so an override there does nothing, and while the keyboard is up in
@@ -196,9 +196,9 @@ the table on the iPad.
   do the six gestures instead, as accessibility actions (§8).
 - **The Magic Keyboard trackpad:** its three- and four-finger swipes and pinches are iPadOS's
   (Home, the app switcher, switching apps) and never reach an app → glass only. **Correction:** its
-  two-finger scroll does not reach Sill either. Both pans leave `allowedScrollTypesMask` at 0 (read
+  two-finger scroll does not reach Skopry either. Both pans leave `allowedScrollTypesMask` at 0 (read
   in the rig), so trackpad and wheel scrolling make no pan callbacks; its pointer (hover) and its
-  clicks (indirect touches, `InputOverlay.swift:223-269`) do reach Sill. Unchanged here; a later
+  clicks (indirect touches, `InputOverlay.swift:223-269`) do reach Skopry. Unchanged here; a later
   change could set `.continuous`.
 - `INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES` (`project.pbxproj:382,414`).
 - A finger that lands on the bottom edge starts the Home indicator's gesture, as it does for any
@@ -254,7 +254,7 @@ stored signature (`CGEventFlags` bits).
   `com.apple.AppleMultitouchTrackpad`: three-finger vertical and horizontal swipes 2 (Mission
   Control and the Spaces), four- and five-finger pinches 2 (Launchpad or Apps, and Show Desktop,
   which on a Mac are thumb-and-three-finger pinches), three-finger drag 0, three-finger tap 0 (Look
-  Up off), two-finger swipe from the right edge 3 (Notification Center). Sill's three-finger pinch
+  Up off), two-finger swipe from the right edge 3 (Notification Center). Skopry's three-finger pinch
   and spread therefore stand in for the Mac's four-finger ones, which iPadOS keeps.
 - **What the device can see.** A window stream captures that window only
   (`desktopIndependentWindow`), and a window on the virtual display is captured with its own app's
@@ -288,16 +288,16 @@ stored signature (`CGEventFlags` bits).
   goes to `InputInjector` with `currentSourceRect()`, which for the Desktop is the real display's
   frame (`StreamCoordinator.swift:674-679`), and the processes agents run here hold Accessibility
   (`AXIsProcessTrusted()` is true, §5). The old H4 ("send, from a scratch client, a `.key(hidUsage:
-  0x52, …)`") would have opened Mission Control on Noah's Mac. `sillclient.py` sends no input
+  0x52, …)`") would have opened Mission Control on Noah's Mac. `skopryclient.py` sends no input
   today; §9 keeps it that way and gives gestures a test path that cannot post (§7.4).
 
 ### 2.5 Idle and encoder guards (for §10's probe)
 
 - `HIDIdleTime` (IORegistry, `IOHIDSystem`) reads seconds since the last user input, from a process
   without any grant (`state.swift`); the probe uses it to refuse to run within 60 s of real input.
-- Sill.app's log (`~/Library/Logs/Sill/Sill.log`) shows `[30s] idle · 0 clients` while no device is
+- Skopry.app's log (`~/Library/Logs/Skopry/Skopry.log`) shows `[30s] idle · 0 clients` while no device is
   connected; the probe wrapper refuses to run unless the last such line (or `Client left`) is newer
-  than the last connect. At the time of writing Sill.app (pid 5205) was idle, 0 clients.
+  than the last connect. At the time of writing Skopry.app (pid 5205) was idle, 0 clients.
 
 ---
 
@@ -323,7 +323,7 @@ as on a Mac: the content follows the fingers, so fingers moving **left** bring t
   24 pt), a stroke sends no pointer motion, click, button or scroll (§6.2), however slowly the
   fingers came and whatever rests on the glass. Motion before the third finger is today's (the
   tracker's 2 pt slop, as before any two-finger scroll).
-- **The opposite gesture closes what Sill opened** (§7.2): a swipe down after Sill's Mission Control
+- **The opposite gesture closes what Skopry opened** (§7.2): a swipe down after Skopry's Mission Control
   closes it; a swipe up after its App Exposé closes that; a spread after its Apps closes Apps; a
   pinch after its Show Desktop brings the windows back. The same gesture again does nothing (the
   view is already open) and, made once more straight after, opens it again (it was closed on the
@@ -369,12 +369,12 @@ a host that says 2.
 ### 4.3 Compatibility
 
 - **This device, an older host:** `gestures` is nil, so no kind 28 goes out; the settings group
-  says to update Sill on the Mac (§8), and the stroke gate still keeps three-finger strokes from
+  says to update Skopry on the Mac (§8), and the stroke gate still keeps three-finger strokes from
   clicking or scrolling. A kind 28 sent anyway would be skipped: an older `parseHeader` maps 28 to
   `.unknown`, and the coordinator's `handle` ignores that.
 - **An older device, this host:** it sends no kind 28 and ignores `gestures` (JSONDecoder skips keys
   it does not know).
-- **`sillclient.py` and the CLI:** the window list carries one more key, which neither prints;
+- **`skopryclient.py` and the CLI:** the window list carries one more key, which neither prints;
   nothing prints unless a kind 28 arrives. The default synthetic stdout stays byte-identical.
 - **The compatibility floor** (CLAUDE.md): additive. A new kind and an optional field, and the new
   message goes only to a host that said it takes it.
@@ -431,7 +431,7 @@ and the private `CGEventField`s are addressable from Swift **without any bridgin
 
 **What is unknown and must be proven (§10):**
 1. Whether macOS 27 **accepts** such a synthesized gesture from a **background, non-GUI process**
-   (Sill's host) that holds **Accessibility** (`AXIsProcessTrusted() == true`,
+   (Skopry's host) that holds **Accessibility** (`AXIsProcessTrusted() == true`,
    `CGPreflightPostEventAccess() == true`, both true here) but is not a foreground app.
 2. Whether it needs **Input Monitoring** (`kTCCServiceListenEvent`) or any grant beyond
    Accessibility. If it does, Tier 2 costs a third permission (after Screen Recording and
@@ -571,7 +571,7 @@ the iPad went Home. A fifth finger: silent, nothing.
 ### 6.5 The editing interaction
 
 `InputOverlayView` overrides `editingInteractionConfiguration` to return `.none` (§2.2), the one
-responder Sill makes first. It holds no text of its own and the Mac's undo is ⌘Z, so nothing is
+responder Skopry makes first. It holds no text of its own and the Mac's undo is ⌘Z, so nothing is
 lost. `TrackpadSurface` needs nothing: it is never first responder, and while the keyboard is up in
 portrait the overlay's `.none` is the one iPadOS reads.
 
@@ -581,7 +581,7 @@ portrait the overlay's `.none` is the one iPadOS reads.
 
 ### 7.1 `GestureChords`, the pure resolver (new file, checked with swiftc)
 
-`Sources/SillHost/GestureChords.swift`, compiled on its own (`-package-name sill`, like
+`Sources/SkopryHost/GestureChords.swift`, compiled on its own (`-package-name skopry`, like
 `clientlink`):
 
 ```
@@ -611,14 +611,14 @@ package struct GestureChords {
   chord, never a guess.
 - An unknown gesture name → `.nothing(nil, …)`.
 
-### 7.2 What Sill opened (the reversal)
+### 7.2 What Skopry opened (the reversal)
 
-- `open` is the view Sill's last gesture opened — Mission Control, App Exposé, Apps or Show Desktop —
+- `open` is the view Skopry's last gesture opened — Mission Control, App Exposé, Apps or Show Desktop —
   or nil. The pairs: Mission Control and a swipe down, App Exposé and a swipe up, Apps and a spread,
   Show Desktop and a pinch.
 - With a view open: its reverse posts that view's chord again (it toggles closed) and forgets it;
   the gesture that opened it posts nothing ("already open", as on a Mac) and, made once more
-  straight after, posts its chord again (`repeated`: the view was closed where Sill cannot see); a
+  straight after, posts its chord again (`repeated`: the view was closed where Skopry cannot see); a
   Space posts its own chord and keeps it; any other gesture posts its own action and remembers that
   view instead.
 - `input(_:)`, for every `.input` from any device: a button or a key going down, or typed text, can
@@ -678,8 +678,8 @@ package struct GestureChords {
 
 ## 8. Settings on the device (device-local; nothing on the Mac)
 
-A **device preference**, not a host setting: `UserDefaults` key `Sill.trackpadGestures`, default
-**on** (precedent: `Sill.savedMacs`, `Sill.directWirelessMacs`), never on the wire and never sent to
+A **device preference**, not a host setting: `UserDefaults` key `Skopry.trackpadGestures`, default
+**on** (precedent: `Skopry.savedMacs`, `Skopry.directWirelessMacs`), never on the wire and never sent to
 the Mac. The surfaces read it at each decision.
 
 - **Where.** The last group of the panel's scrolling middle, after the whole `if let state … else if
@@ -687,7 +687,7 @@ the Mac. The surfaces read it at each decision.
   load and for a Mac without settings too. It is headed like "Away from home" (`:314-320`), "This
   \(device)" (the panel's own `device`, `:403`), since every other row is the Mac's; last, because
   it is the least changed and the outer display's 259 pt shows the Mac's rows first.
-  `-SillSettingsEnd 1` scrolls to it.
+  `-SkoprySettingsEnd 1` scrolls to it.
 - **What.** A `Toggle` "Three-Finger Gestures"; when it is on and the Mac takes them, five read-only
   rows, a symbol and the words each: "Swipe Up — Mission Control", "Swipe Down — App Exposé",
   "Swipe Left or Right — Spaces", "Pinch — Apps", "Spread — Show Desktop" (the pinch opens Launchpad
@@ -697,10 +697,10 @@ the Mac. The surfaces read it at each decision.
   what one opened. \(mac) uses its own keyboard shortcuts for these; one that is off in its
   Keyboard settings does nothing." On an iPad, one more sentence: "Four-finger swipes and a Magic
   Keyboard trackpad’s gestures stay with iPadOS." A Mac that does not take them (`hostGestures`
-  nil): "Update Sill on \(mac) to use these." Off: "Three-finger strokes do nothing while this is
+  nil): "Update Skopry on \(mac) to use these." Off: "Three-finger strokes do nothing while this is
   off." While VoiceOver runs (`UIAccessibility.isVoiceOverRunning`, followed on
   `voiceOverStatusDidChangeNotification`), which keeps three-finger swipes and taps for itself so
-  that none reaches Sill (§2.2), the first sentence is "VoiceOver keeps three-finger gestures for
+  that none reaches Skopry (§2.2), the first sentence is "VoiceOver keeps three-finger gestures for
   itself, so the rows above do them on \(mac) instead."
 - **The rows do the gestures, for assistive technologies.** Each mapping row is an accessibility
   action, whether or not VoiceOver runs (VoiceOver, Voice Control, Switch Control, none of which
@@ -713,9 +713,9 @@ the Mac. The surfaces read it at each decision.
 - **Accessibility and layout** follow the panel's groups (`Rows`, `Footnote`, `RowTitle`),
   `dynamicTypeSize(...xxLarge)`, wrapping, never truncating; each mapping row is one VoiceOver
   element ("Swipe up, Mission Control"), a button (the Spaces row: two actions).
-- **Harness.** The mock window lists carry `gestures: 1` except `legacy`'s; `-Sill.trackpadGestures
+- **Harness.** The mock window lists carry `gestures: 1` except `legacy`'s; `-Skopry.trackpadGestures
   0` photographs it off (the argument domain overrides the default for one run); DEBUG
-  `-SillVoiceOver 1` shows the VoiceOver footnote.
+  `-SkopryVoiceOver 1` shows the VoiceOver footnote.
 
 The four pbxproj entries for `TrackpadGestures.swift` (build file, file reference, the group's and
 the Sources phase's lines) use **`A1000001000000000000A401` / `…F401`**, not the next pair after
@@ -743,7 +743,7 @@ the Sources phase's lines) use **`A1000001000000000000A401` / `…F401`**, not t
   pinch and spread swapped; any lift deciding; silence ending at the last lift, or coming only with
   arming; the first three to land arming; the together test and the other fingers' dropped; cancel
   ignored; a fourth finger re-basing the centroid.
-- **`gesture-chords`**: `Sources/SillHost/GestureChords.swift`; at least 70 cases and 5,000 random
+- **`gesture-chords`**: `Sources/SkopryHost/GestureChords.swift`; at least 70 cases and 5,000 random
   sequences against a model. Each gesture to its chord on the default table; a preferred shortcut
   off or unbound → the next; none → nothing, and never another action's chord; a rebound shortcut
   followed exactly (its keycode, its device-independent bits only); every reversal pair; the same
@@ -768,8 +768,8 @@ Limits: synthesized touches, not glass; the editing overlay (§2.2) is out of it
 
 ### 9.3 Harness photos (simulator; screenshots only, no recording, no live panel)
 
-`-SillSettings 1 -SillSettingsCase default -SillSettingsEnd 1` with the new group; `legacy` (the
-update note); `-Sill.trackpadGestures 0`; at 1000×710, 710×1000, 500×710 and 710×500, and at
+`-SkoprySettings 1 -SkoprySettingsCase default -SkoprySettingsEnd 1` with the new group; `legacy` (the
+update note); `-Skopry.trackpadGestures 0`; at 1000×710, 710×1000, 500×710 and 710×500, and at
 accessibility-extra-large (the rows wrap, never truncate); one iPhone size (no iPadOS sentence).
 Send Noah the sheet.
 
@@ -782,24 +782,24 @@ a synthetic host that cannot post them.** A synthetic host injects input into th
 | # | Check | Pass when |
 |---|---|---|
 | H1 | **Builds.** `swift build -c release`; iOS Debug and Release for the simulator; Debug for a device (unsigned) | Only the known warnings (CaptureProbe; the old `StreamClient` capture warning) |
-| H2 | **CLI byte-for-byte.** `SillHost --synthetic` idle 35 s and with `sillclient.py PORT 5 desktop`, digits masked and sorted, against `origin/main`'s after the merge | Identical |
+| H2 | **CLI byte-for-byte.** `SkopryHost --synthetic` idle 35 s and with `skopryclient.py PORT 5 desktop`, digits masked and sorted, against `origin/main`'s after the merge | Identical |
 | H3 | **`gestures`** and its mutants (§9.1) | Every case; every mutant caught |
 | H4 | **`gesture-chords`** and its mutants (§9.1), pure: nothing is posted | Every case; every mutant caught |
-| H5 | **Grep hard rules** | No `IOHIDEventCreate`, `tapCreate`, `addGlobalMonitorForEvents` or a `CGEventType` of 29 or 30 in `Sources/` or `iOSClient/` (Tier 2 not built); both pans still `maximumNumberOfTouches = 2`; `flags(from:)` unchanged; `sillclient.py` sends no kind 8; each existing handler's only change is its first-line guard |
+| H5 | **Grep hard rules** | No `IOHIDEventCreate`, `tapCreate`, `addGlobalMonitorForEvents` or a `CGEventType` of 29 or 30 in `Sources/` or `iOSClient/` (Tier 2 not built); both pans still `maximumNumberOfTouches = 2`; `flags(from:)` unchanged; `skopryclient.py` sends no kind 8; each existing handler's only change is its first-line guard |
 | H6 | **Compatibility** (swiftc) | 6678ca3's `StreamMessage.swift` maps 28 to `.unknown`; its `Switcher.swift` decodes a new window list; a window list from 6678ca3 decodes with `gestures` nil; the device's send decision with it nil sends nothing |
 | H7 | **The touch rig** (§9.2), with 6678ca3's surfaces and this branch's | One- and two-finger strokes: the same events as 6678ca3's, one for one (times masked). Each three-finger stroke of §2.1: one gesture and no other event after the third finger; armed with a scroll open: one `.scrollGesture(.ended)` and no momentum; cancelled: nothing; four: one gesture with `fingers` 4; five: nothing; the switch off: nothing at all |
-| H8 | **The wire, dry.** `sillclient.py PORT 8 desktop --gesture=swipeUp@3 --gesture=swipeDown@4` (a new option) against `SillHost --synthetic`, only under §10's idle guards (a dry path that failed would open and then close Mission Control) | Two lines: swipe up → Mission Control (shortcut 108), then swipe down → Mission Control again (the reversal), each "(not posted: a test host)"; `in.gestureDry` 2, `in.gesture` 0 |
-| H9 | **The Mac's UI unchanged.** `-SillRenderPreviews` from the bundle against `origin/main`'s | Identical |
+| H8 | **The wire, dry.** `skopryclient.py PORT 8 desktop --gesture=swipeUp@3 --gesture=swipeDown@4` (a new option) against `SkopryHost --synthetic`, only under §10's idle guards (a dry path that failed would open and then close Mission Control) | Two lines: swipe up → Mission Control (shortcut 108), then swipe down → Mission Control again (the reversal), each "(not posted: a test host)"; `in.gestureDry` 2, `in.gesture` 0 |
+| H9 | **The Mac's UI unchanged.** `-SkopryRenderPreviews` from the bundle against `origin/main`'s | Identical |
 
 ### 9.5 Noah's list (P), handed over at the end
 
-The iPad mini on Noah's Mac (Sill.app and the iOS build from this branch), and, for P9, a Magic
+The iPad mini on Noah's Mac (Skopry.app and the iOS build from this branch), and, for P9, a Magic
 Keyboard trackpad if he has one.
 
 | # | Check |
 |---|---|
-| P1 | **Portrait, the Desktop streaming.** Three fingers on the trackpad: swipe up → Mission Control; down → App Exposé; left → the Space on the right; right → the Space on the left; pinch → Apps; spread → Show Desktop. Sill's log names the shortcut each time (§7.4). No pointer jump once the fingers are down, no click; a light haptic on an iPhone, none on the iPad. Pinch and spread led by the thumb (the fingers still, the thumb travelling far) are a pinch and a spread, not a swipe. Right after a swipe left, right or down, a tap selects (no context menu) and a two-finger scroll scrolls (no zoom) |
-| P2 | **Which shortcut works** (§2.3). Mission Control, App Exposé, Apps and Show Desktop open through 108, 115, 173 and 36; the Space swipes switch Spaces and do not tile the front window (fn control arrows are also Tile Left and Right Half). If a gesture tiles, or does nothing while its log line names a shortcut, note which: the fix is one entry of §7.1's table. Sill's log has no "Gestures: after a gesture's shortcut this Mac's modifier keys still read …" line (§7.3; if it has, the key up did not put the table back: note which gesture) |
+| P1 | **Portrait, the Desktop streaming.** Three fingers on the trackpad: swipe up → Mission Control; down → App Exposé; left → the Space on the right; right → the Space on the left; pinch → Apps; spread → Show Desktop. Skopry's log names the shortcut each time (§7.4). No pointer jump once the fingers are down, no click; a light haptic on an iPhone, none on the iPad. Pinch and spread led by the thumb (the fingers still, the thumb travelling far) are a pinch and a spread, not a swipe. Right after a swipe left, right or down, a tap selects (no context menu) and a two-finger scroll scrolls (no zoom) |
+| P2 | **Which shortcut works** (§2.3). Mission Control, App Exposé, Apps and Show Desktop open through 108, 115, 173 and 36; the Space swipes switch Spaces and do not tile the front window (fn control arrows are also Tile Left and Right Half). If a gesture tiles, or does nothing while its log line names a shortcut, note which: the fix is one entry of §7.1's table. Skopry's log has no "Gestures: after a gesture's shortcut this Mac's modifier keys still read …" line (§7.3; if it has, the key up did not put the table back: note which gesture) |
 | P3 | **Landscape.** The same six over the stream, with the Desktop streaming and while a window streams (the device switches to the Desktop first, then the view opens). Two-finger scroll still scrolls; a third finger landing on a scroll already under way leaves it a scroll. Right after a swipe left, right or down, a tap selects (no context menu) and a two-finger scroll scrolls (no zoom) |
 | P4 | **One and two fingers unchanged**, both layouts: pointer, tap, two-finger tap, press-and-hold drag, long-press right click, two-finger scroll with momentum, haptics. And §2.1 on glass: three fingers resting 0.6 s no longer drag or right-click, a three-finger pinch no longer clicks at the end, four fingers no longer move the pointer or scroll. Also with a thumb resting on the glass first (a swipe or a pinch of the other three: the gesture, no pointer jump, no scroll) and with the three fingers placed slowly, one by one (nothing at all: no click, no scroll, no gesture). A brief touch of a fourth finger or the palm during a swipe does not cancel it |
 | P5 | **The reversal.** Up then down closes Mission Control; down then up closes App Exposé; spread then pinch brings the windows back; pinch then spread closes Apps. A click in Mission Control between two swipes makes the next swipe down App Exposé. A swipe down whose first finger slid a little first (it begins as a scroll) still closes Mission Control. Mission Control closed with the Mac's own Esc: the next swipe up does nothing, the one after opens it; after the iPad reconnects, a swipe up opens it at once |
@@ -809,7 +809,7 @@ Keyboard trackpad if he has one.
 | P9 | **The Magic Keyboard trackpad.** Its three-finger gestures are iPadOS's; its two-finger scroll does not scroll the Mac (as today, §2.2) |
 | P10 | **Remote (Tailscale).** A gesture works through the remote door; note any lag |
 | P11 | **Four fingers.** With iPadOS's four-finger gestures on, the iPad goes Home or switches apps and the Mac does nothing; with them off (Settings › Multitasking & Gestures), four fingers do what three do |
-| P12 | **An older Mac.** This iPad against `origin/main`'s Sill.app: the group says to update Sill on the Mac; three fingers send nothing and click nothing |
+| P12 | **An older Mac.** This iPad against `origin/main`'s Skopry.app: the group says to update Skopry on the Mac; three fingers send nothing and click nothing |
 | P13 | **VoiceOver.** With VoiceOver on, Settings › This iPad's footnote says VoiceOver keeps three-finger gestures and the rows do them instead; each row is a button ("Swipe Up, Mission Control, button") whose double tap does it on the Mac, and the Spaces row has two actions, Space on the Right and Space on the Left |
 
 ---
@@ -820,7 +820,7 @@ This is the one step that posts a synthetic event. It is **not** part of Tier 1 
 without it. Run it deliberately, on Noah's Mac, under all of these — the wrapper refuses otherwise:
 
 - `HIDIdleTime ≥ 60` s (no real input for a minute) **and** it stays ≥ 60 s across the run;
-- Sill.app shows **0 clients** (the last `[30s] idle · 0 clients` or `Client left` in `Sill.log` is
+- Skopry.app shows **0 clients** (the last `[30s] idle · 0 clients` or `Client left` in `Skopry.log` is
   newer than the last `connected`), so no device is streaming;
 - `CGPreflightPostEventAccess()` is already true — the probe **never** calls
   `CGRequestPostEventAccess` or raises any permission alert;
@@ -863,7 +863,7 @@ Tier 1 does not depend on it.
 - **Tests never post a gesture or a key to the real Mac** except §10's guarded probe; never
   `simctl io recordVideo`, no XCUITest, no Simulator live panel while Noah streams; screenshots only;
   the rig on a simulator of its own.
-- Never touch `/Applications/Sill.app`, `make-app.sh --install/--open`, `tccutil`, or Noah's iPad.
+- Never touch `/Applications/Skopry.app`, `make-app.sh --install/--open`, `tccutil`, or Noah's iPad.
 
 ---
 
@@ -876,13 +876,13 @@ Tier 1 does not depend on it.
    the result).
 3. **Swipe down with nothing open.** Default: **App Exposé**. The alternative is nothing, as on
    Noah's Mac, where App Exposé's gesture is off.
-4. **The reversal.** Default: **the opposite gesture closes what Sill opened**. The alternative sends
+4. **The reversal.** Default: **the opposite gesture closes what Skopry opened**. The alternative sends
    each gesture's own chord always (a swipe down in Mission Control then shows App Exposé).
 5. **Pinch.** Default: **Apps**, through the Launchpad key's shortcut (173, on). The alternative is
    nothing.
 6. **Space direction.** Default: **natural** (fingers left → the Space on the right).
 7. **Tier 2.** Default: **Tier 1 only** now; Tier 2 only if §10's probe shows macOS 27 accepts
-   synthesized gestures from Sill's background process **without Input Monitoring**. Noah decides if
+   synthesized gestures from Skopry's background process **without Input Monitoring**. Noah decides if
    a third permission is ever worth it.
 8. **The switch's default.** Default: **on** (it conflicts with nothing: three-finger strokes send
    nothing today but the stray clicks of §2.1).
@@ -909,7 +909,7 @@ Commit messages end with the session's attribution line.
 3. **"Host: a gesture becomes the Mac's own shortcut."** `GestureChords.swift` (pure) and the
    `gesture-chords` check; `SymbolicHotKeys`; `InputInjector.chord`; the coordinator (kind 28, the
    rate cap, the order behind held input, the reversal, no posting on a host that does not
-   advertise, the log lines, `gestures: 1`); `sillclient.py --gesture=NAME@T`. Gates: H1, H2, H4,
+   advertise, the log lines, `gestures: 1`); `skopryclient.py --gesture=NAME@T`. Gates: H1, H2, H4,
    H5, H8, H9.
 4. **"iOS: recognize three-finger strokes (pure)."** `TrackpadGestures.swift` and its four pbxproj
    entries; the `gestures` check and its CI matrix line. Gates: H1 (iOS), H3.
@@ -971,7 +971,7 @@ this branch's.
 ## 15. Results (2026-09-27)
 
 Built in §13's order on `trackpad-gestures`: the merge with main (6678ca3) and this plan's line
-numbers (a66839c), kind 28 (649ff7f), SILL_TEST_LOOPBACK taken from PR #31 so the test hosts listen
+numbers (a66839c), kind 28 (649ff7f), SKOPRY_TEST_LOOPBACK taken from PR #31 so the test hosts listen
 on 127.0.0.1 alone (55f87cc), the Mac's side (902e5e4), main merged again once PR #31 landed
 (5e6ddaa), the pure recognizer (487ec26), the surfaces and the device's switch (5cd067c), then these
 documents. Every §12 default was taken. Nothing was pushed.
@@ -981,7 +981,7 @@ documents. Every §12 default was taken. Nothing was pushed.
 1. **Project IDs** `A701`/`F701`: `A401`/`F401` are held by the local branch `first-run-walkthrough`.
    No branch or worktree holds `A701`/`F701`.
 2. **GestureChords** also holds the log line (`line`, `describe`) and the TEST ONLY table
-   (`testTable`, read from `SILL_TEST_HOTKEYS` by a host that does not advertise), so both are checked.
+   (`testTable`, read from `SKOPRY_TEST_HOTKEYS` by a host that does not advertise), so both are checked.
    Its outcomes carry no "closes" flag: the line says "closes" when a view's shortcut answers another
    view's gesture.
 3. **The coordinator waits for a switch in flight**, at most 2 s, before it posts: the Desktop pick
@@ -991,8 +991,8 @@ documents. Every §12 default was taken. Nothing was pushed.
    on the whole Mac, so it is posted there instead of dropped.
 5. **`InputInjector.chord` posts through PR #31's `post()`**, so a dry run posts no chord either (the
    coordinator already calls it only on a host that advertises).
-6. **`sillclient.py --gesture` and `--raw28`** go only to a `--synthetic` host on this Mac, as PR #31's
-   input flags do (the listener's own arguments, by lsof and ps). H5's "sillclient.py sends no kind
+6. **`skopryclient.py --gesture` and `--raw28`** go only to a `--synthetic` host on this Mac, as PR #31's
+   input flags do (the listener's own arguments, by lsof and ps). H5's "skopryclient.py sends no kind
    8" no longer holds since PR #31, whose `--input` flags send it to such hosts only.
 7. **`TrackpadGestures.cancelled(_ id:)`** takes the touch, and a cancel before arming keeps that
    stroke from arming. **`TrackpadGestures.sending`** is the send rule (the switch, a session, the
@@ -1003,9 +1003,9 @@ documents. Every §12 default was taken. Nothing was pushed.
    touches are fingers: a Pencil's or the iPad's own pointer's touch only ends a finished stroke's
    silence (`TrackpadGestures.otherTouch`), since the portrait trackpad's recognizers take those too
    and would otherwise ignore a Pencil used right after a gesture (the review's fix).
-9. **DEBUG**: `-SillInputScript`'s `gesture NAME[,FINGERS]` step (PR #31's script, with its refusal of
-   any host but a test host on this Mac) instead of a new argument; `-SillSettingsScroll gestures`
-   opens the panel at the group, whose rows a long footnote pushes out of `-SillSettingsEnd`'s view.
+9. **DEBUG**: `-SkopryInputScript`'s `gesture NAME[,FINGERS]` step (PR #31's script, with its refusal of
+   any host but a test host on this Mac) instead of a new argument; `-SkoprySettingsScroll gestures`
+   opens the panel at the group, whose rows a long footnote pushes out of `-SkoprySettingsEnd`'s view.
 10. **The footnote** is a little shorter than §8's: "Three fingers on the trackpad or over the
     stream. While a window streams, a gesture shows the Desktop first, and the opposite gesture
     closes what one opened. ‹Mac› does these with its own keyboard shortcuts: one turned off in its
@@ -1017,7 +1017,7 @@ documents. Every §12 default was taken. Nothing was pushed.
 
 - H1: `swift build -c release`, only the CaptureProbe warning; iOS Debug and Release for the
   simulator and Debug for a device (unsigned), only the old `StreamClient` capture warning.
-- H2: the CLI (`SILL_TEST_LOOPBACK=1 SillHost --synthetic`), idle 35 s (8 lines) and with a client
+- H2: the CLI (`SKOPRY_TEST_LOOPBACK=1 SkopryHost --synthetic`), idle 35 s (8 lines) and with a client
   streaming the Desktop for 5 s (17 lines up to its leaving), against main's at 2b38179, digits masked
   and sorted: identical. (A stats line after the client leaves follows the timer's phase in both.)
 - H3: `gestures`, 108 checks (each swipe at, under and over its distances; the flick; the axis at
@@ -1043,18 +1043,18 @@ documents. Every §12 default was taken. Nothing was pushed.
   its third finger (before: a pinch clicked, a rest dragged on the trackpad and right-clicked on the
   stream, four fingers moved the pointer or scrolled, five scrolled); with the switch off the same,
   the gesture refused.
-- H8: `sillclient.py --gesture` against loopback synthetic hosts: swipe up then down named 108 and
+- H8: `skopryclient.py --gesture` against loopback synthetic hosts: swipe up then down named 108 and
   closed it, every gesture and the reversals for Apps and Show Desktop, four fingers named, an unknown
   name cleaned to letters and digits, bad JSON and a nameless gesture ignored, the fifth gesture in a
-  second dropped with its line, `SILL_TEST_HOTKEYS`'s fallbacks (32, 110, 115) and "no shortcut for
+  second dropped with its line, `SKOPRY_TEST_HOTKEYS`'s fallbacks (32, 110, 115) and "no shortcut for
   Show Apps", a value that does not parse ignored with its line; `in.gestureDry` counted, nothing
   posted.
 - H9: the bare app's 100 previews against main's: identical but the General pane's "Running from"
   path, which names each build's folder.
 - Live, in a private simulator: the app in the layout harness with its real client, dialled to a
   loopback synthetic host on the software encoder, sent eleven gestures through `sendGesture`
-  (`-SillInputScript`): all named and not posted, the reversal, four fingers, the fifth in a second
-  dropped; with `-Sill.trackpadGestures 0` none sent; against main's host (no `gestures`) none sent.
+  (`-SkopryInputScript`): all named and not posted, the reversal, four fingers, the fifth in a second
+  dropped; with `-Skopry.trackpadGestures 0` none sent; against main's host (no `gestures`) none sent.
   The live panel showed the group with the host's mappings.
 - §9.3's photos: the group in its three states (on, an older Mac, off) at 1000×710, 710×1000, 500×710,
   710×500, an iPad mini's 1133×744 and 744×1133, and an iPhone's 402×812 and 812×402, at Large and
@@ -1098,11 +1098,11 @@ posted. Nothing was posted to the Mac.
    table that the next click and scroll start from; the Spotlight key's ⌘ once reached text that way.
    Now the key up carries the table's flags from before the chord, and a quarter of a second after,
    a read of the table says so in the log if the chord's modifiers are still set (§7.3, P2).
-6. **A scroll forgot what Sill opened**, so a stroke that began as a scroll before it became the
+6. **A scroll forgot what Skopry opened**, so a stroke that began as a scroll before it became the
    reverse gesture opened the other view (a loopback host at 027105e: a swipe up, a scroll's bracket,
    then a swipe down gave App Exposé). Now only a click, a key or text forgets (§7.2); the same host
    run gives "closes Mission Control".
-7. **What Sill opened never expired**: not when the last device left (a second session's swipe up
+7. **What Skopry opened never expired**: not when the last device left (a second session's swipe up
    said "Mission Control is already open" at 027105e), not on a window picked or an app launched from
    a device, and the same gesture repeated never recovered once the view was closed on the Mac itself.
    Now those forget (§7.2), and the gesture that opened a view, made twice more straight after, opens
@@ -1133,7 +1133,7 @@ Verified after the fixes, without a device:
   pans at two touches; `flags(from:)` unchanged; eight first-line guards. H9: the app's 100 previews
   against main's: identical but the General pane's "Running from" path.
 - Photos (§9.3; screenshots on a private simulator, deleted after): the group with its VoiceOver
-  footnote (`-SillVoiceOver 1`) and without, at 1000×710, 710×1000, 500×710 and 710×500, at Large and
+  footnote (`-SkopryVoiceOver 1`) and without, at 1000×710, 710×1000, 500×710 and 710×500, at Large and
   accessibility-extra-large: the footnote wraps, the rows stack at the larger text, and on the short
   screens the panel's middle scrolls as it did.
 
@@ -1154,7 +1154,7 @@ and #31 were already here. The merge takes main at 643af6b in one merge commit, 
 Where the features meet:
 
 1. **The wire.** `StreamMessageKind` has the menus' 24, 25 and 27, the pointer's 26 and the
-   gesture's 28; the gesture's comment no longer calls 24, 25 and 27 held. `SillProtocol` stays 1
+   gesture's 28; the gesture's comment no longer calls 24, 25 and 27 held. `SkopryProtocol` stays 1
    (both are additive), Compatibility.swift's doc names 28 beside the menus' kinds, and CLAUDE.md's
    compatibility floor keeps kinds 0–28 and Gesture's JSON.
 2. **The coordinator** dispatches both: kind 8 feeds `GestureChords.input`, is delivered, then goes
@@ -1165,7 +1165,7 @@ Where the features meet:
    (`gestureChords.forget()` before `menus.press`), as a click does: the item acts as a click on it
    would and may bring a window forward (§7.2's rule, for a way in that did not exist when it was
    written). Not changed: a gesture does not ask the menus to look at the Desktop's frontmost app
-   again, as a click or a key does (`desktopInputMayActivate` reads kind 8 only); under Sill.app's
+   again, as a click or a key does (`desktopInputMayActivate` reads kind 8 only); under Skopry.app's
    AppKit loop the menus follow an activation at once (NSWorkspace), so a Space switched by a
    gesture shows its app's menus straight away there, and on the CLI at the catalog's next poll
    (2 s).
@@ -1182,7 +1182,7 @@ Where the features meet:
    since it always follows the gestures' footnote now. The portrait trackpad keeps `sendGesture` and
    the tour's `.tourTarget(.trackpad)`. The Menus button, the phone's portrait layout and the tour's
    hooks are main's; the stream's overlay and the trackpad are this branch's.
-5. **sillclient.py** takes both sides' flags: `--menus`, `--fetch`, `--press`, `--raw25`, `--raw27`
+5. **skopryclient.py** takes both sides' flags: `--menus`, `--fetch`, `--press`, `--raw25`, `--raw27`
    and `--expect-menus`; `--gesture` and `--raw28`.
 6. **The project file**: A701/F701 (TrackpadGestures) beside main's A040–A044/F040–F044 (the menus),
    A401/A402/F401/F402 (the tour) and A020/F020 (#34's MessageReader); every iOS source once in the
@@ -1202,8 +1202,8 @@ device and with nothing posted to the Mac:
   addresses 15 of 15, pairing-address 35 of 35, remote-rules 35 of 35, fence 32 of 32,
   gesture-chords 33 of 33 and message-reader 17 of 17 (#34 changed none of the files the first
   fourteen compile).
-- A loopback synthetic host (`SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SillHost
-  --synthetic`, the merge's build, both times), sillclient with nothing picked: the menus
+- A loopback synthetic host (`SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SkopryHost
+  --synthetic`, the merge's build, both times), skopryclient with nothing picked: the menus
   subscription answered (no menus: that host has no fixture); a swipe up (Mission Control), a swipe
   down ("closes Mission Control"), a swipe up, a kind 25 (refused, nothing read or pressed), a swipe
   down: App Exposé; a four-finger pinch (Apps), an unknown name (nothing); every gesture "(not
@@ -1211,7 +1211,7 @@ device and with nothing posted to the Mac:
 - The app in a private simulator (deleted after), its real client dialled to that host, both
   times: its hello, the catalog, its menus subscription ("menus: none"), the test pattern on the
   software encoder (read by #34's MessageReader the second time), and four gestures from
-  `-SillInputScript` through `sendGesture`, each named by the host, none posted.
+  `-SkopryInputScript` through `sendGesture`, each named by the host, none posted.
 - Photos (screenshots on that simulator, deleted after): the panel's end at 1000×710 (the gestures'
   rows, then Take the Tour), an older Mac's panel (This iPad, then Take the Tour, loading and after),
   the phone's panel end, and the tour's laptop step at 710×1000 lighting the key row and the
@@ -1231,7 +1231,7 @@ with what the first pass lacked:
   with a mutants script (all but `ledger`).
 - A loopback synthetic host on the software encoder with the menus' fixture
   (`Scripts/menufixture.swift`, run by `Scripts/menu-check/fixture.py`) and a scripted pointer
-  (`SILL_TEST_POINTER_PATH`): sillclient's fetch of Probe answered in 6 ms with the fixture's 20
+  (`SKOPRY_TEST_POINTER_PATH`): skopryclient's fetch of Probe answered in 6 ms with the fixture's 20
   items, 48 kind 26s along the path, and four gestures, each logged "(not posted: a test host)". The
   app in a private simulator (deleted after): the fixture's top level ("menufixture, 4 menus"),
   Probe opened from the Menus pull-down (18 items in 101 ms), kind 26 heard ("the Mac has it"), the

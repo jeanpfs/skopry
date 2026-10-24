@@ -1,10 +1,10 @@
-"""Mutants of Sources/SillHost/LinkJudge.swift (docs/remote-bundle-plan.md H10): each changes it in one
+"""Mutants of Sources/SkopryHost/LinkJudge.swift (docs/remote-bundle-plan.md H10): each changes it in one
 place, is compiled with the check by build.sh and must make it fail. usage: mutants.py ROOT
 (The plan's "the first-keyframe wait counted" is StreamServer's rule, not the judge's: the pacing
 harness's slowkfB case catches it, H11.)"""
 import os, subprocess, sys, tempfile
 ROOT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(ROOT, "Sources/SillHost/LinkJudge.swift")
+F = os.path.join(ROOT, "Sources/SkopryHost/LinkJudge.swift")
 MUTANTS = [
     ("LJ1 behind at 2 short of 5", "static let window = 5, shortToBehind = 3,", "static let window = 5, shortToBehind = 2,"),
     ("LJ2 fine after 4 clean", "cleanToFine = 5, stallSeconds = 3", "cleanToFine = 4, stallSeconds = 3"),

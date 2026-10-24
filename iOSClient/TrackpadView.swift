@@ -558,7 +558,7 @@ final class TrackpadSurface: UIView, UIGestureRecognizerDelegate {
     }
 
     #if DEBUG
-    // MARK: - The input script (`-SillInputScript`, ContentView)
+    // MARK: - The input script (`-SkopryInputScript`, ContentView)
 
     /// A stroke the script started and has not lifted.
     private var scriptStroke = false
@@ -664,20 +664,20 @@ private final class FingerTracker: UILongPressGestureRecognizer {
 
 // MARK: - Input test (DEBUG)
 
-/// DEBUG `-SillInputTest 1` (ContentView's contract): a scripted run through the key row's and the
+/// DEBUG `-SkopryInputTest 1` (ContentView's contract): a scripted run through the key row's and the
 /// trackpad's own code, once per launch, so a gate can see what they send without anything driving
-/// the UI. Only for a session `-SillConnect` dialed on this Mac's loopback, and even there each
+/// the UI. Only for a session `-SkopryConnect` dialed on this Mac's loopback, and even there each
 /// event reaches the Mac's host: a synthetic host counts it as `in.dry` and posts nothing, a real
 /// one posts it on this Mac, so point it only at a synthetic host, or put a relay that drops kind 8
 /// (input) in front of the host. The key row taps cmd, esc, shift and ctrl (KeyRow.runInputTest);
 /// the trackpad then strokes, taps and scrolls (`TrackpadSurface.runInputTest`).
 enum InputTest {
     static let enabled: Bool = {
-        guard UserDefaults.standard.bool(forKey: "SillInputTest") else { return false }
-        let host = (UserDefaults.standard.string(forKey: "SillConnect") ?? "").lowercased()
+        guard UserDefaults.standard.bool(forKey: "SkopryInputTest") else { return false }
+        let host = (UserDefaults.standard.string(forKey: "SkopryConnect") ?? "").lowercased()
         guard host.hasPrefix("127.0.0.1:") || host.hasPrefix("[::1]:") || host.hasPrefix("::1:")
                 || host.hasPrefix("localhost:") else {
-            print("input test: not run: -SillInputTest needs a session -SillConnect dials on this Mac's loopback")
+            print("input test: not run: -SkopryInputTest needs a session -SkopryConnect dials on this Mac's loopback")
             return false
         }
         return true

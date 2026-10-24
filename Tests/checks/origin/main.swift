@@ -1,5 +1,5 @@
-// H3 (OriginPolicy): Sources/SillHost/OriginPolicy.swift and InterfaceSnapshot.swift on their own.
-//   swiftc -O Sources/SillHost/OriginPolicy.swift Sources/SillHost/InterfaceSnapshot.swift Tests/checks/origin/main.swift -o .build/checks/origin/check
+// H3 (OriginPolicy): Sources/SkopryHost/OriginPolicy.swift and InterfaceSnapshot.swift on their own.
+//   swiftc -O Sources/SkopryHost/OriginPolicy.swift Sources/SkopryHost/InterfaceSnapshot.swift Tests/checks/origin/main.swift -o .build/checks/origin/check
 import Foundation
 var fails = 0, passes = 0
 func check(_ name: String, _ ok: Bool) { if ok { passes += 1; print("ok   \(name)") } else { fails += 1; print("FAIL \(name)") } }

@@ -9,7 +9,7 @@ import QuartzCore
 // frames in, enc.out, enc.mailboxDrop, the capture-to-output latency (host clock at the output
 // handler minus the frame's timestamp, which is the host clock at capture, as ScreenCaptureKit's
 // is), output handlers that overlapped and outputs out of timestamp order. Run it only through
-// verify-hardware.sh, which checks first that no device is connected to Sill.app.
+// verify-hardware.sh, which checks first that no device is connected to Skopry.app.
 //
 // usage: harness WIDTH HEIGHT BITRATE PHASE...      PHASE = dense:S | sparse:S@INTERVAL | still:S
 //        harness probe WIDTH HEIGHT [N]             EncoderProbe.throughput N times at that size

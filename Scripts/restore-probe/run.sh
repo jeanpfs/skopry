@@ -11,7 +11,7 @@
 # that a re-fit undid (no move: the whole frame back).
 # usage: Scripts/restore-probe/run.sh
 # Builds under .build/restore-probe/: the window's app (owner.swift in a bundle of its own,
-# me.saffer.sill.restoreprobe, never activated) and the driver (driver.swift with the worktree's
+# app.skopry.restoreprobe, never activated) and the driver (driver.swift with the worktree's
 # WindowSizer.swift, WindowRestore.swift and StreamProtocol's sources as one module). It touches no
 # other window, posts no input, makes no virtual display and links no VideoToolbox; the front app is
 # read before and after and must not change. Needs Accessibility and Screen Recording for the app that
@@ -28,10 +28,10 @@ swiftc -O $HERE/owner.swift -o $APP/Contents/MacOS/owner || exit 1
 codesign -s - --force $APP 2>/dev/null || exit 1
 T=$(mktemp -d)
 cp $ROOT/Sources/StreamProtocol/*.swift $T/
-sed '/^import StreamProtocol$/d' $ROOT/Sources/SillHost/WindowSizer.swift > $T/WindowSizer.swift
-cp $ROOT/Sources/SillHost/WindowRestore.swift $T/WindowRestore.swift
+sed '/^import StreamProtocol$/d' $ROOT/Sources/SkopryHost/WindowSizer.swift > $T/WindowSizer.swift
+cp $ROOT/Sources/SkopryHost/WindowRestore.swift $T/WindowRestore.swift
 cp $HERE/driver.swift $T/main.swift
-swiftc -O -package-name sill $T/*.swift -o $OUT/driver || { rm -rf $T; exit 1 }
+swiftc -O -package-name skopry $T/*.swift -o $OUT/driver || { rm -rf $T; exit 1 }
 rm -rf $T
 for b in $OUT/driver $APP/Contents/MacOS/owner; do
   if otool -L $b | grep -q VideoToolbox; then echo "REFUSED: $b links VideoToolbox"; exit 1; fi

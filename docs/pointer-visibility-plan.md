@@ -12,14 +12,14 @@ place; "Critique" at the end lists what changed. Both probes live under /private
 reboot empties: "Measured" says what each did, so H0 can rebuild them.
 
 **Noah's request (2026-09-25):** "When the Mac is controlling the mouse pointer, it should show the
-real mouse pointer on the desktop on Sill. When Sill is controlling the Mac, continue to hide the
+real mouse pointer on the desktop on Skopry. When Skopry is controlling the Mac, continue to hide the
 real pointer and only render the client side one in portrait mode when the trackpad is used."
 
 **Reading of it.** What the device draws depends on who moved the pointer last.
 - **Someone at the Mac moved it** (its mouse or trackpad). The device shows the Mac's pointer over
   the stream: where it really is, in its real shape, in every layout, while it is over what is
   streamed. For the Desktop that means anywhere on that display; for a window, over the window.
-- **The device moved it** (any input from Sill). The video still never carries the Mac's cursor.
+- **The device moved it** (any input from Skopry). The video still never carries the Mac's cursor.
   The device draws its own pointer only in the portrait (laptop) layout while its trackpad is in
   use, never in landscape's direct touch.
 - **"The real pointer" is drawn by the device** from the Mac's position and shape. It is not put
@@ -31,7 +31,7 @@ real pointer and only render the client side one in portrait mode when the track
 
 ### Who is in control
 
-- **The Mac is in control** when its pointer has moved, by something other than Sill, since the
+- **The Mac is in control** when its pointer has moved, by something other than Skopry, since the
   host last read input from the device.
 - **Control goes back to a device** with its next input message (kind 8) of any kind: a move, a
   click, a scroll, a key or typed text.
@@ -51,10 +51,10 @@ real pointer and only render the client side one in portrait mode when the track
 |---|---|---|---|
 | Permission | None (measured from a process with none) | Input Monitoring: without it a mouse-only tap is created but gets nothing, and no alert shows (measured elsewhere, below) | None for mouse events |
 | In the CLI (`dispatchMain`) | Yes | Needs a run-loop thread of its own | Only under `--virtual-display` (the AppKit loop) |
-| Sees | Position changes, including warps by any app | Moves, drags, clicks and scrolls | Moves, drags, clicks and scrolls, except over Sill's own windows |
-| Tells Sill's own motion by | Time: a settle window after Sill's input | A tag on Sill's events (`.eventSourceUserData`) or the poster's pid | The poster's pid |
-| Where it runs, and cost | `sill.net`, one read per 30 ms tick (0.1–1.3 µs) | A callback per mouse event, up to 1,000 a second from a gaming mouse | The main thread (the coordinator's), per mouse event |
-| Misses | A click or scroll without motion; motion within 0.25 s of Sill's input; a move and back within one tick | Nothing that matters here | Motion over Sill's windows |
+| Sees | Position changes, including warps by any app | Moves, drags, clicks and scrolls | Moves, drags, clicks and scrolls, except over Skopry's own windows |
+| Tells Skopry's own motion by | Time: a settle window after Skopry's input | A tag on Skopry's events (`.eventSourceUserData`) or the poster's pid | The poster's pid |
+| Where it runs, and cost | `skopry.net`, one read per 30 ms tick (0.1–1.3 µs) | A callback per mouse event, up to 1,000 a second from a gaming mouse | The main thread (the coordinator's), per mouse event |
+| Misses | A click or scroll without motion; motion within 0.25 s of Skopry's input; a move and back within one tick | Nothing that matters here | Motion over Skopry's windows |
 
 **The poll, chosen.**
 - **When it reads.** At every link tick (StreamServer.swift:138-150). The tick runs only while a
@@ -69,16 +69,16 @@ real pointer and only render the client side one in portrait mode when the track
   main thread ("Measured"). A probe run from this session's shell shows nothing either way: its
   responsible process (claude.app) holds all four.
 - **What counts as a real move.** A read at least 0.5 pt from the last position that counted:
-  where Sill's own motion left the pointer, or the last real move. Measured against that rather
+  where Skopry's own motion left the pointer, or the last real move. Measured against that rather
   than against the previous read, a slow drag of under 0.5 pt a tick (17 pt/s) still adds up; a
   still mouse reads the same point every time (40 reads, 0 changes, "Measured"), so nothing
-  creeps. The exception is motion Sill could have caused, which is anything within 0.25 s of one
+  creeps. The exception is motion Skopry could have caused, which is anything within 0.25 s of one
   of these:
   - the host reading a pointer or scroll input;
   - posting one (noted just before the post, §4.5);
   - warping the cursor (noted just before the warp, §4.6).
-- **Why a settle window works.** Sill's pointer events are absolute: InputInjector.swift:99-104
-  posts `mouseCursorPosition: location`. So Sill's effect lands at a known moment. Two cases also
+- **Why a settle window works.** Skopry's pointer events are absolute: InputInjector.swift:99-104
+  posts `mouseCursorPosition: location`. So Skopry's effect lands at a known moment. Two cases also
   settle inside the window:
   - a clamped position, such as a click past a display's edge;
   - a late post: activating the app is a synchronous AX call on the main actor with a 1 s
@@ -94,10 +94,10 @@ real pointer and only render the client side one in portrait mode when the track
 
 **A listen-only event tap, rejected.**
 - **How it would work.** `CGEventTapCreate(kCGSessionEventTap, …, kCGEventTapOptionListenOnly, …)`
-  with a mask of mouse moved, dragged, down, up and scroll. Sill's own events would be told apart
+  with a mask of mouse moved, dragged, down, up and scroll. Skopry's own events would be told apart
   by a tag InputInjector sets on each (`.eventSourceUserData`), or by
   `.eventSourceUnixProcessID == getpid()`. It sees clicks and scrolls that come without motion.
-- **What Sill would have to ask for.** Input Monitoring: Privacy & Security › Input Monitoring,
+- **What Skopry would have to ask for.** Input Monitoring: Privacy & Security › Input Monitoring,
   TCC service `kTCCServiceListenEvent`. `CGPreflightListenEventAccess()` checks it and
   `CGRequestListenEventAccess()` asks for it, the one of the two that may raise the system alert
   (both macOS 10.15+; the SDK's CGEvent.h has a one-line comment on each and nothing more).
@@ -113,7 +113,7 @@ real pointer and only render the client side one in portrait mode when the track
     alert, with tccd logging "Service kTCCServiceListenEvent does not allow prompting; returning
     denied." So it does need Input Monitoring, only `CGRequestListenEventAccess()` would ask for
     it, and a tap made without it fails silently unless `CGEvent.tapIsEnabled(tap:)` is checked.
-  - Whether Sill's Accessibility grant stands in for it is unknown: TCC keeps Accessibility,
+  - Whether Skopry's Accessibility grant stands in for it is unknown: TCC keeps Accessibility,
     PostEvent and ListenEvent as separate services.
   - Not re-run here: this session's processes inherit claude.app's Input Monitoring grant, so a
     tap made from them would prove nothing, and the chosen design needs none.
@@ -124,7 +124,7 @@ real pointer and only render the client side one in portrait mode when the track
   - one more permission for the README and the privacy policy (the Mac app ships as a download,
     outside the App Store, so no App Privacy answer changes).
 - **Other costs.** It needs a run loop (the CLI runs `dispatchMain`, so a thread of its own), and
-  every mouse event on the Mac is also delivered to Sill while it is installed.
+  every mouse event on the Mac is also delivered to Skopry while it is installed.
 
 **An NSEvent global monitor, rejected.**
 - **What it is.** `NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, …])`. Apple
@@ -132,8 +132,8 @@ real pointer and only render the client side one in portrait mode when the track
   ([addGlobalMonitorForEvents](https://developer.apple.com/documentation/appkit/nsevent/addglobalmonitorforevents(matching:handler:))),
   so mouse events need nothing.
 - **Why not.**
-  - It runs only under the AppKit event loop: Sill.app yes, the CLI only with `--virtual-display`.
-  - It never sees events sent to Sill itself, such as the pointer moving over Sill's Settings or
+  - It runs only under the AppKit event loop: Skopry.app yes, the CLI only with `--virtual-display`.
+  - It never sees events sent to Skopry itself, such as the pointer moving over Skopry's Settings or
     Log window.
   - It calls back on the main thread (the coordinator's) at the mouse's rate.
 
@@ -176,7 +176,7 @@ The device already draws the pointer as a sprite in the Mac's live shape (`.curs
   from the Mac's pointer, not from where it stopped (`pointerTakeovers`, §7.3). The device's first
   move is absolute, at the anchor plus the finger's travel, so a still Mac pointer does not jump
   on the Mac.
-- **Both move at once.** Sill's moves are absolute and the Mac's mouse is relative, so the two
+- **Both move at once.** Skopry's moves are absolute and the Mac's mouse is relative, so the two
   fight and nothing here can stop that: the device wins while its input keeps coming (each input
   opens the settle), and each of its moves puts the Mac's pointer back where the device says. The
   device's first move also lands where it last heard the Mac's pointer was, one tick plus the
@@ -218,7 +218,7 @@ The device already draws the pointer as a sprite in the Mac's live shape (`.curs
 3. **Tests.**
    - A scripted test pointer for synthetic hosts, and a software-encoder switch for them.
    - Synthetic hosts record input and never post it.
-   - `sillclient.py` input and pointer flags.
+   - `skopryclient.py` input and pointer flags.
    - A harness case per sprite state, and a DEBUG input script so the simulator gates need no
      touch tool (§7.7).
 
@@ -235,19 +235,19 @@ The device already draws the pointer as a sprite in the Mac's live shape (`.curs
 ### 2. The design on one page
 
 ```
- ┌──────────────── Mac (Sill.app / SillHost) ────────────────────────────────────────────┐
- │ sill.net receive loop   kind 8 read ─▶ client.inputsRead += 1                         │
+ ┌──────────────── Mac (Skopry.app / SkopryHost) ────────────────────────────────────────────┐
+ │ skopry.net receive loop   kind 8 read ─▶ client.inputsRead += 1                         │
  │                                      ─▶ PointerWatch.inputArrived(client, moves?)     │
- │ main: InputInjector      before a pointer or scroll post  ─▶ PointerWatch.sillMoved() │
- │ main: VirtualStage       before warping the cursor home ──▶ PointerWatch.sillMoved()  │
+ │ main: InputInjector      before a pointer or scroll post  ─▶ PointerWatch.skopryMoved() │
+ │ main: VirtualStage       before warping the cursor home ──▶ PointerWatch.skopryMoved()  │
  │ main: coordinator        a source started or changed ─────▶ PointerWatch.setGeometry  │
- │ sill.net tick, every 30 ms (only with a device, and a live source or input < 3 s):    │
+ │ skopry.net tick, every 30 ms (only with a device, and a live source or input < 3 s):    │
  │   p = CGEvent(source: nil).location                  no permission, about 1 µs        │
- │   PointerControl: moved ≥ 0.5 pt, not within 0.25 s of Sill's own ─▶ the Mac drives  │
+ │   PointerControl: moved ≥ 0.5 pt, not within 0.25 s of Skopry's own ─▶ the Mac drives  │
  │   for each device but the one driving: MacPointer{x, y, inside, seen}, if changed ────┼─▶ kind 26
  └───────────────────────────────────────────────────────────────────────────────────────┘
  ┌──────────────── device ────────────────────────────────────────────────────────────────┐
- │ sill.net: kind 26 fresh? (seen ≥ kind 8 sent on this connection, and no move waiting)  │
+ │ skopry.net: kind 26 fresh? (seen ≥ kind 8 sent on this connection, and no move waiting)  │
  │           yes ─▶ control: elsewhere, and the Mac's position   any own input ─▶ here     │
  │ main:     PointerPresence(control, the Mac's position, own pointer and origin, layout) │
  │           ─▶ the one sprite (HEVCDisplayView), in the shape kind 14 gives              │
@@ -330,9 +330,9 @@ Two example payloads:
 | Device | Host | Result |
 |---|---|---|
 | Older (any build since b67f87d) | This host | Skips kind 26. Its sprite behaves as today: the trackpad's and the Pencil's |
-| This device | Older host (PR #13's Sill.app, main's, the CLI before this) | No kind 26 ever arrives, so there is never a Mac arrow. The device's own pointer shows only on the portrait trackpad, and no longer for the Pencil (Q2) |
+| This device | Older host (PR #13's Skopry.app, main's, the CLI before this) | No kind 26 ever arrives, so there is never a Mac arrow. The device's own pointer shows only on the portrait trackpad, and no longer for the Pencil (Q2) |
 | This device | This host | This plan |
-| `sillclient.py` at 78d76e0 | This host | Unaffected: it skips kind 26, and only its `kinds=` and `first kinds:` summaries list it, by number |
+| `skopryclient.py` at 78d76e0 | This host | Unaffected: it skips kind 26, and only its `kinds=` and `first kinds:` summaries list it, by number |
 | Devices before b67f87d | Any current host | Already stop at kinds 14–22; nothing new |
 
 #### 3.5 Rules for later changes
@@ -347,11 +347,11 @@ A later "who moved it" field (the Mac or another device) would be an optional st
 
 ---
 
-### 4. Host (`SillHostCore`, folder `Sources/SillHost`), file by file
+### 4. Host (`SkopryHostCore`, folder `Sources/SkopryHost`), file by file
 
 The ground rules for this section:
 - Nothing becomes `public`.
-- The network queue is StreamServer's `sill.net`.
+- The network queue is StreamServer's `skopry.net`.
 - The main actor is reached with `Task { @MainActor }`, never `MainActor.assumeIsolated`.
 - CoreGraphics is set up on the main thread before any tick, in both hosts: main.swift's
   `_ = CGMainDisplayID()`, and AppKit in the app.
@@ -359,24 +359,24 @@ The ground rules for this section:
 #### 4.1 `PointerControl.swift` (new; pure: Foundation and CoreGraphics; checked with swiftc)
 
 ```swift
-/// Who is moving the Mac's pointer: the Mac (its own mouse, or anything that is not Sill) or the
+/// Who is moving the Mac's pointer: the Mac (its own mouse, or anything that is not Skopry) or the
 /// device whose input the host read last. A value type; PointerWatch holds it under a lock.
 struct PointerControl {
     enum Controller: Equatable { case mac, client(ObjectIdentifier) }
     private(set) var controller: Controller = .mac     // at launch nobody has driven: the Mac has it
-    /// Motion before this time may be Sill's own: input read and not yet posted, or posted and
+    /// Motion before this time may be Skopry's own: input read and not yet posted, or posted and
     /// still landing (a clamped or late position).
-    private var sillUntil = -Double.infinity
-    /// The last position that counted: where Sill's own motion left the pointer, or the last real move.
+    private var skopryUntil = -Double.infinity
+    /// The last position that counted: where Skopry's own motion left the pointer, or the last real move.
     private var last: CGPoint?
     static let settle = 0.25          // seconds
     static let minMove: CGFloat = 0.5 // points; reads carry fractions of a point
 
-    /// A kind 8 read from `client` (sill.net, in the receive loop). Every kind hands it the pointer;
+    /// A kind 8 read from `client` (skopry.net, in the receive loop). Every kind hands it the pointer;
     /// only one that can move the pointer (a pointer or scroll event) opens the settle.
     mutating func inputArrived(from client: ObjectIdentifier, movesPointer: Bool, now: Double)
-    /// Sill moved the pointer itself: a posted pointer or scroll event, a warp (main, via PointerWatch).
-    mutating func sillMoved(now: Double)
+    /// Skopry moved the pointer itself: a posted pointer or scroll event, a warp (main, via PointerWatch).
+    mutating func skopryMoved(now: Double)
     /// One read at a tick. True when the pointer passed to the Mac with it.
     mutating func read(_ p: CGPoint, now: Double) -> Bool
     /// A device left; if it was driving, the Mac has the pointer again.
@@ -385,8 +385,8 @@ struct PointerControl {
 ```
 
 The rules of `read`:
-- **Before `sillUntil`.** `last = p` and nothing else, so the settle ends at the position where
-  Sill left the pointer.
+- **Before `skopryUntil`.** `last = p` and nothing else, so the settle ends at the position where
+  Skopry left the pointer.
 - **After it.** A read at least `minMove` from `last` counts: `last = p` and `controller = .mac`,
   which returns true when the controller was a client. A smaller difference changes nothing,
   `last` included, so a slow drag adds up to `minMove` over a few ticks instead of hiding under
@@ -394,8 +394,8 @@ The rules of `read`:
 
 The rules of the others:
 - **`inputArrived`.** `controller = .client(id)` always. For a pointer or scroll event it also
-  sets `sillUntil = max(sillUntil, now + settle)`.
-- **`sillMoved`.** `sillUntil = max(sillUntil, now + settle)`, with the controller unchanged. A
+  sets `skopryUntil = max(skopryUntil, now + settle)`.
+- **`skopryMoved`.** `skopryUntil = max(skopryUntil, now + settle)`, with the controller unchanged. A
   held click's late post, or VirtualStage's warp, never hands the pointer to anyone.
 - **Keys and typed text** hand control to the device without opening the settle. They do not move
   the pointer, so the Mac's next real motion shows its arrow at once.
@@ -420,10 +420,10 @@ final class PointerWatch: @unchecked Sendable {
     struct Reading: Equatable { let x: Double; let y: Double; let inside: Bool; let controller: PointerControl.Controller }
 
     func setGeometry(_ g: Geometry?)                                // main: nil = nothing to point into
-    func inputArrived(from: ObjectIdentifier, movesPointer: Bool)   // sill.net
-    func sillMoved()                                                // main (injector, stage)
-    func clientLeft(_ id: ObjectIdentifier)                         // sill.net
-    func sample() -> Reading?                                       // sill.net, once a tick; nil without geometry
+    func inputArrived(from: ObjectIdentifier, movesPointer: Bool)   // skopry.net
+    func skopryMoved()                                                // main (injector, stage)
+    func clientLeft(_ id: ObjectIdentifier)                         // skopry.net
+    func sample() -> Reading?                                       // skopry.net, once a tick; nil without geometry
 }
 ```
 
@@ -437,8 +437,8 @@ What `sample()` does:
   `ptr.mac`.
 - **Regular-mode windows.** The window's bounds and on-screen flag
   (`CGWindowListCopyWindowInfo([.optionIncludingWindow], id)`, 110–144 µs on an idle Mac,
-  "Measured") are re-read on PointerWatch's own serial queue (`sill.pointer`, utility QoS), never
-  on `sill.net`: a window-server round trip there would sit in front of frames and pongs, and a
+  "Measured") are re-read on PointerWatch's own serial queue (`skopry.pointer`, utility QoS), never
+  on `skopry.net`: a window-server round trip there would sit in front of frames and pongs, and a
   pong must measure the network and nothing else (StreamServer.swift:806-809). A tick whose read
   moved starts one when none is running and the last is at least 0.1 s old, and (since the review,
   `sample(devices:)`) some device other than the one moving the pointer is there to be sent it;
@@ -477,7 +477,7 @@ What `sample()` does:
 - **`let pointer = PointerWatch()`,** handed out at init:
   - `server.pointerWatch = pointer`;
   - `injector.watch = pointer`;
-  - `stage.onWarp = { [pointer] in pointer.sillMoved() }`;
+  - `stage.onWarp = { [pointer] in pointer.skopryMoved() }`;
   - `injector.dryRun = synthetic` (§4.5).
 - **`active`'s didSet** (StreamCoordinator.swift:85-92) and the end of `windowsChanged`, each
   catalog poll, call `pointer.setGeometry(pointerGeometry())`. `pointerGeometry()` is §4.7's
@@ -491,9 +491,9 @@ What `sample()` does:
 #### 4.5 `InputInjector.swift`
 
 - **`var watch: PointerWatch?`.** Right before each post of a pointer event (`pointer`, line 104)
-  and of a scroll event (`postScroll`, line 301) it calls `watch?.sillMoved()`. Before, not after:
-  the tick reads on `sill.net` while main posts, so a read could fall between the post taking
-  effect and a note made after it, and take Sill's own move for the Mac's. It matters most for a
+  and of a scroll event (`postScroll`, line 301) it calls `watch?.skopryMoved()`. Before, not after:
+  the tick reads on `skopry.net` while main posts, so a read could fall between the post taking
+  effect and a note made after it, and take Skopry's own move for the Mac's. It matters most for a
   held click, posted a second or more after it was read ("Why a settle window works"), when the
   arrival's settle is long over. Keys and text call nothing.
 - **`var dryRun = false`.** A synthetic host records input and never posts it: the test pattern
@@ -507,7 +507,7 @@ What `sample()` does:
   - With the test pointer on, a dry pointer event also moves the test pointer to its position
     (§4.10).
   - No line prints for it, so the CLI's output stays the same.
-- **Sill's moves are absolute** (line 99-104: `mouseCursorPosition: location`). That is why the
+- **Skopry's moves are absolute** (line 99-104: `mouseCursorPosition: location`). That is why the
   settle rule works and why the device can continue from its anchor.
 
 #### 4.6 `VirtualStage.swift`
@@ -525,7 +525,7 @@ from the display about to go, and it must not read as the Mac taking over.
 | A window, regular mode | Its live bounds, the injector's own rectangle (StreamCoordinator.swift:603-613), re-read as §4.2 says | Inside the bounds, and `kCGWindowIsOnscreen` | The window is where the pointer really moves. Over another window that covers part of it, the arrow still shows (Q7). Minimized or on another Space: outside |
 | A window on the virtual display | `stage.captureRectOnScreen` (VirtualStage.swift:168-172): the crop, offset by the display's bounds | Inside the crop | The virtual display is a real display to macOS, so the Mac's pointer can move onto it, and the device's own input already puts it there. The display's menu bar and anything outside the crop are outside |
 | Full screen on the virtual display | The same property: the band, the panel's aspect around the display's middle | Inside the band | The letterbox bars are outside. Players hide their cursor, the device does not (Q8) |
-| The synthetic test pattern | (0, 0, 1512, 949) with `SILL_TEST_POINTER_PATH`; no geometry otherwise | Inside | Without the hook the poll never runs on a synthetic host. The pattern is not the screen, so a real pointer means nothing to it |
+| The synthetic test pattern | (0, 0, 1512, 949) with `SKOPRY_TEST_POINTER_PATH`; no geometry otherwise | Inside | Without the hook the poll never runs on a synthetic host. The pattern is not the screen, so a real pointer means nothing to it |
 | Any other source on a synthetic host (a real window picked there: synthetic mode replaces only the Desktop) | None, with or without the hook | Never | A synthetic host reads only the test pointer, never the real one, so no test depends on Noah's mouse and the CLI's output cannot change with it |
 
 #### 4.8 Cost
@@ -533,7 +533,7 @@ from the display about to go, and it must not read as the Mac taking over.
 | What | Cost | How often |
 |---|---|---|
 | One location read | 0.1–1.3 µs | Once a tick (30 ms) while a source has geometry |
-| One window's bounds | 110–144 µs on an idle Mac, on `sill.pointer`, never on `sill.net` | At most 10 a second: regular-mode windows, while the pointer moves |
+| One window's bounds | 110–144 µs on an idle Mac, on `skopry.pointer`, never on `skopry.net` | At most 10 a second: regular-mode windows, while the pointer moves |
 | One kind 26 | 1.7 µs to encode; 49 bytes plus the 14-byte header | Per device, only when it changed: at most about 33 a second, about 2.1 KB/s, while the Mac's pointer moves |
 | Idle, no device | Nothing | The tick timer exists only with a device and a live source, or input in the last 3 s (StreamServer.swift:124-136) |
 | Streaming, pointer still | One read per tick, no message | — |
@@ -542,10 +542,10 @@ from the display about to go, and it must not read as the Mac taking over.
 
 ```
 Test pointer: 12 steps from /tmp/…/path; this host records input and never posts it.
-SILL_TEST_POINTER_PATH=/tmp/x ignored: only a --synthetic host takes it.
-SILL_TEST_POINTER_PATH=/tmp/x ignored: line 3 is not "T X Y" (seconds, then points).
-Test encoder: software only (SILL_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed.
-SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
+SKOPRY_TEST_POINTER_PATH=/tmp/x ignored: only a --synthetic host takes it.
+SKOPRY_TEST_POINTER_PATH=/tmp/x ignored: line 3 is not "T X Y" (seconds, then points).
+Test encoder: software only (SKOPRY_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed.
+SKOPRY_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
 ```
 
 - **These lines** print only when their variable is set.
@@ -559,7 +559,7 @@ SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
 
 #### 4.10 TEST ONLY hooks (honoured only by a synthetic host, which does not advertise)
 
-- **`SILL_TEST_POINTER_PATH=<file>`: the scripted pointer.** It stands in for the Mac's pointer on
+- **`SKOPRY_TEST_POINTER_PATH=<file>`: the scripted pointer.** It stands in for the Mac's pointer on
   the test pattern, and turns the poll on there.
   - **The file.** Up to 10,000 lines and 1 MiB. Each line is `T X Y`: T is seconds since the
     stream's first sample, and X Y are points in the 1512×949 pattern (any finite values; outside
@@ -568,9 +568,9 @@ SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
   - **Where the pointer is.** Before the first step there is none, and nothing is sent. At each
     step it moves there. A dry-run pointer event (§4.5) moves it to that event's position, and the
     newer of the two wins.
-  - **What it is for.** The gates exercise Sill's own motion, the settle and hand-backs with it,
+  - **What it is for.** The gates exercise Skopry's own motion, the settle and hand-backs with it,
     without touching the real pointer.
-- **`SILL_TEST_SOFTWARE_ENCODER=1`.** Skips `EncoderProbe` and starts on the software encoder, so
+- **`SKOPRY_TEST_SOFTWARE_ENCODER=1`.** Skips `EncoderProbe` and starts on the software encoder, so
   a gate never touches the hardware encoder while Noah streams (on 2026-09-24 and 25 another
   session on the Mac's one encoder, the Simulator's recorder, starved his stream). After a rebase
   onto PR #11 (encoder-recovery) it must also keep the host off the hardware for good: #11's
@@ -581,7 +581,7 @@ SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
 
 ---
 
-### 5. CLI (`Sources/SillHostCLI/main.swift`)
+### 5. CLI (`Sources/SkopryHostCLI/main.swift`)
 
 - **No new flag.** main.swift prints nothing new.
 - **The default synthetic path is byte for byte what it prints today, idle and streaming.** Two
@@ -589,12 +589,12 @@ SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
   - The poll never runs there: without the hook no source has geometry on a synthetic host, the
     test pattern and a real window picked there alike (§4.7). Noah moving his Mac's mouse during a
     parity run changes nothing.
-  - A synthetic host sends no kind 26, so `sillclient.py`'s `kinds=` and `first kinds:` lines stay
+  - A synthetic host sends no kind 26, so `skopryclient.py`'s `kinds=` and `first kinds:` lines stay
     the same too.
 - **A real (non-synthetic) host** adds `ptr.sent` and `ptr.mac` to `[1s]` lines in seconds when
   kind 26 went out. That is the connect's first state, and whenever the Mac's pointer moves while
   a device streams. These are events the parity runs never produce.
-- **`Scripts/sillclient.py` gains:**
+- **`Scripts/skopryclient.py` gains:**
   - `--pointer`: print each kind 26 as
     `  pointer at 1.234s x=0.5000 y=0.5000 inside=1 seen=0` (`inside=0` without x and y);
   - `--move=X,Y@T`: a kind 8 pointer move at fractions X, Y;
@@ -605,15 +605,15 @@ SILL_TEST_SOFTWARE_ENCODER ignored: only a --synthetic host takes it.
   - a guard on the three input flags, checked before connecting: they exit 2 unless the host is
     this Mac (no `--host`, or a loopback one) and the process listening on PORT
     (`lsof -nP -iTCP:PORT -sTCP:LISTEN -t`) has `--synthetic` among its arguments
-    (`ps -o args= -p PID`), with "sillclient.py: --move, --tap and --key only go to a --synthetic
+    (`ps -o args= -p PID`), with "skopryclient.py: --move, --tap and --key only go to a --synthetic
     host on this Mac, which never posts input; nothing on port N is one." A variable in the
     client's own environment said nothing about the host it reaches; the listener's arguments do,
-    since every synthetic host is a dry run (Q10) and neither Sill.app nor a real SillHost carries
+    since every synthetic host is a dry run (Q10) and neither Skopry.app nor a real SkopryHost carries
     `--synthetic`. The host's environment cannot be checked instead: `ps -E` shows another
     process's environment empty here;
   - `KIND` gains `26: "pointer"`, and kind 26 stays out of `first kinds:` as the tick does.
 
-### 6. Sill.app
+### 6. Skopry.app
 
 Nothing changes on the Mac's screen:
 - no setting (Q11);
@@ -622,7 +622,7 @@ Nothing changes on the Mac's screen:
 - previews identical.
 
 The app's host is the same coordinator, so it behaves as the CLI does. Show Log… shows `ptr.sent`
-and `ptr.mac` in the `[1s]` lines when the feature fires. The bare `SillMenuBar --synthetic` is a
+and `ptr.mac` in the `[1s]` lines when the feature fires. The bare `SkopryMenuBar --synthetic` is a
 synthetic host: a dry run, and it honours the two hooks.
 
 ---
@@ -633,7 +633,7 @@ synthetic host: a dry run, and it honours the two hooks.
 
 | File | Change |
 |---|---|
-| `PointerPresence.swift` (new; pure, Foundation and CoreGraphics; checked with swiftc) | The rules (§7.2), freshness, the anchor, and `PointerFeed`, the queue's lock-protected half. Its four pbxproj entries take `A1000001000000000000A301` / `…F301`: A01E/F01E are GoodbyePolicy.swift's, A101/F101 and A201/F201 PrivacyInfo.xcprivacy's and SillLinks.swift's, and A020/F020, the critique's pick, went to remote-pacing's MessageReader.swift on 2026-09-26 ("Since the critique"); H0 checks again |
+| `PointerPresence.swift` (new; pure, Foundation and CoreGraphics; checked with swiftc) | The rules (§7.2), freshness, the anchor, and `PointerFeed`, the queue's lock-protected half. Its four pbxproj entries take `A1000001000000000000A301` / `…F301`: A01E/F01E are GoodbyePolicy.swift's, A101/F101 and A201/F201 PrivacyInfo.xcprivacy's and SkopryLinks.swift's, and A020/F020, the critique's pick, went to remote-pacing's MessageReader.swift on 2026-09-26 ("Since the critique"); H0 checks again |
 | `SessionLink.swift` | Counts the input messages on the session's connection (§7.3) |
 | `StreamClient.swift` | Kind 26, the feed, `setOwnPointer`, the anchor, layout, tear-down (§7.3) |
 | `HEVCDisplayView.swift` | `setPointer` replaces `setLocalPointer`; the wiring (§7.4) |
@@ -835,15 +835,15 @@ hand-over over:
 
 #### 7.7 Harness (DEBUG; the contract comment at ContentView.swift:56-120, and CLAUDE.md)
 
-- **`-SillPointer <state>`** seeds the mock client's presence and gives the display view the mock's
+- **`-SkopryPointer <state>`** seeds the mock client's presence and gives the display view the mock's
   2800×1800 frame size (`debugFrameSize`):
   - `mac@0.40,0.30`: the Mac has it, over the stream;
   - `device@0.62,0.55`: this device's trackpad pointer;
   - `hidden`: the Mac has it, off the stream;
   - `pencil@0.50,0.50`: this device's Pencil pointer.
-- **`-SillPencilPointer 1`** turns Q2's flip on for one run, to photograph it.
-- Both are ignored with `-SillLive 1`, whose session shows the real thing.
-- **`-SillInputScript '<t> <step>; …'`** (with `-SillLive 1` only), for the simulator gates when
+- **`-SkopryPencilPointer 1`** turns Q2's flip on for one run, to photograph it.
+- Both are ignored with `-SkopryLive 1`, whose session shows the real thing.
+- **`-SkopryInputScript '<t> <step>; …'`** (with `-SkopryLive 1` only), for the simulator gates when
   the control tool cannot be used: t is seconds since the session's first window list, and a
   step is `pad DX,DY` (the portrait pad's own move path, as a finger moving DX, DY points; the
   first after a `lift` starts a stroke and adopts the anchor as a first finger does), `lift`,
@@ -873,10 +873,10 @@ pointer: ignored the Mac restating this device's own position on the new connect
 | What | Value |
 |---|---|
 | Poll | Once a link tick (30 ms), only while the tick runs and a source has geometry |
-| Sill's settle | 0.25 s after the host reads a pointer or scroll input, or is about to post one or warp the cursor |
+| Skopry's settle | 0.25 s after the host reads a pointer or scroll input, or is about to post one or warp the cursor |
 | A real move | 0.5 pt from the last position that counted, outside the settle (slow motion adds up) |
 | Kind 26 | At most one per device per tick; only when x, y (4 decimals), `inside` or `seen` changed; about 63 bytes with the header |
-| A regular window's bounds | Re-read on `sill.pointer` at most every 0.1 s, only after a tick whose read moved; and at every catalog poll (`windowsChanged`) |
+| A regular window's bounds | Re-read on `skopry.pointer` at most every 0.1 s, only after a tick whose read moved; and at every catalog poll (`windowsChanged`) |
 | Freshness | `seen` ≥ the kind 8 messages sent on this connection, and no coalesced move waiting |
 | The carry-over | From a hand-over while this device had control until its first kind 8 on the new connection; a restatement is within 0.002 of the anchor or of a position this device sent in the last 3 s |
 | The trackpad's arrow | Until another input takes over (Q1: or 2 s after the last finger lifts) |
@@ -899,7 +899,7 @@ pointer: ignored the Mac restating this device's own position on the new connect
 | A click held for an app's activation (a second or more when the app is slow to answer Accessibility) | The read at arrival opens the settle and the post opens it again, just before it posts; a real move in between counts |
 | A streamed window moves while the Mac's pointer is still (an app or a shortcut moved it) | The reported fraction follows at the next catalog poll (up to 2 s); the pointer's next move re-reads the bounds at once |
 | A tap past a display's edge (a window partly off screen) | The window server clamps the cursor; the settle absorbs it |
-| A still Mac pointer, Sill untouched for minutes | The arrow stays where it is; no message goes out |
+| A still Mac pointer, Skopry untouched for minutes | The arrow stays where it is; no message goes out |
 | An app warps the pointer (Universal Control, "move to default button", a game) | A move: the Mac has it. Across to another device or display: hidden |
 | A game that captures the mouse (hidden, fixed cursor) | No motion is seen; nothing changes |
 | Scroll events posted with a location | Whether they move the cursor is not known here; the settle covers both ways |
@@ -912,7 +912,7 @@ pointer: ignored the Mac restating this device's own position on the new connect
 | Nothing streams | No geometry, no read; the device hides the sprite (`streaming` false) |
 | A source switch while the Mac drives | The next tick's position is in the new geometry, so it is sent even without motion. The arrow may sit a frame or two against the old picture |
 | The Aa slider, a resize, a rotation | Mac control: the host's next message follows. Device control: the device re-centres its own pointer as today |
-| Sill's own windows (excluded from Desktop streams) | The pointer over them shows over what the stream shows there |
+| Skopry's own windows (excluded from Desktop streams) | The pointer over them shows over what the stream shows there |
 | Older device, newer host (and the reverse) | §3.4 |
 
 ### 10. Test gates
@@ -920,25 +920,25 @@ pointer: ignored the Mac restating this device's own position on the new connect
 **Hard rules for the implementing session:**
 - **Synthetic hosts only,** from `.build/release`, started from Python with
   `start_new_session=True`, killed by PID, none left running.
-- **`SILL_TEST_SOFTWARE_ENCODER=1` on every host** except H2's parity runs.
+- **`SKOPRY_TEST_SOFTWARE_ENCODER=1` on every host** except H2's parity runs.
 - **H2's parity runs use the hardware encoder,** as every earlier parity run did. Run them only
-  while Sill.app has no device connected: `~/Library/Logs/Sill/Sill.log`, read-only, has no
+  while Skopry.app has no device connected: `~/Library/Logs/Skopry/Skopry.log`, read-only, has no
   `client ` line in the last minute. Otherwise wait, and say so in the results.
 - **Never post a CGEvent and never move the pointer.** `--move`, `--tap` and `--key` only against a
-  host started with `SILL_TEST_POINTER_PATH` (sillclient.py itself refuses anything but a
+  host started with `SKOPRY_TEST_POINTER_PATH` (skopryclient.py itself refuses anything but a
   `--synthetic` listener on this Mac, §5). Synthetic hosts are dry runs (§4.5).
 - **The simulator:**
   - no XCUITest;
   - no `simctl io recordVideo`;
   - no iOS Simulator control tool `attach` (the Simulator's recorder runs at priority 80 and
-    starves Sill's encoder);
+    starves Skopry's encoder);
   - screenshots with `xcrun simctl io <udid> screenshot`;
   - taps and strokes with the control tool's headless `tap`, `swipe` and `touch_path`, which asks
     Noah once per simulator device before its first use; a session that cannot ask (a workflow)
-    drives the same steps with `-SillInputScript` (§7.7) instead;
+    drives the same steps with `-SkopryInputScript` (§7.7) instead;
   - a simulator of its own, not the shared iPad Pro 13".
-- **Never touch** `/Applications/Sill.app`, the `me.saffer.sill.mac` domain or Noah's iPad. App
-  paths use the bare `SillMenuBar --synthetic`; `defaults delete SillMenuBar` afterwards.
+- **Never touch** `/Applications/Skopry.app`, the `app.skopry.mac` domain or Noah's iPad. App
+  paths use the bare `SkopryMenuBar --synthetic`; `defaults delete SkopryMenuBar` afterwards.
 - **`$T`** is a fresh temporary directory per gate.
 
 **Headless (H): no permissions needed.**
@@ -947,28 +947,28 @@ pointer: ignored the Mac restating this device's own position on the new connect
 |---|---|---|
 | H0 | **Preflight** (no commit). Record the base (this plan's commit on `remote-access`); `git archive` it to `$SP/base` and build it; H2's baselines; both probes again ("Measured"; the permission one as an ad hoc app of its own launched with `open`, since anything started from the session's shell inherits claude.app's grants); on every branch and in every worktree's working tree, uncommitted changes included: kind 26 still free (23 is the hello's) and the pbxproj IDs A301/F301 unused | Files exist; the numbers are recorded; the no-grant probe reads live points with all four preflights false |
 | H1 | **Builds.** `swift build -c release`; iOS Debug and Release for the simulator | Only the known warnings (CaptureProbe; the old `StreamClient` capture warning) |
-| H2 | **The CLI byte for byte.** Base and new `SillHost --synthetic`: idle 35 s, and with `sillclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted. Then `sillclient.py PORT 5 desktop --pointer` against the new default host | Identical; the client's `kinds=` and `first kinds:` identical (no 26); the `--pointer` run prints no pointer line |
-| H3 | **Pure checks, each with mutants caught.** `PointerControl` (at least 28): the settle absorbs Sill's input and posts, keys do not open it, jitter of ±0.3 pt around one point never hands over, a drift of 0.2 pt a tick hands over by the third tick, a move after the settle hands over once, a leaving driver hands back, two clients. The fraction (at least 10: corners, edges, outside, empty rectangle, rounding). `PointerPresence` and the feed (at least 45): every row of "What the device draws", freshness (lower `seen`, equal with a move waiting, nil against 0 and 1), the anchor's newest-wins, both flips, the carry-over (a restatement of the anchor or of a position sent in the last 3 s changes nothing; any other position, and `inside` false, take control; the first kind 8 on the new connection ends it), `takeovers` counting only here → elsewhere. `MacPointer`'s JSON (round trip, `{}` decodes, unknown keys ignored). SessionLink's count: the fence check's four modes, plus the count restarting at a hand-over at the number held (after the PR #12 rebase also at `adopt`, and unchanged by `unhold`) | All pass; at least 7 mutants of `PointerControl` and 10 of `PointerPresence` and the feed, e.g. no settle, keys opening the settle, `last` moved at every read (a slow drift never hands over), no portrait check, the Pencil shown, `>` for `≥`, the pending move ignored, no carry-over, no mid-stroke re-seed |
-| H4 | **The test pointer.** `SILL_TEST_POINTER_PATH=$T/path` with steps `0.5 756 474.5`, `1.0 1134 237.25`, `1.5 -40 474.5`, `2.0 378 711.75`, `2.0 378 711.75`; `sillclient.py PORT 4 desktop --pointer` | The "Test pointer: 5 steps…" line. Exactly four pointer lines, about 0.5 s apart after the stream starts: (0.5000, 0.5000), (0.7500, 0.2500), `inside=0`, (0.2500, 0.7500), all `seen=0`; nothing for the repeated step |
-| H5 | **A move hands it back, and Sill's own motion is Sill's.** (a) A still path (one step at 0.5): `--move=0.25,0.25@2` with `--pointer`. (b) A path moving 5 pt every 0.05 s from 1.0 to 5.0 (X from 400, Y 474.5): `--move=0.25,0.25@3` | (a) `in.dry 1`; the first state, then no pointer line to that client for the rest of the run, although the test pointer moved to its position. (b) Lines until about 3.0; after the move's send, lines with `seen=0` only within a few ms (in flight), then a gap of 0.25–0.35 s; the next line has `seen=1` |
+| H2 | **The CLI byte for byte.** Base and new `SkopryHost --synthetic`: idle 35 s, and with `skopryclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted. Then `skopryclient.py PORT 5 desktop --pointer` against the new default host | Identical; the client's `kinds=` and `first kinds:` identical (no 26); the `--pointer` run prints no pointer line |
+| H3 | **Pure checks, each with mutants caught.** `PointerControl` (at least 28): the settle absorbs Skopry's input and posts, keys do not open it, jitter of ±0.3 pt around one point never hands over, a drift of 0.2 pt a tick hands over by the third tick, a move after the settle hands over once, a leaving driver hands back, two clients. The fraction (at least 10: corners, edges, outside, empty rectangle, rounding). `PointerPresence` and the feed (at least 45): every row of "What the device draws", freshness (lower `seen`, equal with a move waiting, nil against 0 and 1), the anchor's newest-wins, both flips, the carry-over (a restatement of the anchor or of a position sent in the last 3 s changes nothing; any other position, and `inside` false, take control; the first kind 8 on the new connection ends it), `takeovers` counting only here → elsewhere. `MacPointer`'s JSON (round trip, `{}` decodes, unknown keys ignored). SessionLink's count: the fence check's four modes, plus the count restarting at a hand-over at the number held (after the PR #12 rebase also at `adopt`, and unchanged by `unhold`) | All pass; at least 7 mutants of `PointerControl` and 10 of `PointerPresence` and the feed, e.g. no settle, keys opening the settle, `last` moved at every read (a slow drift never hands over), no portrait check, the Pencil shown, `>` for `≥`, the pending move ignored, no carry-over, no mid-stroke re-seed |
+| H4 | **The test pointer.** `SKOPRY_TEST_POINTER_PATH=$T/path` with steps `0.5 756 474.5`, `1.0 1134 237.25`, `1.5 -40 474.5`, `2.0 378 711.75`, `2.0 378 711.75`; `skopryclient.py PORT 4 desktop --pointer` | The "Test pointer: 5 steps…" line. Exactly four pointer lines, about 0.5 s apart after the stream starts: (0.5000, 0.5000), (0.7500, 0.2500), `inside=0`, (0.2500, 0.7500), all `seen=0`; nothing for the repeated step |
+| H5 | **A move hands it back, and Skopry's own motion is Skopry's.** (a) A still path (one step at 0.5): `--move=0.25,0.25@2` with `--pointer`. (b) A path moving 5 pt every 0.05 s from 1.0 to 5.0 (X from 400, Y 474.5): `--move=0.25,0.25@3` | (a) `in.dry 1`; the first state, then no pointer line to that client for the rest of the run, although the test pointer moved to its position. (b) Lines until about 3.0; after the move's send, lines with `seen=0` only within a few ms (in flight), then a gap of 0.25–0.35 s; the next line has `seen=1` |
 | H6 | **A key hands it back without the settle.** Path (b); `--key=4@3` | The gap after the key is at most 0.1 s; the next line has `seen=2` (the key's down and up are two kind 8 messages) |
 | H7 | **Two clients.** A `--move=0.25,0.25@2 --pointer`, B `--pointer`, a still path | B prints (0.2500, 0.2500) `seen=0` after A's move; A prints its first state and nothing after its move (without `--pointer` A would print no pointer line at all, and the check would pass by default) |
 | H8 | **Rate and stillness.** A path of 2,000 steps 1 ms apart, then none | At most 34 pointer lines in any second; none once the path has stopped |
 | H9 | **Nothing posted.** H5–H8's host logs; a read of the real pointer before and after (inconclusive if the Mac's mouse moved in between: repeat) | Every second with input shows `in.dry` and never `in.pointer`, `in.scroll`, `in.text` or `in.key`; the real pointer unchanged |
-| H10 | **Cost.** A swiftc harness times `PointerWatch.sample()` 100,000 times with a fixed rectangle, and 100,000 with a regular window whose re-read is due at every sample (a scripted point that moves each time, the 0.1 s gap set to 0), and times the re-read on `sill.pointer` alone. `ps` of a hook host with no client for 35 s | Up to 5 µs a sample in both (a sample never waits for the window server); the re-read up to 250 µs; idle CPU 0.0 % |
-| H11 | **Hard rules** (grep the lines the branch adds, `git diff <base>..HEAD`, as well as the tree: the base already has `MainActor.assumeIsolated` in HostShutdown.swift:63 and `updateConfiguration` in a comment in WindowCapture.swift, so a grep of the tree alone fails before a line is written) | No `CGEventTapCreate`, `tapCreate`, `addGlobalMonitorForEvents`, `addLocalMonitorForEvents`, `CGRequestListenEventAccess` or `CGRequestPostEventAccess` in Sources/ or iOSClient/. No added `updateConfiguration` or `assumeIsolated` in Sources/SillHost. `showsCursor: false` still at the stream's capture start (StreamCoordinator.swift:957). The hooks are read only where `synthetic`. The dry run has no `post(` on its path, and `sillMoved()` comes before every `post(` of a pointer or scroll event |
-| H12 | **Previews.** The bare app's `-SillRenderPreviews` before and after | Identical |
-| H13 | **Compatibility.** The base's `sillclient.py` against an H4 host; the base's StreamMessage.swift with a kind 26 header (swiftc); the new device decoder against the base host's messages | The old client runs and fails nothing (26 counted as unknown); `.unknown`; nothing new decoded |
+| H10 | **Cost.** A swiftc harness times `PointerWatch.sample()` 100,000 times with a fixed rectangle, and 100,000 with a regular window whose re-read is due at every sample (a scripted point that moves each time, the 0.1 s gap set to 0), and times the re-read on `skopry.pointer` alone. `ps` of a hook host with no client for 35 s | Up to 5 µs a sample in both (a sample never waits for the window server); the re-read up to 250 µs; idle CPU 0.0 % |
+| H11 | **Hard rules** (grep the lines the branch adds, `git diff <base>..HEAD`, as well as the tree: the base already has `MainActor.assumeIsolated` in HostShutdown.swift:63 and `updateConfiguration` in a comment in WindowCapture.swift, so a grep of the tree alone fails before a line is written) | No `CGEventTapCreate`, `tapCreate`, `addGlobalMonitorForEvents`, `addLocalMonitorForEvents`, `CGRequestListenEventAccess` or `CGRequestPostEventAccess` in Sources/ or iOSClient/. No added `updateConfiguration` or `assumeIsolated` in Sources/SkopryHost. `showsCursor: false` still at the stream's capture start (StreamCoordinator.swift:957). The hooks are read only where `synthetic`. The dry run has no `post(` on its path, and `skopryMoved()` comes before every `post(` of a pointer or scroll event |
+| H12 | **Previews.** The bare app's `-SkopryRenderPreviews` before and after | Identical |
+| H13 | **Compatibility.** The base's `skopryclient.py` against an H4 host; the base's StreamMessage.swift with a kind 26 header (swiftc); the new device decoder against the base host's messages | The old client runs and fails nothing (26 counted as unknown); `.unknown`; nothing new decoded |
 
 **Simulator (S):**
 
 | # | Check |
 |---|---|
-| S1 | **The photo matrix.** `-SillPointer mac@0.40,0.30`, `device@0.62,0.55`, `hidden` and `pencil@0.50,0.50`, each at 1000x710, 710x1000, 500x710 and 710x500; `pencil` again with `-SillPencilPointer 1`: 20 photos. Expected: `mac` shows at all four, the tip at 40 %, 30 % of the video rect (±2 pt); `device` only at 710x1000 and 500x710; `hidden` nowhere; `pencil` nowhere, and at all four with the flip. Send Noah the sheet |
-| S2 | **Live, portrait.** `-SillLayout 710x1000 -SillLive 1 -SillConnect 127.0.0.1:P` against a hook host, plus `sillclient.py --pointer` as a second device. The path steps at 1, 2, 3, 5.5 and 9 s only, the 5.5 s step at least 0.1 from where the stroke below rests. Screenshots at the first three steps show the arrow at the scripted fractions. A slow stroke on the trackpad (`touch_path` or `-SillInputScript`): down at 4.0, 20 pt by 4.5, the finger resting until 6.5, 20 pt more by 7.0, up. The first position the second client prints after 4.0 is within 0.02 of the 3 s step's (no jump); a screenshot at 6.0 shows the arrow at the 5.5 s step (the Mac took over mid-stroke); the first position after 6.5 is within 0.02 of the 5.5 s step's (the pad re-seeded: no jump back); the 9 s step jumps the arrow to it. The default `swipe` (0.3 s) moves 20 pt or more per touch sample and would miss the 0.02 bound by itself |
+| S1 | **The photo matrix.** `-SkopryPointer mac@0.40,0.30`, `device@0.62,0.55`, `hidden` and `pencil@0.50,0.50`, each at 1000x710, 710x1000, 500x710 and 710x500; `pencil` again with `-SkopryPencilPointer 1`: 20 photos. Expected: `mac` shows at all four, the tip at 40 %, 30 % of the video rect (±2 pt); `device` only at 710x1000 and 500x710; `hidden` nowhere; `pencil` nowhere, and at all four with the flip. Send Noah the sheet |
+| S2 | **Live, portrait.** `-SkopryLayout 710x1000 -SkopryLive 1 -SkopryConnect 127.0.0.1:P` against a hook host, plus `skopryclient.py --pointer` as a second device. The path steps at 1, 2, 3, 5.5 and 9 s only, the 5.5 s step at least 0.1 from where the stroke below rests. Screenshots at the first three steps show the arrow at the scripted fractions. A slow stroke on the trackpad (`touch_path` or `-SkopryInputScript`): down at 4.0, 20 pt by 4.5, the finger resting until 6.5, 20 pt more by 7.0, up. The first position the second client prints after 4.0 is within 0.02 of the 3 s step's (no jump); a screenshot at 6.0 shows the arrow at the 5.5 s step (the Mac took over mid-stroke); the first position after 6.5 is within 0.02 of the 5.5 s step's (the pad re-seeded: no jump back); the 9 s step jumps the arrow to it. The default `swipe` (0.3 s) moves 20 pt or more per touch sample and would miss the 0.02 bound by itself |
 | S3 | **Live, landscape** (1000x710). The arrow shows at the steps (1 s apart); a tap on the stream half-way between two steps hides it (screenshot); the next step, 0.5 s later and so past the settle, shows it again |
-| S4 | **Freshness through a delay.** `sillrelay.py --listen 0 --to 127.0.0.1:P --delay-ms 150` between the simulator and the host (`-SillConnect` to the relay's port); a path moving every 0.05 s; five taps on the stream 2 s apart. The console shows "ignored a position…" at least once, and never "the Mac has it" within 0.3 s after "this device has it". Correct behaviour gives about 0.40 s or more (the settle's 0.25 s, the relay's 0.15 s round trip, up to a tick); a stale position taken as fresh shows within about 0.15 s. A 0.4 s bound would sit on the correct minimum and flake |
-| S5 | **A move carries control over.** `-SillLayout 1000x710 -SillLive 1 -SillConnect 127.0.0.1:P -SillMoveTest 1` against a hook host whose path steps at 0.5 and 12 s only. The arrow shows at connect (Q6); a tap on the stream at 1.5 s hides it; the session moves ("discovery: the session moved to the network", about 3 s in); screenshots 1 and 3 s after the move show no arrow, and the console prints no "the Mac has it" between the tap and 12 s; the 12 s step shows the arrow. After the PR #12 rebase, the same for its moves with `-SillPathTest` |
+| S4 | **Freshness through a delay.** `skopryrelay.py --listen 0 --to 127.0.0.1:P --delay-ms 150` between the simulator and the host (`-SkopryConnect` to the relay's port); a path moving every 0.05 s; five taps on the stream 2 s apart. The console shows "ignored a position…" at least once, and never "the Mac has it" within 0.3 s after "this device has it". Correct behaviour gives about 0.40 s or more (the settle's 0.25 s, the relay's 0.15 s round trip, up to a tick); a stale position taken as fresh shows within about 0.15 s. A 0.4 s bound would sit on the correct minimum and flake |
+| S5 | **A move carries control over.** `-SkopryLayout 1000x710 -SkopryLive 1 -SkopryConnect 127.0.0.1:P -SkopryMoveTest 1` against a hook host whose path steps at 0.5 and 12 s only. The arrow shows at connect (Q6); a tap on the stream at 1.5 s hides it; the session moves ("discovery: the session moved to the network", about 3 s in); screenshots 1 and 3 s after the move show no arrow, and the console prints no "the Mac has it" between the tap and 12 s; the 12 s step shows the arrow. After the PR #12 rebase, the same for its moves with `-SkopryPathTest` |
 
 **Noah's devices (P), handed over at the end:** the iPad mini; an iPhone for P9; the cable for P12.
 
@@ -980,11 +980,11 @@ pointer: ignored the Mac restating this device's own position on the new connect
 | P4 | **Rotation.** After the trackpad, rotate to landscape: no arrow. Move the Mac's mouse: the arrow shows in landscape. Rotate back and use the trackpad: the device's own |
 | P5 | **Typing.** The software keyboard or a hardware key hides the portrait arrow (as today); the key row's keys do not; the next trackpad stroke shows it |
 | P6 | **The Pencil** draws no arrow while it touches (Q2; before this change it did). Hover cannot be checked on the iPad mini 6 (iPad14,1), whose Pencil does not hover, nor in the simulator; only S1's photo covers that state |
-| P7 | **The virtual display on.** Pick a window. Move the Mac's mouse onto the "Sill" display over the staged window: the arrow on the iPad, nothing on the Mac's screens. A video full screen there: the arrow inside the band; when the player hides its cursor, the iPad's arrow stays (Q8) |
+| P7 | **The virtual display on.** Pick a window. Move the Mac's mouse onto the "Skopry" display over the staged window: the arrow on the iPad, nothing on the Mac's screens. A video full screen there: the arrow inside the band; when the player hides its cursor, the iPad's arrow stays (Q8) |
 | P8 | **Remote** (Tailscale, the iPad on the hotspot). P1 again: the arrow trails the Mac by about the round trip; `net.dropped` in the host's `[1s]` lines is no higher while the mouse moves |
 | P9 | **Two devices** (the iPad and an iPhone). The iPhone shows the arrow the iPad's trackpad moves (Q5); the iPad draws its own only in portrait |
-| P10 | **Mixed builds.** This iPad against PR #13's Sill.app: no Mac arrow; the trackpad's arrow in portrait only; no Pencil arrow. PR #13's iPad against this Sill.app: as before |
-| P11 | **Five minutes on a still window,** the Mac's mouse moved now and then. Sill.app's CPU in Activity Monitor as before (±0.2 %); frame age and rtt in the `client …` lines unchanged; `ptr.sent` only in seconds the mouse moved; the arrow never choppy enough to want Q4 (Noah's call) |
+| P10 | **Mixed builds.** This iPad against PR #13's Skopry.app: no Mac arrow; the trackpad's arrow in portrait only; no Pencil arrow. PR #13's iPad against this Skopry.app: as before |
+| P11 | **Five minutes on a still window,** the Mac's mouse moved now and then. Skopry.app's CPU in Activity Monitor as before (±0.2 %); frame age and rtt in the `client …` lines unchanged; `ptr.sent` only in seconds the mouse moved; the arrow never choppy enough to want Q4 (Noah's call) |
 | P12 | **Moves keep the device's control** (once PR #12 is in). Streaming in landscape, tap the stream, then plug the cable in, and later pull it: no arrow appears at either move; move the Mac's mouse: it shows. The same across the AWDL move (W6) |
 
 ### 11. Implementation order (one commit per step; each passes its gates before the next)
@@ -1005,7 +1005,7 @@ Commit messages end with the session's attribution lines.
    - InputInjector: the notes and the dry run.
    - VirtualStage's `onWarp`.
    - The two hooks.
-   - `sillclient.py`'s `--pointer`, `--move`, `--tap` and `--key`.
+   - `skopryclient.py`'s `--pointer`, `--move`, `--tap` and `--key`.
 
    Gates: H1–H13.
 3. **"iOS: the Mac's pointer while it drives; the device's own on the portrait trackpad only."**
@@ -1023,8 +1023,8 @@ Commit messages end with the session's attribution lines.
    - CLAUDE.md:
      - the Current step;
      - Layout (the new files);
-     - Build and run: the hooks, the new `sillclient.py` flags, `-SillPointer`,
-       `-SillPencilPointer`, `-SillInputScript`;
+     - Build and run: the hooks, the new `skopryclient.py` flags, `-SkopryPointer`,
+       `-SkopryPencilPointer`, `-SkopryInputScript`;
      - the trackpad-stutter section's cause 3: the sprite also shows the Mac's pointer while the
        Mac drives;
      - Untested, for Noah: P1–P12.
@@ -1038,10 +1038,10 @@ Commit messages end with the session's attribution lines.
 
 **Rebases.**
 - **PR #11 (encoder-recovery)** touches StreamCoordinator. Its `recheckLoop` must never start
-  under `SILL_TEST_SOFTWARE_ENCODER` (§4.10).
+  under `SKOPRY_TEST_SOFTWARE_ENCODER` (§4.10).
 - **PR #12 (follow-best-path)** touches StreamClient and SessionLink. Its `adopt` restarts the
   count and `unhold` leaves it; its `adopt` and `reconnectNow` carry control over as the AWDL
-  move does (§7.3), and S5 runs again with `-SillPathTest`.
+  move does (§7.3), and S5 runs again with `-SkopryPathTest`.
 - **update-notice** (no PR yet; worktree winstream-update) takes kind 23 (`hello`) and the pbxproj
   IDs A01E/F01E and A01F/F01F, and touches StreamServer's receive loop and registration (its
   device gate), SessionLink and StreamClient. The `inputsRead` count stays in the `.input` branch,
@@ -1055,17 +1055,17 @@ Commit messages end with the session's attribution lines.
   location, which needs none.
 - **Never reconfigure a running SCStream.** `showsCursor` stays false; the cursor never goes back
   into the video.
-- **Never `MainActor.assumeIsolated`** in core code. The tick samples on `sill.net`; the
+- **Never `MainActor.assumeIsolated`** in core code. The tick samples on `skopry.net`; the
   coordinator hands its geometry over through PointerWatch's lock.
-- **Nothing on `sill.net` waits for the window server** beyond the pointer read itself: the
-  window bounds are re-read on `sill.pointer` (§4.2).
+- **Nothing on `skopry.net` waits for the window server** beyond the pointer read itself: the
+  window bounds are re-read on `skopry.pointer` (§4.2).
 - **The CLI's stdout stays byte for byte** on the default path, idle and streaming, with and
   without `--direct-wireless`. New output only under the hooks, or as `[1s]` keys on real hosts
   when kind 26 goes out.
 - **Kinds 0–23 and kinds 8 and 9's payloads are untouched.** 24, 25 and 27 stay free for the Mac
   menu bar (23 is the device's hello, from update-notice).
 - **Tests never post events or move the pointer,** and never use the hardware encoder while Noah
-  streams. They never touch `/Applications/Sill.app`, `me.saffer.sill.mac` or his iPad.
+  streams. They never touch `/Applications/Skopry.app`, `app.skopry.mac` or his iPad.
 - **TEST ONLY hooks** are honoured only by synthetic hosts, which do not advertise.
 - **New iOS files** need their four pbxproj entries by hand. Swift 5 language mode.
 - **Apple frameworks only.**
@@ -1089,7 +1089,7 @@ Commit messages end with the session's attribution lines.
    Accessibility grant turns out to cover it.
 4. **The rate of the Mac's arrow.** Default: **the 30 ms tick**, about 33 Hz. It can look choppier
    than a 60 or 120 fps picture. The alternative samples at the stream's frame rate while the
-   Mac's pointer moves: a second timer on `sill.net`, about 20 lines, at most 120 messages (8 KB) a
+   Mac's pointer moves: a second timer on `skopry.net`, about 20 lines, at most 120 messages (8 KB) a
    second. **Decided 2026-09-26: the alternative** ("Since the critique", below).
 5. **Another device's pointer.** Default: **shown to every device but the one driving**, as if the
    Mac had moved it. The alternative is that only the Mac's own mouse counts, and another device's
@@ -1102,7 +1102,7 @@ Commit messages end with the session's attribution lines.
 8. **An app that hides the Mac's cursor** (a video full screen, typing on the Mac). Default:
    **the arrow stays** (no public API tells another app's cursor is hidden). The alternative hides
    it after 3 s without motion, in the full-screen band only.
-9. **The virtual display.** Default: **Sill never moves the pointer the Mac's user holds.** When
+9. **The virtual display.** Default: **Skopry never moves the pointer the Mac's user holds.** When
    they take over while it sits on the virtual display, they move it there, invisible on the Mac,
    and the device shows it. The alternative warps it back to where it was before the device drove
    it there (`cursorBefore`), and the device's arrow then goes.
@@ -1112,7 +1112,7 @@ Commit messages end with the session's attribution lines.
     menu, "Show the Mac's pointer on devices".
 12. **The kind number.** Default: **26**, leaving 24, 25 and 27 to the Mac menu bar sketch (23 is
     the device's hello, from update-notice). If that sketch is dropped, 24.
-13. **Windows too?** Noah wrote "the real mouse pointer on the desktop on Sill". Default: **the
+13. **Windows too?** Noah wrote "the real mouse pointer on the desktop on Skopry". Default: **the
     Mac's pointer shows over whatever streams**, the Desktop or a window ("on the desktop" read as
     "on the Mac's screen"). The alternative shows it only while the Desktop streams: one line in
     `pointerGeometry()`.
@@ -1132,8 +1132,8 @@ measurement. It changed the plan in place:
   no longer "not settled": measured elsewhere on macOS 26.7, a mouse-only listen tap without Input
   Monitoring is created, never enabled, and shows no alert. The Mac app ships outside the App
   Store, so a tap would change no App Privacy answer.
-- **Sill's own motion.** `sillMoved()` and `onWarp` now come before the post and the warp: a tick
-  landing between a post and a note made after it took Sill's move for the Mac's. A held click can
+- **Skopry's own motion.** `skopryMoved()` and `onWarp` now come before the post and the warp: a tick
+  landing between a post and a note made after it took Skopry's move for the Mac's. A held click can
   post a second or more after it was read (a 1 s AX activation timeout, then up to 0.6 s of hold),
   not 0.6 s at most.
 - **Slow motion.** A real move is measured from the last position that counted, not from the
@@ -1148,7 +1148,7 @@ measurement. It changed the plan in place:
 - **Synthetic hosts.** Synthetic mode replaces only the Desktop, so a real window can be picked on
   a synthetic host, and the table gave it real geometry: the poll would have read the real pointer
   there. Now only the scripted test pattern has geometry on a synthetic host.
-- **Threads.** The window re-read left `sill.net`, where a window-server round trip sat in front
+- **Threads.** The window re-read left `skopry.net`, where a window-server round trip sat in front
   of frames and pongs.
 - **Numbers.** Kind 23 is update-notice's hello (3a2470b), so "23–25 free for the menu bar" and
   Q12's fallback were stale; 26 is still free everywhere. The pbxproj IDs A01E/F01E are
@@ -1162,7 +1162,7 @@ measurement. It changed the plan in place:
   already has `assumeIsolated` and `updateConfiguration`, so it failed before a line was written;
   S2's default swipe missed its own 0.02 bound and its steps could land inside the settle; S4's
   0.4 s bound sat on the correct minimum; the simulator's touch tool asks Noah once per device,
-  so a workflow gets `-SillInputScript`. New: S5 and P12 (moves), P3's resting finger, Q13
+  so a workflow gets `-SkopryInputScript`. New: S5 and P12 (moves), P3's resting finger, Q13
   (windows, or only the Desktop).
 - **Smaller.** `in.dry` counts posted events, not inputs; the Q1 flip's timer is new code, not
   "already there"; the bounds timing was measured again (111 and 126 µs); Q2 now says Noah's iPad
@@ -1192,7 +1192,7 @@ measurement. It changed the plan in place:
   and `MacPointer` as §3 says, with `MacPointer.position` (x and y when `inside` is true and both
   are there and finite) as what a device draws. `PointerControl` as §4.1 says, with two additions:
   - a read more than `settle` (0.25 s) after the one before starts afresh, as the first read does:
-    the pointer was not watched in between, and Sill may have moved it then with its settle over
+    the pointer was not watched in between, and Skopry may have moved it then with its settle over
     before the next read (VirtualStage's warp home as a stream stops, while no sample runs); a real
     move in such a gap counts at its next read instead;
   - `isMoving(now:)`: a read differed from the one before in the last 0.1 s, whoever moved it (a
@@ -1217,14 +1217,14 @@ the plan asks of the host was missing, and no Swift source changed in this step:
 frame-rate sampler (§4.3), the coordinator's geometry per source and the two hooks (§4.4, §4.7,
 §4.10), InputInjector's notes before each post and the dry run (§4.5), VirtualStage's `onWarp`
 (§4.6), the lines and Stats keys (§4.9) and the test client's flags (§5). Added:
-`sillclient.py --input=JSON@T`, a literal kind 8 for inputs the other flags do not make (a scroll, a
+`skopryclient.py --input=JSON@T`, a literal kind 8 for inputs the other flags do not make (a scroll, a
 scroll gesture's phase), behind the same guard; the pointer-watch check in `Tests/checks/README.md`
 and in CI's mutants matrix.
 
 The frame-rate sampler (Q4). While the pointer moves (`PointerControl.isMoving`: a read differed
 from the one before in the last 0.1 s) and some device is sent it, StreamServer samples at the
 stream's frame interval (`PointerWatch.frameInterval`, from the `fps` the coordinator hands over
-with the geometry) on `sill.net`, and the 30 ms tick only keeps the link awake; 0.1 s after the last
+with the geometry) on `skopry.net`, and the 30 ms tick only keeps the link awake; 0.1 s after the last
 change the sampler stops and the tick samples again. A device that drives the pointer is never sent
 it, so one device alone never starts the sampler while it drives; while it only watched, the
 sampler also ran with the pointer off the source, where every report is the same `inside: false`
@@ -1233,15 +1233,15 @@ and nothing goes out (the review found that, and the rest of what "Review fixes"
 The step ran twice. The first run (to about 00:22) ran every gate below and was stopped before it
 committed; the second (00:38 to 01:10) read the host again and ran every gate again from a fresh
 folder but the two that use the hardware encoder: from 00:38:50 on a device streamed from Noah's
-Sill.app over the cable, so main's `Scripts/encoder-check/no-device.sh` said no at every look. Those
-two, H2 and the sampler at 120 fps, are the first run's, read again from its logs; Sill.log shows no
+Skopry.app over the cable, so main's `Scripts/encoder-check/no-device.sh` said no at every look. Those
+two, H2 and the sampler at 120 fps, are the first run's, read again from its logs; Skopry.log shows no
 device connected while they ran (one from 00:05:46 to 00:10:06 only, which the first run's guard
 caught, below). The numbers are the second run's unless a line says otherwise. Other sessions' jobs
 held the Mac's load average between 15 and 232 (12 cores) through the second run; every gate passed
 through it.
 
 Checked, all without a device, the hardware encoder only where said (such a run started only while
-no-device.sh said no device was connected to Sill.app, and was watched every 2 s; every host
+no-device.sh said no device was connected to Skopry.app, and was watched every 2 s; every host
 synthetic, killed by PID, none left running), and the real pointer only read, never moved (read
 before and after each batch of gates: the same point):
 - Builds: a clean `swift build -c release` into a scratch path (27 s; only the CaptureProbe
@@ -1251,16 +1251,16 @@ before and after each batch of gates: the same point):
   pointer-presence 141, the fence's 15 modes); mutants: pointer-watch 33 of 33, pointer-control 30
   of 30.
 - H2, the CLI byte for byte (hardware encoder; the first run, 00:01–00:05): 8b0d418 from
-  `git archive` against this branch, `SillHost --synthetic` idle 35 s and with
-  `sillclient.py PORT 5 desktop`, both again with `--direct-wireless`: the host's output identical
+  `git archive` against this branch, `SkopryHost --synthetic` idle 35 s and with
+  `skopryclient.py PORT 5 desktop`, both again with `--direct-wireless`: the host's output identical
   masked and sorted (7, 17, 8 and 18 lines), the client's too (which kinds, and
   `first kinds: 2 16 4×119 5 16 2 14` in all four); the default host with `--pointer`: no pointer
   line and no `ptr.` key. The second run read those logs again (the same verdicts), and checked
   that the base folder is 8b0d418's `git archive` file for file with its build current, and that
   the branch's binary is the one that ran (no Swift source changed since; `swift build` had
   nothing to do).
-- The gates below ran on synthetic hosts with `SILL_TEST_SOFTWARE_ENCODER=1` and a scripted path,
-  and `sillclient.py … --pointer`:
+- The gates below ran on synthetic hosts with `SKOPRY_TEST_SOFTWARE_ENCODER=1` and a scripted path,
+  and `skopryclient.py … --pointer`:
   - H4: the five steps give four lines, (0.5000, 0.5000), (0.7500, 0.2500), `inside=0`,
     (0.2500, 0.7500), all `seen=0`, 0.48–0.51 s apart; nothing for the repeated step.
   - H5a (a still path, a move at 2 s): the first state, then nothing for the rest of the run;
@@ -1285,30 +1285,30 @@ before and after each batch of gates: the same point):
     lines in 1.97 s, at most 31 in any second, 33.0 ms apart. At 120 fps (the first run, 00:18: the
     hardware encoder at Standard resolution, 1512×948, since the software one stops at 60): 239
     lines in 2.0 s, at most 121 in any second, 8.0 ms apart; its first try was stopped by the guard
-    when a device connected to Sill.app at 00:05:46, the host killed within the watch's 2 s.
+    when a device connected to Skopry.app at 00:05:46, the host killed within the watch's 2 s.
   - H9: the 17 host logs of the second run's gates: 11 seconds with `in.dry`, none with
     `in.pointer`, `in.scroll`, `in.text` or `in.key`; all 20 streams on the software encoder.
-  - The remote door, new: a synthetic `--remote` host (`SILL_TEST_REMOTE_DIR`,
-    `SILL_TEST_NO_ROUTER=1`), sillclient paired by its link, then a TLS 1.3 session with the moving
+  - The remote door, new: a synthetic `--remote` host (`SKOPRY_TEST_REMOTE_DIR`,
+    `SKOPRY_TEST_NO_ROUTER=1`), skopryclient paired by its link, then a TLS 1.3 session with the moving
     path and a move at 3 s: 76 lines through TLS, the next after the move 0.302 s later with
     `seen=1`.
   - A path file with a bad line 3: the plan's line, no pointer, no `ptr.` key.
 - H10, cost: `PointerWatch.sample()` with the real location read, 100,000 times: 0.20 µs mean
   (median 0.17, p99 0.29 µs); with a regular-mode window whose re-read was due at every sample:
-  0.09 µs (11 re-reads ran meanwhile on `sill.pointer`, none waited for); the re-read alone, one
+  0.09 µs (11 re-reads ran meanwhile on `skopry.pointer`, none waited for); the re-read alone, one
   window through `CGWindowListCopyWindowInfo`: 239 µs mean, median 131 µs, p99 2.0 ms, off
-  `sill.net` (the first run: 132 and 192 µs mean); the location read alone
+  `skopry.net` (the first run: 132 and 192 µs mean); the location read alone
   0.10 µs. Idle: a hook host with no client, 35 s: 0.0 % CPU, 0.18 s of CPU time at 2 s and at
   35 s; a client that picks nothing, 8 s: no tick and no `ptr.` key, 0.0 %.
 - H11: no `CGEventTapCreate`, `tapCreate`, `addGlobalMonitorForEvents`,
   `addLocalMonitorForEvents`, `CGRequestListenEventAccess` or `CGRequestPostEventAccess` in
   Sources/ or iOSClient/; no added `updateConfiguration` or `assumeIsolated`; `showsCursor: false`
   at the capture's start; the hooks read only through `PointerTestHooks`, which honours them on a
-  synthetic host alone; `sillMoved` before every pointer and scroll post, and the dry run posts
+  synthetic host alone; `skopryMoved` before every pointer and scroll post, and the dry run posts
   nothing.
 - H12: the bare app's previews from 8b0d418 and this branch, rendered from one path: identical
   (100 files).
-- H13: 8b0d418's `sillclient.py` against a hook host runs through, listing 26 by number in `kinds=`
+- H13: 8b0d418's `skopryclient.py` against a hook host runs through, listing 26 by number in `kinds=`
   and `first kinds:`; 8b0d418's StreamMessage parses a kind 26 header as `.unknown` with its length.
 - Integration mutants (a scratch copy of the tree, each built and run against one gate): 8 of 8
   caught: no `clientLeft` (H7c: `ptr.mac 1`), input not counted (H5b: `seen=0`), a pointer input
@@ -1318,10 +1318,10 @@ before and after each batch of gates: the same point):
   sample re-sent (H4: 123 lines), the test pattern's input mapped onto the real display (H7: y
   0.2587).
 
-Not run: anything on a device, and a real (non-synthetic) host, which would advertise `_sill._tcp`
-beside Sill.app: the real pointer's path is covered by the pointer-watch check's injected reader and
+Not run: anything on a device, and a real (non-synthetic) host, which would advertise `_skopry._tcp`
+beside Skopry.app: the real pointer's path is covered by the pointer-watch check's injected reader and
 H10's harness, which read the real location and a real window's bounds. The synthetic hosts listen
-on every interface, as SillHost always has (nothing binds it to loopback); they advertise nothing,
+on every interface, as SkopryHost always has (nothing binds it to loopback); they advertise nothing,
 only loopback clients reached them, and the Application Firewall's list gained no entry.
 
 ---
@@ -1355,8 +1355,8 @@ Built as §7 says, but for these, each found while wiring it up:
 - **Resets.** The feed is reset at a new dial and at a remote dial's winner as well as at the
   session's end, on main and again on the network queue, behind anything of the old connection
   still being handled there.
-- **The harness.** `-SillPointer` draws the mock's frame as a dim rectangle, so a photo shows what
-  the sprite points into (the mock never streams). `-SillInputScript` gained `down` (a finger lands
+- **The harness.** `-SkopryPointer` draws the mock's frame as a dim rectangle, so a photo shows what
+  the sprite points into (the mock never streams). `-SkopryInputScript` gained `down` (a finger lands
   on the pad), `click` (a tap on the pad) and `row USAGE` (a key of the key row). The DEBUG console's
   "the Mac has it" also prints for a session's first report.
 
@@ -1372,17 +1372,17 @@ counts it); the real pointer read before and after the host gates, the same poin
   other sessions' jobs): among them the fence check, main's event-driven one with this branch's
   count on top, 15 modes and 32 of 32 (main's 20 and the count's 12), pointer-control 30 of 30 and
   pointer-watch 33 of 33.
-- S1, the photo matrix (a simulator of its own, "Sill pointer", an iPad Pro 13" whose screen draws
+- S1, the photo matrix (a simulator of its own, "Skopry pointer", an iPad Pro 13" whose screen draws
   every harness size): `mac@0.40,0.30`, `device@0.62,0.55`, `hidden`, `pencil@0.50,0.50`, and the
-  Pencil again with `-SillPencilPointer 1`, at the Duo's four sizes, an iPhone 17 Pro Max's two
+  Pencil again with `-SkopryPencilPointer 1`, at the Duo's four sizes, an iPhone 17 Pro Max's two
   (440x956, 956x440) and an iPad mini's two (744x1133, 1133x744): 40 photos, each measured (the
   frame's rectangle and the sprite's bounding box in the screenshot): the Mac's arrow in all eight
   layouts, its tip within 1 pt of 40 %, 30 % of the frame; the device's only in the four portrait
   ones, within 1 pt of 62 %, 55 %; `hidden` nowhere; the Pencil's nowhere, and with the flip in all
   eight. After the merge the 40 again, pixel for pixel the same inside the harness's frame (16 files
   differ only in the iPad's own home indicator, outside it).
-- Live, the app in the harness (`-SillLive 1 -SillConnect`) against a synthetic host with the
-  scripted pointer, `sillclient.py --pointer` as a second device, input from `-SillInputScript`, and
+- Live, the app in the harness (`-SkopryLive 1 -SkopryConnect`) against a synthetic host with the
+  scripted pointer, `skopryclient.py --pointer` as a second device, input from `-SkopryInputScript`, and
   a screenshot taken about 0.2 s after it is asked for (measured: an arrow walking 0.009 of the
   frame every 0.1 s):
   - S2, portrait (710x1000), steps at 1, 2, 3, 5.5 and 9 s: the Mac's arrow at the first three
@@ -1397,17 +1397,17 @@ counts it); the real pointer read before and after the host gates, the same poin
     shows it again (the Mac's line 0.91–0.93 s after the tap's). The steps are 2 s apart, not the
     plan's 1 s: under load (other sessions' jobs) a screenshot took its frame up to 0.7 s after it
     was asked for, and with 0.5 s between a tap and the next step the photo showed that step.
-  - S4, through `sillrelay.py --delay-ms 150`, a path moving every 0.05 s, five taps 2 s apart:
+  - S4, through `skopryrelay.py --delay-ms 150`, a path moving every 0.05 s, five taps 2 s apart:
     "ignored a position the Mac sent before reading this device's input" once a second at each
     (seen 0 sent 3, seen 3 sent 6…), and the Mac's arrow back 0.42–0.45 s after each tap, never
     within 0.3 s.
   - S5, landscape, steps at 0.5 and 12 s, a tap at 1.5 s: the arrow at connect (Q6), none after
     the tap, and none at any move nor 1 and 3 s after it, the console printing "carried over" and
     "ignored the Mac restating this device's own position" at each, and no "the Mac has it" until
-    the 12 s step, whose arrow shows: across the move from AWDL (`-SillMoveTest 1`, fenced), a move
+    the 12 s step, whose arrow shows: across the move from AWDL (`-SkopryMoveTest 1`, fenced), a move
     to the cable (fenced) and then to Wi-Fi when the cable goes (adopt), and a move to the cable then
     its connection closed and made again over it (adopt, the old connection gone), the last two by
-    `-SillPathTest` on this Mac's own Wi-Fi and cable addresses, which the kernel delivers here.
+    `-SkopryPathTest` on this Mac's own Wi-Fi and cable addresses, which the kernel delivers here.
   - S6, new (portrait): after the Mac took the pointer, `esc` on the key row leaves the arrow at the
     Mac's position (not at the pad's older cursor); a hardware `esc` hides it; the pad's next stroke
     starts from the Mac's position.
@@ -1424,16 +1424,16 @@ counts it); the real pointer read before and after the host gates, the same poin
   the move, `seen=1`), H6 (0.067 s after a key, `seen=2`), H7 (the watcher hears the driver's move),
   H8 (120 lines over 2.0 s, at most 61 in any second, 17 ms apart, none after the path stopped), H9
   (no `in.pointer`, `in.scroll`, `in.text` or `in.key` in any second; the real pointer read before
-  and after, the same point), H13 (main's `sillclient.py`, which knows no kind 26, runs through
+  and after, the same point), H13 (main's `skopryclient.py`, which knows no kind 26, runs through
   against a host sending it and lists 26 by number), H12 (the bare app's 100 previews from main and
   from the merge, rendered from one path: identical).
 
 Not run: anything on a device (P1–P12); the Pencil's hover (the simulator has none; S1's flip photo
 covers the state); rotation live (the harness draws fixed sizes: the pure check and the photos per
 layout cover it); Q1's timer live (the pure check only; it is off by default); H2 after the merge,
-which uses the hardware encoder: a device streamed from Sill.app throughout (main's
+which uses the hardware encoder: a device streamed from Skopry.app throughout (main's
 `Scripts/encoder-check/no-device.sh` said so at every look). The synthetic hosts listen on every
-interface, as SillHost always has; they advertise nothing and only loopback clients, and the
+interface, as SkopryHost always has; they advertise nothing and only loopback clients, and the
 simulator on this Mac through its own link-local addresses, reached them.
 
 ---
@@ -1483,14 +1483,14 @@ the pure model only. Every fix has a check where one fits.
   `moveProbed` ran was not, finishMove draws nothing, and the new connection's first report says
   the same (the pure model: news, `changed` false). The render reads only the feed, which already
   holds the report, so it no longer asks which connection carries the session.
-- **`-SillInputScript` had no guard.** Its steps send real kind 8, and Sill.app's home door admits
+- **`-SkopryInputScript` had no guard.** Its steps send real kind 8, and Skopry.app's home door admits
   loopback and posts what it reads: a gate given a stale port, or a session on a Bonjour row, could
   have clicked and typed on this Mac. `InputScript.refusal` runs the script only when the session
   was dialled to a loopback address and the host's first window list has no `hostVersion`
-  (Sill.app always sends one), else "input script: refused: …".
+  (Skopry.app always sends one), else "input script: refused: …".
 - **`PointerPresence.own`'s comment** named `StreamClient.localPointer`, which is gone.
 
-New for the reruns, TEST ONLY: `SILL_TEST_LOOPBACK=1`, honoured only by a host that does not
+New for the reruns, TEST ONLY: `SKOPRY_TEST_LOOPBACK=1`, honoured only by a host that does not
 advertise, puts both doors on 127.0.0.1 alone (`requiredInterfaceType` loopback and a required
 local endpoint), so a test host takes no connection from another machine; one line says so.
 
@@ -1504,7 +1504,7 @@ review's case in the order TrackpadSurface calls it, a move, a tap, another devi
 of 43 (41 and 2: a re-seed only on a takeover, the old rule, and only when the anchor moves).
 
 Run, the hardware encoder only where said (while `Scripts/encoder-check/no-device.sh` said no
-device was connected to Sill.app, watched every 2 s), every host synthetic and on 127.0.0.1 alone
+device was connected to Skopry.app, watched every 2 s), every host synthetic and on 127.0.0.1 alone
 (lsof checked at each start), nothing posted, the real pointer only read (the same point before
 and after the host gates):
 - The review's harness, extended by two phases (in and out of the source; a window with a second
@@ -1527,7 +1527,7 @@ and after the host gates):
   three tries; the third differed in its first second's counters, the client arriving a second
   later). The sampler at 120 fps (hardware): 238 lines in 2.0 s, at most 121 in any second, 8.0 ms
   apart.
-- Live, on a simulator of its own (an iPad Pro 13-inch (M5), "Sill pointer", deleted after), the
+- Live, on a simulator of its own (an iPad Pro 13-inch (M5), "Skopry pointer", deleted after), the
   app in the harness against loopback-only hosts: S2–S7 as before, but S5 only across the move from
   AWDL (S5's cable and Wi-Fi moves need a host on this Mac's own Wi-Fi and cable addresses); S2b,
   new (portrait: the finger lands while the Mac has the pointer at the 1 s step, rests while it
@@ -1535,9 +1535,9 @@ and after the host gates):
   within 0.02 of the 3 s step, none near the 1 s step, the pad's arrow carried on from the 3 s
   step); S2c, new (the same rest, then a click on the pad: its arrow at the 3 s step, nothing near
   the 1 s step, `in.dry 2`); S8, new, against tools/fakehost.py (a loopback stand-in that logs each
-  kind 8 and posts nothing): a host whose window list says Sill 9.9 gets "input script: refused: the
-  host says it is Sill 9.9, which posts input to this Mac" and no kind 8; one with no version gets
-  the script's input dialled by 127.0.0.1, ::1 and localhost (`-SillConnect [::1]:P` never reaches
+  kind 8 and posts nothing): a host whose window list says Skopry 9.9 gets "input script: refused: the
+  host says it is Skopry 9.9, which posts input to this Mac" and no kind 8; one with no version gets
+  the script's input dialled by 127.0.0.1, ::1 and localhost (`-SkopryConnect [::1]:P` never reaches
   the app: UserDefaults reads an argument that starts with `[` as a property list and drops it).
   51 of 51 before the merge and again on it (a run on the merge between the two, at load averages
   of 100–240, failed only photos that came seconds late and showed later steps).
@@ -1553,7 +1553,7 @@ its key row through `sendFromKeyRow` and gives its trackpad the pointer's closur
 `isPortrait` beside main's `phoneArrangement`. Main's DEBUG input test said a synthetic host posts
 what it gets, which since this branch it does not (it counts `in.dry`); its notes now say so, and
 that a real host would. Run on the merge: `Tests/checks/run-all.sh`, all 20; the three iOS builds;
-S2–S8, 51 of 51; S9, new: the phone's arrangement (`-SillIdiom phone` at 440x956 on the iPad
+S2–S8, 51 of 51; S9, new: the phone's arrangement (`-SkopryIdiom phone` at 440x956 on the iPad
 simulator), the Mac's arrow at the 1 s step, a stroke that starts there, and 50 pt down moving the
 pointer 0.2427 of the frame (100 / the pad's width, by the span; by the pad's height it would be about
 0.14), the pad's arrow where it went (the photo's analysis leaves out the picture's rounded corners,

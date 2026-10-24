@@ -1,1 +1,1 @@
-../SillHost/VirtualDisplay.swift
+../SkopryHost/VirtualDisplay.swift

@@ -16,12 +16,12 @@ MUTANTS = [
     ("pairingRequired reconnects", "GoodbyePolicy.swift", "Tap it to pair this \\(device).\",\n                           reconnect: false", "Tap it to pair this \\(device).\",\n                           reconnect: true"),
     ("notices inverted", "GoodbyePolicy.swift", "!knownReasons.contains(goodbye.reason)", "knownReasons.contains(goodbye.reason)"),
     ("quit allows the remote door for an unsaved Mac", "GoodbyePolicy.swift", "reconnect: true, remoteAllowed: saved, isNotice: false)\n        case Goodbye.removed:", "reconnect: true, remoteAllowed: true, isNotice: false)\n        case Goodbye.removed:"),
-    ("saved and unsaved words swapped", "GoodbyePolicy.swift", "return Outcome(text: saved ? \"\\(mac) disconnected. Sill will reconnect when it can reach it.\"", "return Outcome(text: !saved ? \"\\(mac) disconnected. Sill will reconnect when it can reach it.\""),
+    ("saved and unsaved words swapped", "GoodbyePolicy.swift", "return Outcome(text: saved ? \"\\(mac) disconnected. Skopry will reconnect when it can reach it.\"", "return Outcome(text: !saved ? \"\\(mac) disconnected. Skopry will reconnect when it can reach it.\""),
     ("update reconnects unless told not to", "GoodbyePolicy.swift", "reconnect: goodbye.reconnect == true, remoteAllowed: saved,\n                           storeLink: true, isNotice: true)", "reconnect: goodbye.reconnect != false, remoteAllowed: saved,\n                           storeLink: true, isNotice: true)"),
     ("update without the App Store link", "GoodbyePolicy.swift", "reconnect: goodbye.reconnect == true, remoteAllowed: saved,\n                           storeLink: true, isNotice: true)", "reconnect: goodbye.reconnect == true, remoteAllowed: saved,\n                           storeLink: false, isNotice: true)"),
-    ("minimumVersion shown as sent", "GoodbyePolicy.swift", "if let floor = goodbye.minimumVersion.flatMap({ SillVersion($0) }) { own += \" It needs version \\(floor) or later.\" }", "if let floor = goodbye.minimumVersion { own += \" It needs version \\(floor) or later.\" }"),
+    ("minimumVersion shown as sent", "GoodbyePolicy.swift", "if let floor = goodbye.minimumVersion.flatMap({ SkopryVersion($0) }) { own += \" It needs version \\(floor) or later.\" }", "if let floor = goodbye.minimumVersion { own += \" It needs version \\(floor) or later.\" }"),
     ("update ignores the host's message", "GoodbyePolicy.swift", "return Outcome(text: message(goodbye) ?? own, reconnect: goodbye.reconnect == true", "return Outcome(text: own, reconnect: goodbye.reconnect == true"),
-    ("update's own words without the device", "GoodbyePolicy.swift", "var own = \"Update Sill on this \\(device) to keep using \\(mac).\"", "var own = \"Update Sill to keep using \\(mac).\""),
+    ("update's own words without the device", "GoodbyePolicy.swift", "var own = \"Update Skopry on this \\(device) to keep using \\(mac).\"", "var own = \"Update Skopry to keep using \\(mac).\""),
 ]
 caught = 0
 for name, _, old, new in MUTANTS:

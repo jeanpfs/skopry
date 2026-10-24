@@ -18,7 +18,7 @@ import StreamProtocol
 /// pairing path from afar). Plain TCP remains only for a plain door, which only a DEBUG build ever
 /// dials (DiscoveryPolicy.homeDial).
 enum DeviceTLS {
-    /// The TLS options of one connection: `alpn` is `sill/1` for a session, `sill-pair/1` for
+    /// The TLS options of one connection: `alpn` is `skopry/1` for a session, `skopry-pair/1` for
     /// pairing; `pin` the Mac's key, or nil for any P-256 key (a key of another kind matches
     /// nothing). RemoteConnector's dials from afar use them too. `onPinRefused` runs on `queue`
     /// each time `pin` refuses the key that answered (-9808): a connection to a Bonjour service
@@ -82,7 +82,7 @@ enum DeviceTLS {
     }
 }
 
-/// A pairing connection to a Mac's home door (§7.5): TLS with `sill-pair/1`, pinned to `pin` or
+/// A pairing connection to a Mac's home door (§7.5): TLS with `skopry-pair/1`, pinned to `pin` or
 /// taking any P-256 key, to each target in turn until one is ready. A target is a row as a tap
 /// dials it: its wired interface first, IPv6 only (the cable counts only over IPv6 link-local, at
 /// both ends), then, that dial not ready within DiscoveryPolicy.wiredWait or unable to go on, the
@@ -254,7 +254,7 @@ struct HomeAsk: Equatable {
     }
 
     /// Where the ask goes: the row as a tap dials it (its wired interface first), or an address
-    /// (DEBUG `-SillConnect`).
+    /// (DEBUG `-SkopryConnect`).
     let target: HomeDialer.Target
     /// What the words call the Mac: the row's name.
     let name: String
@@ -301,7 +301,7 @@ extension StreamClient {
         }
     }
 
-    /// The parameters of a session connection at home with `trust` (§7.2): TLS `sill/1` pinned as
+    /// The parameters of a session connection at home with `trust` (§7.2): TLS `skopry/1` pinned as
     /// the trust says (DiscoveryPolicy.pin), or plain for a plain door. Nil, with the status line
     /// saying why, when a TLS dial finds no key and none can be made.
     func sessionParameters(_ trust: DiscoveryPolicy.HomeTrust, peerToPeer: Bool,
@@ -349,10 +349,10 @@ extension StreamClient {
             persistSavedMacs()
         }
         #if DEBUG
-        // `-SillOverlayCode <digits>`: Pair This iPad… as the overlay runs it, once, on this session
+        // `-SkopryOverlayCode <digits>`: Pair This iPad… as the overlay runs it, once, on this session
         // (kind 21, then the code typed): the gates drive no UI, and the Mac's window must show that
-        // code (the bare app's -SillPairAfter).
-        if let code = UserDefaults.standard.string(forKey: "SillOverlayCode"), !overlayCodeTyped {
+        // code (the bare app's -SkopryPairAfter).
+        if let code = UserDefaults.standard.string(forKey: "SkopryOverlayCode"), !overlayCodeTyped {
             overlayCodeTyped = true
             print("harness: Pair This \(Self.deviceWord)… with the code, over this session")
             requestPairingCode()
@@ -459,7 +459,7 @@ extension StreamClient {
 
     // MARK: The ask (§7.5)
 
-    /// A tap on a row that pairs first (DiscoveryPolicy.homeDial's `.ask`): `sill-pair/1` to the
+    /// A tap on a row that pairs first (DiscoveryPolicy.homeDial's `.ask`): `skopry-pair/1` to the
     /// row as a tap dials it, kind 19 "ask" with `cable: true` when this device's own check says the
     /// connection runs over the USB cable, and kind 20 within 15 s. `savedID`: a saved Mac that
     /// removed this device, whose key the ask and the proofs are pinned to; otherwise any key, and
@@ -570,10 +570,10 @@ extension StreamClient {
             // The harness types the code or scans the link the card would (the simulator has no camera,
             // and these gates drive no UI).
             let d = UserDefaults.standard
-            if let code = d.string(forKey: "SillHomeCode") {
+            if let code = d.string(forKey: "SkopryHomeCode") {
                 print("harness: typing the code into the home card")
                 pairHome(code: code)
-            } else if let url = d.string(forKey: "SillHomeLink"), case .success(let link) = PairLink.parse(url) {
+            } else if let url = d.string(forKey: "SkopryHomeLink"), case .success(let link) = PairLink.parse(url) {
                 print("harness: scanning the link in the home card")
                 scanned(link, tapped: true, overlay: false)
             }
@@ -652,7 +652,7 @@ extension StreamClient {
         }
     }
 
-    /// The Cancel of an ask the Mac answered "shown" (§7.5): kind 19 "cancel" on a `sill-pair/1`
+    /// The Cancel of an ask the Mac answered "shown" (§7.5): kind 19 "cancel" on a `skopry-pair/1`
     /// connection to where the ask was answered, pinned to the key that answered, so the window it
     /// opened closes (withdrawn) instead of staying up for its 5 minutes with a live code. Nothing
     /// waits for it and nothing follows from its answer (always "closed"): the Mac closes only a
@@ -681,7 +681,7 @@ extension StreamClient {
     // MARK: Proofs at the home door (§7.5)
 
     /// The home card's typed code: checked here first (a typo never uses up one of the Mac's five
-    /// tries), then `sill-pair/1` to the connection the ask reached, pinned to the key it saw, kind
+    /// tries), then `skopry-pair/1` to the connection the ask reached, pinned to the key it saw, kind
     /// 19 `code` with proof_D from the PBKDF2 key.
     func pairHome(code text: String) {
         guard let ask = homeAsk, ask.phase == .shown, let key = ask.askedKey, let answered = ask.answered else { return }
@@ -721,7 +721,7 @@ extension StreamClient {
     }
 
     /// Pair This iPad…'s ask over a session at home that speaks TLS (§7.5): kind 19 "ask" on a
-    /// `sill-pair/1` connection to the session's own endpoint, pinned to the key the session saw,
+    /// `skopry-pair/1` connection to the session's own endpoint, pinned to the key the session saw,
     /// never claiming the cable, and the overlay's line says what the Mac answered
     /// (DiscoveryPolicy.overlayLine): a code only when it shows one. Kind 21 on the session went
     /// through the same ask rule, but its answer never came back, and the overlay said a code was
@@ -860,7 +860,7 @@ extension StreamClient {
                   link: link, scannedSecret: secret)
     }
 
-    /// A proof at the home door: `sill-pair/1` to each target in turn, pinned to `pin`, kind 19
+    /// A proof at the home door: `skopry-pair/1` to each target in turn, pinned to `pin`, kind 19
     /// `qr` or `code` with proof_D; kind 20 ok with proof_M checked and naming that key: saved
     /// (`homeTLS`, the Bonjour name), then a pinned session on the row, or over a stream the
     /// session goes on, now with a saved Mac. No target answering: a link's own addresses
@@ -968,8 +968,8 @@ extension StreamClient {
 
     /// A refused proof at the home door: the home card's words (DiscoveryPolicy.homeRefusal), which
     /// send the person back to the Mac's row only where a tap gets a new code ("expired"), else to
-    /// the Sill menu on the Mac first; over a stream (`overStream`, Pair This iPad…), where there is
-    /// no row, the remote path's, which send them to the Sill menu on the Mac.
+    /// the Skopry menu on the Mac first; over a stream (`overStream`, Pair This iPad…), where there is
+    /// no row, the remote path's, which send them to the Skopry menu on the Mac.
     static func homeProblem(for r: PairResult, mac: String, overStream: Bool = false) -> PairingProblem {
         if overStream { return problem(for: r, mac: mac) }
         // A reason this build does not know, with the Mac's own words for it: those, not a guess.
@@ -1002,7 +1002,7 @@ extension StreamClient {
     }
 
     /// After a pairing at home: a pinned session on the row the pairing went to (its wired
-    /// interface first, as a tap dials it), or at the address (DEBUG `-SillConnect`); no session
+    /// interface first, as a tap dials it), or at the address (DEBUG `-SkopryConnect`); no session
     /// within 10 s leaves the Mac as a saved row.
     private func sessionAfterHomePairing(_ macID: String, target: HomeDialer.Target) {
         guard let pin = savedMac(macID)?.fingerprintData else { return }
@@ -1098,12 +1098,12 @@ extension StreamClient {
 
     /// §7.5's check over the ask's ready connection (on `queue`): the Mac's address and the
     /// interface it is scoped to, from the connection's path, against this device's own addresses
-    /// (DiscoveryPolicy.onCable). DEBUG `-SillCableTest 1` counts this device's path as the cable:
+    /// (DiscoveryPolicy.onCable). DEBUG `-SkopryCableTest 1` counts this device's path as the cable:
     /// the simulator has no cable of its own.
     func cableCheck(_ c: NWConnection) -> DiscoveryPolicy.CableCheck {
         #if DEBUG
-        if UserDefaults.standard.bool(forKey: "SillCableTest") {
-            return DiscoveryPolicy.CableCheck(cable: true, console: "cable: yes (-SillCableTest)")
+        if UserDefaults.standard.bool(forKey: "SkopryCableTest") {
+            return DiscoveryPolicy.CableCheck(cable: true, console: "cable: yes (-SkopryCableTest)")
         }
         #endif
         guard case .hostPort(let host, _)? = c.currentPath?.remoteEndpoint else {

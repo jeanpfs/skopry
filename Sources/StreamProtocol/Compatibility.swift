@@ -17,17 +17,17 @@ import Foundation
 /// skip (24, 25 and 27, the Mac's menus: MacMenu.swift; 26, the Mac's pointer: Pointer.swift; 28,
 /// the trackpad gesture: Gesture.swift; 32, the clipboard: Clipboard.swift, sent only to a peer that
 /// said it takes it), and the JSON rules of HostSettings.swift, inside TLS 1.3
-/// with both keys pinned at both doors, whose session protocol is the ALPN `sill/1`
+/// with both keys pinned at both doors, whose session protocol is the ALPN `skopry/1`
 /// (RemoteTLS.sessionALPN): the home door pairs as the remote door does, as the first public builds
 /// ship it (docs/home-pairing-plan.md; the plain home door is development builds' and the CLI's).
 /// Raised only by a change an older peer cannot skip (a new transport, a kind or rule it cannot
-/// skip); an additive change never raises it. When it rises, a later session ALPN (`sill/2`) goes
-/// beside `sill/1` and `sill-pair/1`, which every host offers for good (RemoteTLS.serverALPNs), and
+/// skip); an additive change never raises it. When it rises, a later session ALPN (`skopry/2`) goes
+/// beside `skopry/1` and `skopry-pair/1`, which every host offers for good (RemoteTLS.serverALPNs), and
 /// the host's device floor rises with it (DeviceGate, docs/update-notice-plan.md §4.6): a device
-/// from the first public build speaks only `sill/1`, and hears kind 22 "update" only inside it, so a
+/// from the first public build speaks only `skopry/1`, and hears kind 22 "update" only inside it, so a
 /// host that no longer serves it still completes that handshake, reads its hello through the gate
 /// and refuses it with "update".
-public enum SillProtocol {
+public enum SkopryProtocol {
     public static let current = 1
 }
 
@@ -42,7 +42,7 @@ public enum SillProtocol {
 /// Compared part by part, a missing part counting as 0: "0.10" > "0.9", "1.0.1" > "1.0", and
 /// "v0.4.0" == "0.4". Shown with at least two parts and no trailing zeros beyond them: 0.4.0 is
 /// "0.4", 1 is "1.0", 1.0.1 is "1.0.1".
-public struct SillVersion: Comparable, Hashable, Sendable, CustomStringConvertible {
+public struct SkopryVersion: Comparable, Hashable, Sendable, CustomStringConvertible {
     /// The parts, trailing zeros dropped, so "0.4" and "0.4.0" are equal; empty is 0.
     public let components: [Int]
 
@@ -77,7 +77,7 @@ public struct SillVersion: Comparable, Hashable, Sendable, CustomStringConvertib
     }
 
     /// 0: what a device that sends no version counts as.
-    public static let zero = SillVersion(components: [])
+    public static let zero = SkopryVersion(components: [])
 
     public var description: String {
         var c = components
@@ -85,7 +85,7 @@ public struct SillVersion: Comparable, Hashable, Sendable, CustomStringConvertib
         return c.map(String.init).joined(separator: ".")
     }
 
-    public static func < (a: SillVersion, b: SillVersion) -> Bool {
+    public static func < (a: SkopryVersion, b: SkopryVersion) -> Bool {
         for i in 0..<max(a.components.count, b.components.count) {
             let x = i < a.components.count ? a.components[i] : 0
             let y = i < b.components.count ? b.components[i] : 0
@@ -106,7 +106,7 @@ public struct Hello: Codable, Sendable, Equatable {
     public var appVersion: String?
     /// CFBundleVersion: "42". Logged only.
     public var build: String?
-    /// SillProtocol.current: 1. Logged only in this build. The JSON key is "protocol".
+    /// SkopryProtocol.current: 1. Logged only in this build. The JSON key is "protocol".
     public var `protocol`: Int?
     /// "iPad (iPad14,1)", as ClientStats.device. The host cleans it (SafeText.label).
     public var device: String?

@@ -3,20 +3,20 @@ import Security
 import StreamProtocol
 
 /// This device's remote identity (docs/remote-access-plan.md §7.2): a P-256 key in the Keychain,
-/// tag `me.saffer.sill.device-key`, readable only while the device is unlocked, never synced and
+/// tag `app.skopry.device-key`, readable only while the device is unlocked, never synced and
 /// never in a backup (`WhenUnlockedThisDeviceOnly`), so a lost or restored device cannot use it.
 /// Made at the first pairing; its certificate is rebuilt at each launch (the pin is the key).
 ///
 /// A software key: whether Network.framework can sign the TLS handshake with a Secure Enclave key
-/// is R0-a, on a real device (open question 12). DEBUG `-SillDeviceKeySE 1` makes and uses a
+/// is R0-a, on a real device (open question 12). DEBUG `-SkopryDeviceKeySE 1` makes and uses a
 /// Secure Enclave key under its own tag for that check; the simulator has no Secure Enclave.
 ///
 /// Main thread, or the network queue once made: the identity is immutable and cached.
 enum DeviceIdentity {
-    static let tag = Data("me.saffer.sill.device-key".utf8)
+    static let tag = Data("app.skopry.device-key".utf8)
     #if DEBUG
-    static let secureEnclaveTag = Data("me.saffer.sill.device-key.se".utf8)
-    static var usesSecureEnclave: Bool { UserDefaults.standard.bool(forKey: "SillDeviceKeySE") }
+    static let secureEnclaveTag = Data("app.skopry.device-key.se".utf8)
+    static var usesSecureEnclave: Bool { UserDefaults.standard.bool(forKey: "SkopryDeviceKeySE") }
     #endif
 
     private static let lock = NSLock()
@@ -62,7 +62,7 @@ enum DeviceIdentity {
         return tags.allSatisfy { status(of: $0) == errSecItemNotFound }
     }
 
-    /// Forgets the key (`-SillForgetMacs 1`).
+    /// Forgets the key (`-SkopryForgetMacs 1`).
     static func forget() {
         lock.lock(); defer { lock.unlock() }
         cached = nil

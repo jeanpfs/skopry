@@ -5,19 +5,19 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sill</string>
+	<string>Skopry</string>
 	<key>CFBundleExecutable</key>
-	<string>Sill</string>
+	<string>Skopry</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>me.saffer.sill.mac</string>
+	<string>app.skopry.mac</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Sill</string>
+	<string>Skopry</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -32,12 +32,12 @@
 	<true/>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_sill._tcp</string>
+		<string>_skopry._tcp</string>
 	</array>
 	<key>NSHumanReadableCopyright</key>
-	<string>Sill is free and open source.</string>
+	<string>Skopry is free and open source.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Sill makes this Mac visible to your iPhone and iPad on the same network so they can stream its windows.</string>
+	<string>Skopry makes this Mac visible to your iPhone and iPad on the same network so they can stream its windows.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSSupportsAutomaticTermination</key>

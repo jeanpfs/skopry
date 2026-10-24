@@ -1,6 +1,6 @@
 // A stand-in for the VideoToolbox calls HEVCEncoder.swift makes, and for the two names it takes
-// from StreamProtocol and SillHostCore (ParameterSets, Stats). run.sh compiles a copy of the real
-// Sources/SillHost/HEVCEncoder.swift with its `import VideoToolbox` and `import StreamProtocol`
+// from StreamProtocol and SkopryHostCore (ParameterSets, Stats). run.sh compiles a copy of the real
+// Sources/SkopryHost/HEVCEncoder.swift with its `import VideoToolbox` and `import StreamProtocol`
 // lines removed against these, with the real EncoderMailbox.swift and EncoderProbe.swift, so the
 // binary links no VideoToolbox and cannot open an encoder session (run.sh checks with otool). No
 // NSLock here (os_unfair_lock only): a check that times the encoder's own NSLock sees only its.
@@ -29,7 +29,7 @@ final class Tracker {
     init(seq: Int) { self.seq = seq; Self.lock.run { _ = Self.live.insert(seq) } }
     deinit { let s = seq; Self.lock.run { _ = Self.live.remove(s) } }
 }
-let trackerKey = "sill.encoder-check.tracker" as CFString
+let trackerKey = "skopry.encoder-check.tracker" as CFString
 
 func makeFrame(seq: Int, width: Int = 16, height: Int = 16) -> CVPixelBuffer {
     var pb: CVPixelBuffer?
@@ -284,11 +284,11 @@ let kVTCompressionPropertyKey_PrioritizeEncodingSpeedOverQuality = "PrioritizeEn
 let kVTEncodeFrameOptionKey_ForceKeyFrame = "ForceKeyFrame" as CFString
 let kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder = "EnableHardwareAcceleratedVideoEncoder" as CFString
 
-// MARK: - StreamProtocol's and SillHostCore's names
+// MARK: - StreamProtocol's and SkopryHostCore's names
 
 struct ParameterSets { let nalUnitHeaderLength: Int; let sets: [Data] }
 
-/// SillHostCore's counters, as HEVCEncoder.swift and EncoderProbe.swift use them.
+/// SkopryHostCore's counters, as HEVCEncoder.swift and EncoderProbe.swift use them.
 final class Stats {
     static let shared = Stats()
     private let lock = UnfairLock()

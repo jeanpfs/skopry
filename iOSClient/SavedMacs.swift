@@ -35,7 +35,7 @@ struct SavedMac: Codable, Hashable, Identifiable {
     var lastRoute: String?
     /// This device has seen the Mac's home door speak TLS: a TXT record with `p`, or a TLS session
     /// at home (docs/home-pairing-plan.md §7.3). Its rows are then dialed only over TLS, in DEBUG
-    /// too, and a row of it without `p` reads "Update Sill" (no downgrade: its own Sill never goes
+    /// too, and a row of it without `p` reads "Update Skopry" (no downgrade: its own Skopry never goes
     /// back to plain, and someone may be replaying its tag). Kept by a new pairing with the same
     /// Mac (`SavedMacs.adding`). Optional, so a record from before it decodes.
     var homeTLS: Bool?
@@ -45,7 +45,7 @@ struct SavedMac: Codable, Hashable, Identifiable {
     /// replaces this one. Optional, so a record from before it decodes.
     var revoked: Bool?
     /// Another key answered as this Mac on a pinned home dial (-9808) and no other row of it was
-    /// left (DiscoveryPolicy.afterPinRefused): the Mac was set up again (Noah, 2026-09-27: Sill for
+    /// left (DiscoveryPolicy.afterPinRefused): the Mac was set up again (Noah, 2026-09-27: Skopry for
     /// Mac 0.4.0 made a new key). No automatic reconnect, its rows read "Not paired", and a tap
     /// asks with any key, the Mac proving itself with its code; the pairing that follows replaces
     /// this record (`replacingNewKey`). Optional, so a record from before it decodes.
@@ -61,9 +61,9 @@ struct SavedMac: Codable, Hashable, Identifiable {
 /// The saved Macs' rules, pure (checked on their own with swiftc): storage, merging, refresh,
 /// the cap, what is never saved, names for display, and recognising a TXT tag.
 enum SavedMacs {
-    /// UserDefaults key, JSON text. `-Sill.savedMacs '<JSON>'` seeds a run (the argument domain is
+    /// UserDefaults key, JSON text. `-Skopry.savedMacs '<JSON>'` seeds a run (the argument domain is
     /// never written); `'[]'` empties it.
-    static let defaultsKey = "Sill.savedMacs"
+    static let defaultsKey = "Skopry.savedMacs"
     static let cap = 16
 
     static func decode(_ text: String?) -> [SavedMac] {
@@ -243,8 +243,8 @@ enum SavedMacs {
         return out
     }
 
-    /// DEBUG `-SillForgetHomeTLS 1` (§3.4, §7.9): `homeTLS` cleared on every saved Mac, so a DEBUG
-    /// build dials an older Sill.app (another branch's) plainly again.
+    /// DEBUG `-SkopryForgetHomeTLS 1` (§3.4, §7.9): `homeTLS` cleared on every saved Mac, so a DEBUG
+    /// build dials an older Skopry.app (another branch's) plainly again.
     static func forgettingHomeTLS(_ list: [SavedMac]) -> [SavedMac] {
         list.map { mac in
             var next = mac

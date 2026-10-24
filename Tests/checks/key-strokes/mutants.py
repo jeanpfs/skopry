@@ -1,9 +1,9 @@
-"""Mutants of KeyStrokes.swift (Sources/SillHost) and KeyChords.swift (iOSClient): each changes one
+"""Mutants of KeyStrokes.swift (Sources/SkopryHost) and KeyChords.swift (iOSClient): each changes one
 file in one place, is compiled with the check by build.sh and must make the check fail.
 usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-STROKES = "Sources/SillHost/KeyStrokes.swift"
+STROKES = "Sources/SkopryHost/KeyStrokes.swift"
 CHORDS = "iOSClient/KeyChords.swift"
 UP = "        } else {\n            down[usage] = nil\n            flags = heldFlags\n        }\n"
 MOD = "            down[usage] = isDown ? device : nil\n            flags = heldFlags\n"

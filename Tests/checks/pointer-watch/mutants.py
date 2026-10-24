@@ -1,9 +1,9 @@
-"""Mutants of PointerWatch.swift (Sources/SillHost), the host's shell around PointerControl
+"""Mutants of PointerWatch.swift (Sources/SkopryHost), the host's shell around PointerControl
 (docs/pointer-visibility-plan.md §4.2, §4.10): each changes the file in one place, is compiled with the
 check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-WATCH = "Sources/SillHost/PointerWatch.swift"
+WATCH = "Sources/SkopryHost/PointerWatch.swift"
 MUTANTS = [
     # What is read
     ("a synthetic host reads the real pointer", "        if synthetic {\n            read = path == nil ? nil : scriptedPointer(now: now)\n",
@@ -15,8 +15,8 @@ MUTANTS = [
     ("the driving device is sent the pointer too", "            guard controller != .client(client) else { return nil }\n", ""),
     ("x and y sent while outside", "MacPointer(inside: false, seen: seen)", "MacPointer(x: x, y: y, inside: false, seen: seen)"),
     ("inside ignores the window being off screen", "inside: f.inside && onScreen", "inside: f.inside"),
-    # Sill's own motion
-    ("sillMoved opens no settle", "        control.sillMoved(now: now)\n", ""),
+    # Skopry's own motion
+    ("skopryMoved opens no settle", "        control.skopryMoved(now: now)\n", ""),
     # The window's re-read
     ("a re-read at every sample", "if !rereading, (moved && watched && since >= rereadAfterMove) || since >= rereadAnyway {", "if !rereading {"),
     ("no re-read after a move", "(moved && watched && since >= rereadAfterMove) || since >= rereadAnyway", "since >= rereadAnyway"),
@@ -60,9 +60,9 @@ MUTANTS = [
     ("a line with a fourth field taken", "guard fields.count == 3, numbers.count == 3,", "guard fields.count >= 3, numbers.count >= 3,"),
     ("CRLF not a line end", "whereSeparator: \\.isNewline", "whereSeparator: { $0 == \"\\n\" }"),
     # The hooks
-    ("a real host takes the scripted pointer", "        guard synthetic else { return (nil, \"SILL_TEST_POINTER_PATH=", "        guard true else { return (nil, \"SILL_TEST_POINTER_PATH="),
-    ("a real host takes the software encoder", "        guard synthetic else { return (false, \"SILL_TEST_SOFTWARE_ENCODER ignored",
-     "        guard true else { return (false, \"SILL_TEST_SOFTWARE_ENCODER ignored"),
+    ("a real host takes the scripted pointer", "        guard synthetic else { return (nil, \"SKOPRY_TEST_POINTER_PATH=", "        guard true else { return (nil, \"SKOPRY_TEST_POINTER_PATH="),
+    ("a real host takes the software encoder", "        guard synthetic else { return (false, \"SKOPRY_TEST_SOFTWARE_ENCODER ignored",
+     "        guard true else { return (false, \"SKOPRY_TEST_SOFTWARE_ENCODER ignored"),
     ("any value turns the software encoder on", "        guard value == \"1\" else {", "        guard !value.isEmpty else {"),
     ("\"steps\" for one step", "step\\(n == 1 ? \"\" : \"s\")", "steps"),
 ]

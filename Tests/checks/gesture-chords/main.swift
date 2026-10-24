@@ -1,13 +1,13 @@
-// H4 (docs/trackpad-gestures-plan.md §9.1): Sources/SillHost/GestureChords.swift on its own, the Mac's
+// H4 (docs/trackpad-gestures-plan.md §9.1): Sources/SkopryHost/GestureChords.swift on its own, the Mac's
 // half of the trackpad gestures: each gesture to the Mac's own shortcut for its action (the first
 // that is on and bound, its device-independent modifier bits only, never another action's), the
-// reversal (the opposite gesture closes what Sill opened; the same gesture again does nothing, and
+// reversal (the opposite gesture closes what Skopry opened; the same gesture again does nothing, and
 // once more opens it again; the Spaces leave a view open; a click, a key or text forgets, a move, a
 // scroll or a button or key coming up does not; a pick, a launch, a window's button or the last
 // device leaving forgets), unknown names, the log line, the modifiers a chord must not leave behind
 // and the TEST ONLY table. Then 5,000 random sequences of gestures, input, picks and random tables
 // against a model written here from the plan, not from the file. Pure: nothing is posted anywhere.
-//   swiftc -O -package-name sill Sources/SillHost/GestureChords.swift Tests/checks/gesture-chords/main.swift -o check && ./check
+//   swiftc -O -package-name skopry Sources/SkopryHost/GestureChords.swift Tests/checks/gesture-chords/main.swift -o check && ./check
 import Foundation
 
 var fails = 0, passes = 0
@@ -116,7 +116,7 @@ for (g, a) in [("swipeUp", GestureAction.missionControl), ("swipeDown", .appExpo
     r = run([g, g])
     check("\(g) twice: the second posts nothing", isNothing(r.1[1], a) && reason(r.1[1]) == "\(a.title) is already open")
     check("\(g) twice: still open", r.0.open == a && r.0.repeated)
-    // Once more, straight after: the view was closed where Sill cannot see (the Mac's own keyboard or
+    // Once more, straight after: the view was closed where Skopry cannot see (the Mac's own keyboard or
     // trackpad), so its shortcut goes again, and it counts as open.
     r = run([g, g, g])
     check("\(g) three times: the third posts its shortcut again", r.1[2] == r.1[0] && r.0.open == a && !r.0.repeated)

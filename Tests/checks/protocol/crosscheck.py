@@ -38,7 +38,7 @@ check("openssl x509 parses it: version 3, ecdsa-with-SHA256, a named curve (prim
 check("openssl x509: no extensions", "X509v3 extensions" not in text)
 check("Mac ID vector in Python", macid(bytes.fromhex("50d858e0985ecc7f6041") + bytes(22)) == "A3C5HR4RBV67YR21")
 rk = bytes([0x11]) * 32; p = bytes.fromhex("a1a2a3a4a5a6")
-check("tag vector in Python", b64u(p + hmac.new(rk, b"sill-tag-v1" + p, hashlib.sha256).digest()[:6]) == "oaKjpKWmL4V47Ctm")
+check("tag vector in Python", b64u(p + hmac.new(rk, b"skopry-tag-v1" + p, hashlib.sha256).digest()[:6]) == "oaKjpKWmHSZaPhxT")
 
 signed = json.load(open(os.path.join(D, "signed-macinfo.json")))
 info = base64.b64decode(signed["info"]); point = base64.b64decode(signed["key"]); sig = base64.b64decode(signed["sig"])

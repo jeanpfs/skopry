@@ -15,7 +15,7 @@ unchanged at cea195c (md5 54a77389), so the diff still applies (`git apply --che
 ran only the investigation's encoder-free harness, on the proposed file and on ba91136's; its runs
 are in the session's scratch folder `…/scratchpad/remote-bundle-plan/critic/runs/`.
 
-The evidence is the investigation of Noah's hotspot session of 2026-09-25 (Sill.log 13:55–14:56),
+The evidence is the investigation of Noah's hotspot session of 2026-09-25 (Skopry.log 13:55–14:56),
 its encoder-free harness and an independent verification of both (workflow wfwhu0q5v). The
 harness, the proposed diff (`remote-pacing.diff`, +76/−19) and every run are in that session's
 scratch folder `…/scratchpad/remote-starvation/`; step 1 brings the harness into the repository as
@@ -130,7 +130,7 @@ net.waitKey 56" every 2 s, 1.4 fps. The proposed rule gives 60.1 fps with nothin
 2. **Liveness by bytes** on the device: payloads read in pieces of at most 256 KB, each piece a
    sign of life (`MessageReader`, new, checked with swiftc).
 3. **Two qualities.** `HostConfig` gains the away quality. The host runs it while every connected
-   device is away. A device away sets it and never the home one. Sill.app saves it under its own
+   device is away. A device away sets it and never the home one. Skopry.app saves it under its own
    keys and shows it in Settings › Streaming.
 4. **Kind 16 per connection,** with two optional fields: `away` and `link`.
 5. **The link, per device:** fine, behind or stalled, judged by the host from what it withholds,
@@ -146,7 +146,7 @@ net.waitKey 56" every 2 s, 1.4 fps. The proposed rule gives 60.1 fps with nothin
 ```
  iPad away ─── TLS (remote door, 7455) ──┐                  iPad at home ─── TCP (home door) ──┐
                                          ▼                                                     ▼
-┌────────────────────────────────── StreamServer (sill.net) ───────────────────────────────────┐
+┌────────────────────────────────── StreamServer (skopry.net) ───────────────────────────────────┐
 │ remote clients: pendingBytes, keyframeInFlight, backlogFloor → paceRemote           (item 1) │
 │ every client, each second: sent, withheld, bytes taken → LinkJudge                  (item 3) │
 │   onClientLinkChanged(connection, verdict) ───────────────────────────────────┐              │
@@ -157,7 +157,7 @@ net.waitKey 56" every 2 s, 1.4 fps. The proposed rule gives 60.1 fps with nothin
 │ config: the home and the away quality; the pipeline runs one (awayRunning)          (item 2) │
 │ kind 16 to each connection: the pair it sets, away {…}, link {…}                (items 2, 3) │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
-Sill.app: Settings › Streaming "Away from home"; the menu's Quality subtitle; the card's link
+Skopry.app: Settings › Streaming "Away from home"; the menu's Quality subtitle; the card's link
 Device:   "Away: Low · Standard"; the link callout and its button; the stream's line;
           MessageReader (item 1); the move home once the network lists the Mac 2 s (item 4)
 ```
@@ -219,7 +219,7 @@ drop 6 s in set off the 2 s loop for good: 29.6 fps, 27.8 drops a minute, about 
 the base ran at 13.2–24.5 fps. Each forced keyframe is more than the link's spare capacity, so
 nothing brings it back out (§3.7, open question 12).
 
-#### 3.3 The host code (`Sources/SillHost/StreamServer.swift`)
+#### 3.3 The host code (`Sources/SkopryHost/StreamServer.swift`)
 
 `scratchpad/remote-starvation/remote-pacing.diff`, applied as it is:
 
@@ -250,7 +250,7 @@ nothing brings it back out (§3.7, open question 12).
   net.sent; send(data, to: client, isFrame: true, isKeyframe: message.isKeyframe)
   ```
 
-- **Threads.** Completions and `paceRemote` share `sill.net` (the remote door starts its
+- **Threads.** Completions and `paceRemote` share `skopry.net` (the remote door starts its
   connections on `server.queue`, RemoteServer.swift:84, :239), so the byte counters need no lock.
 - **The doc comment** above `paceRemote` becomes the diff's (the rule in four bullets and the
   2026-09-25 loop), and docs/remote-access-plan.md §4.9(6) gets one line: "Superseded by
@@ -294,7 +294,7 @@ final class MessageReader {
   - `onBytes` stamps `lastReceivedAt`;
   - `onMessage` calls `deliver(_:_:from:)`;
   - `.tooBig` keeps today's line "closing: the host announced a N-byte message (kind K)" with
-    `connectionLost(c, end: .notSill)` and `c.cancel()`;
+    `connectionLost(c, end: .notSkopry)` and `c.cancel()`;
   - `.closed` keeps "read error: …" with `connectionLost(c, error:)`.
 
   `readHeader` and `readPayload` go.
@@ -313,7 +313,7 @@ final class MessageReader {
   fewer forced keyframes, never more.
 - **The first keyframe** still goes out whatever the queue holds.
 - **No new print, no new Stats key.** The CLI opens no remote door without `--remote`
-  (SillHostCLI/main.swift:44-60), so its default stdout is identical by construction; H2 checks it
+  (SkopryHostCLI/main.swift:44-60), so its default stdout is identical by construction; H2 checks it
   anyway.
 - **The device's wire, rtt, ping cadence and liveness limits.** Only what counts as a sign of life
   changes.
@@ -329,7 +329,7 @@ None new, on either side.
 | Near capacity: 1.5 MB keyframes, 40 KB deltas, 24 Mbps (~93 % load) | 43.8 fps, 20 drops a minute (base 15.1) | Each drop buys a whole keyframe, which pushes the link over. A lower quality: item 3 says so, item 2 starts away low |
 | 2 MB keyframes, 20 KB deltas, 16 Mbps | 29.4 and 13.9 fps in the verifier's two runs, 22–30 drops a minute, ~1.2 s lag (base 1.5) | The same |
 | bigkf8: 1.5 MB keyframes, 8 KB deltas, 8 Mbps (~85 % load) | Bistable (§3.2): 60 fps, nothing dropped, 1–2 s behind in five runs of six; the 2 s loop at 29.6 fps and ~3 s behind in the sixth (base 13.2–24.5 fps) | The same |
-| A stream the link carries only through a standing queue in the kernel's send buffer (bigkf8's good runs: frame age p50 0.8–1.4 s, p95 1.6–1.9 s) | Every frame arrives, a second or two late | Nothing here: the rule sees only what Sill holds, not the socket's queue (a bound on it is not in this bundle), and the link judge (§6) sees nothing withheld. The device's frame age (the host's `client` lines) shows it |
+| A stream the link carries only through a standing queue in the kernel's send buffer (bigkf8's good runs: frame age p50 0.8–1.4 s, p95 1.6–1.9 s) | Every frame arrives, a second or two late | Nothing here: the rule sees only what Skopry holds, not the socket's queue (a bound on it is not in this bundle), and the link judge (§6) sees nothing withheld. The device's frame age (the host's `client` lines) shows it |
 | Extreme · Retina on a 6–10 Mbps hotspot | Its deltas alone may exceed the link | Items 2 and 3 |
 | A 12 s dip from 8 to 0.5 Mbps | Lag back to 45 ms about 3 s later than the base (7.1–8.2 s against 4.1–5.0 s, three runs each) | Nothing here. It delivers up to 512 KB of backlog behind a keyframe where the old rule dropped: a deliberate, bounded exception to "Latency beats quality. Drop frames before queuing them.", remote clients only |
 | The first seconds of a session on a slow link | The catalog drains ahead of the video; followers of the first keyframe can drop meanwhile | Later: icons after the first keyframe |
@@ -343,9 +343,9 @@ None new, on either side.
 
 ```swift
 /// Away from home (docs/remote-bundle-plan.md §5): the Mac's two qualities, which one runs, and
-/// which one this connection's controls set. From a host with an identity (Sill.app; SillHost
+/// which one this connection's controls set. From a host with an identity (Skopry.app; SkopryHost
 /// --remote or --pairing); nil from any other host, which has one quality for every device. One
-/// without a remote door (SillHost --pairing alone) sends it too, and no connection there is ever
+/// without a remote door (SkopryHost --pairing alone) sends it too, and no connection there is ever
 /// away (`thisConnectionAway` and `awayRunning` false).
 public struct AwayQuality: Codable, Hashable, Sendable {
     /// What runs while any connected device is at home: the Mac menu's Quality and Resolution.
@@ -390,7 +390,7 @@ public struct LinkReport: Codable, Hashable, Sendable {
 `HostSettingsState` (:86-111) gains, with `= nil` defaults in its init:
 
 ```swift
-    /// Away from home: nil from a host without an identity (SillHost without --remote or
+    /// Away from home: nil from a host without an identity (SkopryHost without --remote or
     /// --pairing), and from older hosts.
     public var away: AwayQuality?
     /// This connection's link while it cannot keep up; nil while it does, and from older hosts.
@@ -435,11 +435,11 @@ the away quality without knowing it.
 |---|---|---|
 | Older (PR #13's, or main's up to cea195c), away | This host | Its Quality and Resolution show the away quality and set it. No "Away:" line. It ignores `link`, and keeps its rtt callout; the Mac's card still names the link. Its liveness still counts whole messages: a keyframe that takes more than 6 s to arrive still ends its session (§3.4), which this host's pacing makes rarer and cannot prevent |
 | Older, at home | This host | As today |
-| This device | Older host with a plain home door (PR #13's Sill.app, main's up to cea195c, Sill for Mac 0.3.1) | No `away`, no `link`: the panel as today (one quality, the rtt callout). No move home since the merge with main (2026-10-08): the move goes only to a TLS home door, pinned to the saved Mac's key, so the session stays remote (before the merge it moved home over the plain door, that host sending a launch ID and a signed kind 18) |
-| This device | Sill for Mac 0.4.0 (main's at e6b3265: a TLS home door with pairing, no `away`) | No `away`, no `link`: the panel as today. The move home works, pinned to the saved key: that host sends a launch ID and a signed kind 18 |
+| This device | Older host with a plain home door (PR #13's Skopry.app, main's up to cea195c, Skopry for Mac 0.3.1) | No `away`, no `link`: the panel as today (one quality, the rtt callout). No move home since the merge with main (2026-10-08): the move goes only to a TLS home door, pinned to the saved Mac's key, so the session stays remote (before the merge it moved home over the plain door, that host sending a launch ID and a signed kind 18) |
+| This device | Skopry for Mac 0.4.0 (main's at e6b3265: a TLS home door with pairing, no `away`) | No `away`, no `link`: the panel as today. The move home works, pinned to the saved key: that host sends a launch ID and a signed kind 18 |
 | This device | CLI without `--remote` or `--pairing` | `away` nil (no identity); `link` works; nobody is ever away |
 | This device | CLI with `--pairing` alone (since the merge with main: an identity for the TLS home door, no remote door) | `away` sent, with `thisConnectionAway` and `awayRunning` always false: nobody is ever away, so no header line and no footnote (its kind 18 says Remote Access is off); `link` works |
-| `sillclient.py` from ba91136 | This host, default path | Identical output: no `away` (no identity) and no `link` while the link keeps up, so the JSON is byte for byte today's |
+| `skopryclient.py` from ba91136 | This host, default path | Identical output: no `away` (no identity) and no `link` while the link keeps up, so the JSON is byte for byte today's |
 | Any | Any | Items 1 and 4 change nothing on the wire |
 
 Kinds 16 and 17 stay compatible both ways; no kind is added.
@@ -469,7 +469,7 @@ setting must go" gains one line: an away variant goes in HostConfig's away knobs
 - **A device's Quality or Resolution pick** sets the quality its connection controls (§4.2): the
   away quality from away, the home quality from home. The other fields of the same change apply
   as today.
-- **The away quality is remembered** as the last choice made away. Sill.app saves it under
+- **The away quality is remembered** as the last choice made away. Skopry.app saves it under
   `awayBitrate` and `awayCaptureScale`, never over `bitrate` and `captureScale`. The CLI keeps it
   until it quits.
 - **No rtt exception** (open question 1).
@@ -601,16 +601,16 @@ setting must go" gains one line: an away variant goes in HostConfig's away knobs
 #### 5.6 CLI
 
 - Nothing new: no flag, no line on the default path.
-- `SillHost --remote` hosts run the rule. Their lines print only when a device connects from a VPN
+- `SkopryHost --remote` hosts run the rule. Their lines print only when a device connects from a VPN
   or the internet, which no baseline run does: the remote plan's loopback TLS clients are "by
   address", so at home.
 
-#### 5.7 Sill.app
+#### 5.7 Skopry.app
 
 - **`HostSettings`** (app, :26-116):
   - keys `awayBitrate` and `awayCaptureScale`, with registered defaults from `HostConfig.standard`;
   - loaded into `config`, saved only when changed, as the others.
-  - `defaults read me.saffer.sill.mac awayBitrate` answers "does not exist" until the first change,
+  - `defaults read app.skopry.mac awayBitrate` answers "does not exist" until the first change,
     which is how the default reads.
 - **`AppModel`** (:71-74):
 
@@ -633,7 +633,7 @@ setting must go" gains one line: an away variant goes in HostConfig's away knobs
   home quality. While the away quality runs (`snapshot.away`), Quality's subtitle is "Away from
   home now: Low · Standard" instead of "Per 60 fps; a 120 fps stream gets twice as much".
 - **`DebugHooks`:**
-  - `-SillSetAfter` learns `awayBitrate=N` and `awayCaptureScale=1|2` (:108-126);
+  - `-SkoprySetAfter` learns `awayBitrate=N` and `awayCaptureScale=1|2` (:108-126);
   - the previews gain a sample `remote-away` (the remote device, `away` true) for menu.txt and a
     card;
   - the Streaming pane samples show the new section.
@@ -652,8 +652,8 @@ setting must go" gains one line: an away variant goes in HostConfig's away knobs
   says Remote Access is on.
 - **The ledger** (HostSettingsLedger.swift) is unchanged: `settings` is already the controlled
   pair (§4.2).
-- **`MockCatalog`** gains `-SillSettingsCase away`, `awaymixed` and `awayhome`.
-- **`Scripts/sillclient.py`:**
+- **`MockCatalog`** gains `-SkoprySettingsCase away`, `awaymixed` and `awayhome`.
+- **`Scripts/skopryclient.py`:**
   - `describe` appends ` away=h:40000000/2,a:4000000/1,this=1,run=1` when `away` is present;
   - `--expect` learns `awayBitrate`, `awayCaptureScale`, `thisConnectionAway` and `awayRunning`
     (read from `away`).
@@ -750,7 +750,7 @@ kept 60 fps, and one at about 93 % did not (43.8 fps). The encoder's own 4 s key
     `net.waitKey` bump;
   - `awaitingFirstKeyframe`, today cleared only for remote clients, is also cleared when the home
     branch sends a client its keyframe. The home branch does not read it.
-- **The sweep** (`updateRemoteSweep`/`sweepRemote`, :717-745) becomes one 1 s timer on `sill.net`
+- **The sweep** (`updateRemoteSweep`/`sweepRemote`, :717-745) becomes one 1 s timer on `skopry.net`
   while any client is registered. Each tick closes every client's window
   (`judge.close(LinkJudge.Second(…))`) and reports a verdict through
   `onClientLinkChanged: ((NWConnection, LinkJudge.Verdict) -> Void)?`. The remote silence
@@ -761,7 +761,7 @@ kept 60 fps, and one at about 93 % did not (43.8 fps). The encoder's own 4 s key
   restarts the stream).
 - **No Stats key, no print.** The lines are the coordinator's (§6.8).
 
-#### 6.4 `Sources/SillHost/LinkJudge.swift` (new; pure: Foundation only; checked with swiftc)
+#### 6.4 `Sources/SkopryHost/LinkJudge.swift` (new; pure: Foundation only; checked with swiftc)
 
 ```swift
 struct LinkJudge {
@@ -797,7 +797,7 @@ The state is an enum inside the host only; the wire carries the string.
 - **The suggestion is sent even when this device cannot apply it** (away, with a device at home):
   the device decides what to offer (§6.7).
 
-#### 6.6 Sill.app: the card (`StatusText.swift`)
+#### 6.6 Skopry.app: the card (`StatusText.swift`)
 
 `deviceRow` (:205-215). While `d.link` is set, the first part of the detail becomes:
 - behind: "3 fps, the link can’t carry Pro";
@@ -845,8 +845,8 @@ and frame age speak for a dead path.
   every change.
 - **Reduce Motion:** a fade either way.
 
-**The harness** gains `-SillSettingsCase linkbehind`, `linkmixed`, `linklow` and `linkstalled`
-(which must show nothing), and `-SillLinkLine behind` for the stream screen with the line up.
+**The harness** gains `-SkoprySettingsCase linkbehind`, `linkmixed`, `linklow` and `linkstalled`
+(which must show nothing), and `-SkopryLinkLine behind` for the stream screen with the line up.
 
 #### 6.8 Log lines (exact; on reports only)
 
@@ -895,7 +895,7 @@ a break, the session moves to the home door.
 - **Never:**
   - for a session made with **Connect Remotely** (`DialReason.connectRemotely`), which exists to
     test the VPN path from home;
-  - to a listing found to be another launch of Sill, or another Mac, while that listing lasts
+  - to a listing found to be another launch of Skopry, or another Mac, while that listing lasts
     (since the merge's review, 2026-10-08: to a row found so, while that row is listed; another
     row with the Mac's tag is tried, `moveHomeRow`);
   - while a move of any kind is under way.
@@ -959,7 +959,7 @@ refused, forgotten with the row), picks the row among those with the Mac's tag (
 - **At the new connection's `.ready`,** before the probe, the home viewport goes straight out on
   it: `lastViewport` with `fps: StreamClient.wantedFPS(remote: false)`, sent on `c`, not through
   SessionLink. Both are main-thread state (UIScreen, `lastViewport`), so the move captures the
-  message when it starts, on the main thread, and the `.ready` handler on `sill.net` only sends it.
+  message when it starts, on the main thread, and the `.ready` handler on `skopry.net` only sends it.
   - A viewport cannot reorder input, and the Mac keeps a rate per connection.
   - It is the new connection's first viewport, which the Mac's flip waits for (§5.4), so a
     ProMotion device's 120 fps and the home quality go in one restart (§7.4).
@@ -1015,7 +1015,7 @@ refused, forgotten with the row), picks the row among those with the Mac's tag (
   - **Settings picks are not held.** While that hold stands, `changeSettings` sends nothing (the
     control stays on the Mac's value). A pick then is made against the away state the panel
     shows; held, it would go out on the home connection, and the Mac, which counts that one at
-    home, would set the home quality and Sill.app would save it. The fenced hand-over needs no
+    home, would set the home quality and Skopry.app would save it. The fenced hand-over needs no
     such rule: `finishMove` resets the ledger in the same main-thread turn as `handOver`, so a pick
     before it goes out on the remote connection (the fence has the Mac read it there, as away),
     and one after it waits for the home connection's state.
@@ -1046,16 +1046,16 @@ remote: moving the session home on en2 (wired)
 remote: moving the session home (the row as listed)
 remote: the session moved home (fence down after 184 ms; 3 held messages went out)
 remote: the move home did not complete (2 in a row); the next try in 20 s
-remote: move home refused: Mac mini on the network is another launch of Sill
+remote: move home refused: Mac mini on the network is another launch of Skopry
 remote: move home refused: the home door's kind 18 is not this Mac's, or older than this session's
 ```
 
-- **`-SillMoveHomeTest to:HOST:PORT|refused|other:PORT`,** with `-SillDialSaved 1` against a
-  synthetic `SillHost --remote`. A second after the remote session's first window list, the
+- **`-SkopryMoveHomeTest to:HOST:PORT|refused|other:PORT`,** with `-SkopryDialSaved 1` against a
+  synthetic `SkopryHost --remote`. A second after the remote session's first window list, the
   saved Mac is listed as a network row at that address with the session's Mac ID. Modelled on
-  `-SillMoveTest` (`beginMoveTest`, PR #12). `refused` lists port 1 of that host; `other:PORT` a
+  `-SkopryMoveTest` (`beginMoveTest`, PR #12). `refused` lists port 1 of that host; `other:PORT` a
   second synthetic host.
-- **`-SillDialSaved remotely`** dials the first saved Mac as Connect Remotely does.
+- **`-SkopryDialSaved remotely`** dials the first saved Mac as Connect Remotely does.
 
 ---
 
@@ -1066,7 +1066,7 @@ remote: move home refused: the home door's kind 18 is not this Mac's, or older t
 | Where | Text |
 |---|---|
 | Settings › Streaming, new section header | "Away from home" |
-| Its footer | "Sill streams at these while every connected device is away from home, through a VPN or over the internet, so a slow connection never starts at your home quality. A device away from home changes these, and never your Quality and Resolution above." Then, while they run: " Streaming at these now." |
+| Its footer | "Skopry streams at these while every connected device is away from home, through a VPN or over the internet, so a slow connection never starts at your home quality. A device away from home changes these, and never your Quality and Resolution above." Then, while they run: " Streaming at these now." |
 | The menu's Quality subtitle, while the away quality runs | "Away from home now: Low · Standard" |
 | The card, a device behind | "3 fps, the link can’t carry Pro · RTT 531 ms · through Tailscale" |
 | The card, a device stalled | "Nothing is getting through · through Tailscale" |
@@ -1154,14 +1154,14 @@ remote: move home refused: the home door's kind 18 is not this Mac's, or older t
 ### 11. Test gates
 
 **Hard rules for the implementing session:**
-- **Never touch** `/Applications/Sill.app`, the `me.saffer.sill.mac` domain, Noah's login
-  keychain or his iPad. App paths use the bare `SillMenuBar --synthetic` with
-  `SILL_TEST_REMOTE_DIR`; `defaults delete SillMenuBar` afterwards.
+- **Never touch** `/Applications/Skopry.app`, the `app.skopry.mac` domain, Noah's login
+  keychain or his iPad. App paths use the bare `SkopryMenuBar --synthetic` with
+  `SKOPRY_TEST_REMOTE_DIR`; `defaults delete SkopryMenuBar` afterwards.
 - **The encoder-free harness** (`Scripts/pacing/`) for every pacing and link-judging gate.
-- **Synthetic hosts run with `SILL_TEST_SOFTWARE_ENCODER=1`.** If the pointer plan has not landed
+- **Synthetic hosts run with `SKOPRY_TEST_SOFTWARE_ENCODER=1`.** If the pointer plan has not landed
   the hook, step 1 adds it as pointer-visibility-plan.md §4.10 defines it: a synthetic host only;
   it skips `EncoderProbe` and starts on the software encoder, with the line "Test encoder:
-  software only (SILL_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed.". **It also
+  software only (SKOPRY_TEST_SOFTWARE_ENCODER); the hardware encoder is never probed.". **It also
   stops PR #11's re-check,** which §4.10 predates: since b50e224 a host on the software encoder
   tests the hardware every 30 s while a device is connected (`startRecheck`, a short
   `EncoderProbe.throughput` at the stream's size) and goes back to it once it keeps up, so the
@@ -1171,7 +1171,7 @@ remote: move home refused: the home door's kind 18 is not this Mac's, or older t
   (CLAUDE.md), so Retina ↔ Standard shows in the logs as bitrate only, and no viewport's rate
   restarts it.
 - **H2's parity runs use the hardware encoder,** as every earlier parity run did. Run them only
-  while `~/Library/Logs/Sill/Sill.log`, read-only, has no `client ` line in the last minute;
+  while `~/Library/Logs/Skopry/Skopry.log`, read-only, has no `client ` line in the last minute;
   otherwise wait and say so in the results.
 - **Never `simctl recordVideo`, never XCUITest, never the iOS Simulator control tool's `attach`**
   while a host streams: the Simulator's recorder starved Noah's encoder on 2026-09-24.
@@ -1200,11 +1200,11 @@ remote: move home refused: the home door's kind 18 is not this Mac's, or older t
     the repository, so nothing drifts.
   - `device.py` (the device's reader, pings, stats and liveness; `--liveness-bytes` for the per-byte
     rule), `bottleneck.py` (a rate, a delay and a finite bottleneck queue; `--rate-at T:R`, where a
-    rate of 0 stops the downlink only, and `--blackhole-at T`, both ways from T, as sillrelay.py's
+    rate of 0 stops the downlink only, and `--blackhole-at T`, both ways from T, as skopryrelay.py's
     `--blackhole-after`), `run.py`, `summarize.py` and `matrix.sh`.
   - The device's key and certificate are made on first use with `/usr/bin/openssl` under `$T`,
     never committed.
-- **`Scripts/sillclient.py`:** `describe` prints `away=` and `link=` when present; `--expect` learns
+- **`Scripts/skopryclient.py`:** `describe` prints `away=` and `link=` when present; `--expect` learns
   `awayBitrate`, `awayCaptureScale`, `thisConnectionAway`, `awayRunning` and `linkState` (`fine`
   when absent).
 
@@ -1212,34 +1212,34 @@ remote: move home refused: the home door's kind 18 is not this Mac's, or older t
 
 | # | Check | Pass when |
 |---|---|---|
-| H0 | **Preflight** (no commit). Record the base; `git archive` it to `$SP/base` and build it. `Scripts/pacing/build.sh <base>`. H2's baselines. The ledger check's count (90 with 5,000 runs) and the policy checks' counts, PR #12's included. Once the software-encoder hook exists (step 1, or the pointer plan): the synthetic host's keyframe size and rate on it (`sillclient.py PORT 10 desktop`, its LINK line), from which S2 and H12 set their relay rates; and that the hook keeps the hardware encoder out: `startRecheck` returns under it (read the code), and a synthetic host with it and `sillclient.py PORT 75 desktop` stays on the software encoder throughout | Files and numbers recorded; no return to the hardware encoder |
+| H0 | **Preflight** (no commit). Record the base; `git archive` it to `$SP/base` and build it. `Scripts/pacing/build.sh <base>`. H2's baselines. The ledger check's count (90 with 5,000 runs) and the policy checks' counts, PR #12's included. Once the software-encoder hook exists (step 1, or the pointer plan): the synthetic host's keyframe size and rate on it (`skopryclient.py PORT 10 desktop`, its LINK line), from which S2 and H12 set their relay rates; and that the hook keeps the hardware encoder out: `startRecheck` returns under it (read the code), and a synthetic host with it and `skopryclient.py PORT 75 desktop` stays on the software encoder throughout | Files and numbers recorded; no return to the hardware encoder |
 | H1 | **Builds.** `swift build -c release`; iOS Debug and Release for the simulator | Only the known warnings (CaptureProbe; the old `StreamClient` capture warning) |
-| H2 | **The CLI byte for byte.** Base and new `SillHost --synthetic`: idle 35 s, and with `sillclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted. After steps 1, 5 and 6 | Identical, the client's kind 16 lines and "settings messages" count included |
+| H2 | **The CLI byte for byte.** Base and new `SkopryHost --synthetic`: idle 35 s, and with `skopryclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted. After steps 1, 5 and 6 | Identical, the client's kind 16 lines and "settings messages" count included |
 | H3 | **The pacing matrix,** base and new, each case's arguments as run by the investigation (host `--` relay `--` device): real24 `--kf 1500000 --delta 30000 -- --rate-mbps 24 --delay-ms 70 --queue-bytes 262144 -- --reconnect`; kf25m32 (2.5 MB, 20 KB, 32 Mbps); fastbig (1.5 MB, 150 KB, 100 Mbps, 20 ms, a 1 MB queue); bigkf8 (1.5 MB, 8 KB, 8 Mbps); low (150 KB, 8 KB, 8 Mbps); switch (sizes change at 30 s to Low's); dip (8 → 0.5 Mbps from 20 s to 32 s, a 1 MB queue, 60 s); over8 (60 KB deltas on 8 Mbps); slowkfB (1.6 MB on 2 Mbps with `--liveness-bytes`); home (`DOOR=Home`, `--plain`); ext120 (`--kf 2000000 --delta 312500 --fps 120 -- --rate-mbps 600 --delay-ms 6 --queue-bytes 262144`, 25 s). real24, kf25m32 and bigkf8 three times each | real24 ≥ 55 fps, 0 `net.dropped`, about 15 keyframes a minute, 3 of 3 (on the proposed file 60.1, 59.9 and 59.9 fps, against the base's 39.5); kf25m32 ≥ 55 fps (60.1 and 60.0 against 1.4); fastbig 60 fps and 0 drops (base 1.7 a minute); ext120 120 fps, 0 `net.dropped` and 0 `net.waitKey` after the first keyframe (measured: 120.0 fps, the base 8.6 drops a minute); slowkfB ≥ 55 fps after its first keyframe and no liveness loss (measured on the proposed file: 60.1 fps from 12 s, 0 drops). bigkf8 is bistable (§3.2), so it is recorded, not gated beyond each run ≥ the base's fps (on the proposed file two of three at 60 fps with 0 drops, the third in the 2 s loop at 29.6 fps). low, switch and home equal the base within noise. dip: no loss, no eviction, the lag back to 45 ms within 10 s of the dip's end (7.1–8.2 s measured; record it). over8 ≥ the base (record it) |
-| H4 | **The remote door's slow-link gates again** (remote plan H14, H15): `sillrelay.py --rate-mbps 2 --delay-ms 150` for 90 s on a paired session; `--blackhole-after 5` | No eviction; frames in every 5 s window; keyframes at the encoder's cadence; "Client silent for … dropping" at about 13 s after a blackhole |
+| H4 | **The remote door's slow-link gates again** (remote plan H14, H15): `skopryrelay.py --rate-mbps 2 --delay-ms 150` for 90 s on a paired session; `--blackhole-after 5` | No eviction; frames in every 5 s window; keyframes at the encoder's cadence; "Client silent for … dropping" at about 13 s after a blackhole |
 | H5 | **MessageReader** (swiftc, against a local NWListener): 2,000 random messages of 0 B to 3 MB written in random chunks of 1 B to 300 KB with random pauses; a 3 MB frame at 1 Mbps; EOF half-way through a payload; a header announcing 40 MB; `stillReads` turning false mid-stream | Every message delivered byte for byte and in order; `onBytes` at least once per 256 KB and at most 0.3 s apart during the slow frame; EOF gives `.closed` with nothing delivered; `.tooBig` with nothing read after the header; no receive after `stillReads` is false. At least 5 mutants caught: the stamp only at the message's end, `minimumIncompleteLength` = remaining, no piece cap, EOF mid-message ignored, no cap check |
 | H6 | **The wire** (swiftc): `AwayQuality` and `LinkReport` JSON round trips; `{}` fails to decode them, and a state without them decodes; the base's StreamProtocol decodes the new kind 16 and the new decodes the base's | All pass |
-| H7 | **Away.** `SILL_TEST_ORIGIN=vpn SILL_TEST_REMOTE_DIR=$T/h SillHost --synthetic --remote`; `sillclient.py --tls --pair-code=… --identity=$T/a`, then a session with `--set=bitrate=15000000@4` | "Away from home: …" once; "Streaming … 4 Mbps"; kind 16: `thisConnectionAway` 1, `awayRunning` 1, bitrate 4000000, scale 1, `homeBitrate` 15000000; at 4 s "Settings from sillclient: away bitrate 4 → 15 Mbps per 60 fps" and one restart at 15 Mbps; `homeBitrate` still 15000000 |
+| H7 | **Away.** `SKOPRY_TEST_ORIGIN=vpn SKOPRY_TEST_REMOTE_DIR=$T/h SkopryHost --synthetic --remote`; `skopryclient.py --tls --pair-code=… --identity=$T/a`, then a session with `--set=bitrate=15000000@4` | "Away from home: …" once; "Streaming … 4 Mbps"; kind 16: `thisConnectionAway` 1, `awayRunning` 1, bitrate 4000000, scale 1, `homeBitrate` 15000000; at 4 s "Settings from skopryclient: away bitrate 4 → 15 Mbps per 60 fps" and one restart at 15 Mbps; `homeBitrate` still 15000000 |
 | H8 | **Mixed.** H7's host; a home client at 5 s from the Mac's own `fe80::…%en0` (`--host=`, admitted as this network) with `--fps=60` (its viewport right after its select), leaving at 12 s; again without `--fps` | "Home quality again: …" at 5 s and one restart, after the home client's viewport, or 1 s after it connected without one (§5.4); the remote client's kind 16 `awayRunning` 0 while the home client stays; at 12 s "Away from home: …" and one restart; exactly one "Streaming" line per flip |
-| H9 | **The app.** Bare `SillMenuBar --synthetic -remoteAccess 1` (a launch-argument override, never saved) with `SILL_TEST_ORIGIN=vpn`, `SILL_TEST_REMOTE_DIR=$T/app` and `-SillPairAfter 1`; `sillclient.py --tls --pair-url=` from `$T/app/pairing.url`, then a session that changes the bitrate; relaunch; `-SillSetAfter '3 awayBitrate=8000000,awayCaptureScale=2'` | `defaults read SillMenuBar awayBitrate` 15000000 and `bitrate` absent; after the relaunch the away session starts at 15 Mbps; the SetAfter gives one "Settings: away bitrate 15 → 8 Mbps per 60 fps, away points → Retina" and one restart; then `defaults delete SillMenuBar` |
+| H9 | **The app.** Bare `SkopryMenuBar --synthetic -remoteAccess 1` (a launch-argument override, never saved) with `SKOPRY_TEST_ORIGIN=vpn`, `SKOPRY_TEST_REMOTE_DIR=$T/app` and `-SkopryPairAfter 1`; `skopryclient.py --tls --pair-url=` from `$T/app/pairing.url`, then a session that changes the bitrate; relaunch; `-SkoprySetAfter '3 awayBitrate=8000000,awayCaptureScale=2'` | `defaults read SkopryMenuBar awayBitrate` 15000000 and `bitrate` absent; after the relaunch the away session starts at 15 Mbps; the SetAfter gives one "Settings: away bitrate 15 → 8 Mbps per 60 fps, away points → Retina" and one restart; then `defaults delete SkopryMenuBar` |
 | H10 | **LinkJudge** (swiftc, at least 34 checks): behind at exactly 3 short of 5 (2 stays fine); fine after 5 clean in a row (4 stays behind); still seconds count as clean; stalled after 3 seconds with bytes waiting, none taken and nothing heard (2 not; 3 with the device heard not: a keyframe crossing a slow link); a stall ends at the first second with bytes taken or the device heard, to behind when 3 of the last 5 were short, else fine; stalled → behind → fine; reset reports fine, marked as a reset; `isShort` at 2 of 60 (no), 3 of 60 (no: 5 %), 6 of 60 (yes), 3 of 20 (yes); the carried rate needs 3 measured seconds and is their mean (0, 0 and 2.25 MB read 6 Mbps, where a median would read 0); the suggestion: the highest preset ≤ 70 % at 60 and at 120 fps, Low when none fits, one step down without a measure, Standard added only with Low from Retina, the same bitrate at Standard from Low · Retina and from a hand-set 2 Mbps at Retina, nil at Low · Standard, never above the running bitrate | All pass; at least 10 mutants caught (2 of 5, 4 clean, still seconds as short, `>` for `≥`, 0.8 for 0.7, fps ignored, Standard never suggested, the first-keyframe wait counted, stalled without the silence, the median for the mean) |
 | H11 | **The link in the harness** (encoder-free, the new build): real24, over8 (`--bitrate 40000000`), dip, slowkfB, still (slowkfB's sizes and `--liveness-bytes`, with `--still-at 31:10`: the frames stop while its second keyframe is still crossing), a blackhole both ways at 20 s (`--blackhole-at 20`), the downlink alone at 0 from 20 s (`--rate-at 20:0`), home | real24 never behind; over8 behind within 5 s of the stream start, carried within 20 % of 8 Mbps and a Low suggestion; dip behind within 5 s of its start and fine within 10 s of its end; slowkfB and still never stalled or behind after the first keyframe; the blackhole stalled within 4 s; the downlink alone behind within 5 s and never stalled; home never behind |
-| H12 | **The link end to end.** H7's host through `sillrelay.py --rate-mbps R` (R half the synthetic stream's rate, from H0), the away quality first raised to Balanced (`--set=bitrate=15000000@2`: at Low · Standard there is nothing lower to suggest); `--set` of the suggestion 20 s in | Within 6 s of the first `--set`'s restart a kind 16 with `link.state` "behind" and a suggestion below Balanced, and "Link to sillclient: cannot carry Balanced …"; after the second `--set`, one restart and a kind 16 without `link`, with no "keeping up again" line (a reset). The synthetic pattern's size does not follow the quality (under 1 Mbps whatever the target, CLAUDE.md), so behind can come back 3 s or more later: expected, recorded |
+| H12 | **The link end to end.** H7's host through `skopryrelay.py --rate-mbps R` (R half the synthetic stream's rate, from H0), the away quality first raised to Balanced (`--set=bitrate=15000000@2`: at Low · Standard there is nothing lower to suggest); `--set` of the suggestion 20 s in | Within 6 s of the first `--set`'s restart a kind 16 with `link.state` "behind" and a suggestion below Balanced, and "Link to skopryclient: cannot carry Balanced …"; after the second `--set`, one restart and a kind 16 without `link`, with no "keeping up again" line (a reset). The synthetic pattern's size does not follow the quality (under 1 Mbps whatever the target, CLAUDE.md), so behind can come back 3 s or more later: expected, recorded |
 | H13 | **Per-connection states.** H8's two clients, and the one-client runs of H2 | Each gets its own pair; with one client, the kind 16 lines and count equal the base's |
 | H14 | **The ledger check and the policy checks,** unchanged and PR #12's | As at H0 |
 | H15 | **`moveHome`** (swiftc, with the policy check): 1.9 s no, 2.0 s yes; a blink restarts the count; retries at 10, 20, 40, 60, 60 s after 1–5 failures; a refused listing never; a new listing afresh | All pass; at least 5 mutants caught (no refusal, `upWait(0)`, a blink ignored, `>` for `≥`, failures ignored) |
 | H16 | **Previews,** before and after (from the bundle made by `make-app.sh`, never installed) | Only the Streaming pane (the new section), menu.txt's `remote-away` sample, and the new card samples `remote-away`, `link-behind` and `link-stalled` differ. Look at each |
-| H17 | **Hard rules** (grep) | No new Stats key; no `assumeIsolated` or `updateConfiguration` in Sources/SillHost; StreamMessage.swift unchanged by steps 4–9; `standard` has Low and Standard away; `DeviceSettings.accepted` still refuses Direct Wireless from afar; `HostSettingsChange` unchanged |
+| H17 | **Hard rules** (grep) | No new Stats key; no `assumeIsolated` or `updateConfiguration` in Sources/SkopryHost; StreamMessage.swift unchanged by steps 4–9; `standard` has Low and Standard away; `DeviceSettings.accepted` still refuses Direct Wireless from afar; `HostSettingsChange` unchanged |
 
 **Simulator (S):**
 
 | # | Check |
 |---|---|
-| S1 | **The photo matrix.** `-SillSettingsCase away`, `awaymixed`, `awayhome`, `linkbehind`, `linkmixed`, `linklow` and `linkstalled` (no callout may show), and `-SillLinkLine behind`, at 1000x710, 710x1000, 500x710 and 710x500, and at `content_size accessibility-extra-large` (reset afterwards). Check: the header's lines never truncate; the callout's button is at least 44 pt; the line never covers the bar and nothing crosses y = 500 at 710x1000. Send Noah the sheet |
-| S2 | **The reader, live.** A remote session through `sillrelay.py --rate-mbps R`, R such that the first keyframe takes at least 8 s (H0): pair by the typed path through the relay as S3 does. Not `-SillConnect`: it reaches the home door, whose drain rule (4 s, after an 8 s grace) evicts a device whose keyframe takes 8 s, whichever reader it runs. The base build's console shows "connection silent for 6 s: lost" within 30 s; the new build's never in 60 s, its HUD counts frames, and the host evicts nobody |
-| S3 | **The callout, live.** Pair by the typed path through a relay (`-SillPairCode … -SillPairAddress 127.0.0.1:RELAY`, the remote plan's S8) to H7's host (away); the relay at H12's rate. The away quality first raised to Balanced from the panel (at Low · Standard there is no button). The callout appears within about 6 s; a headless tap on its button gives "Settings from … away bitrate …" on the host and one restart; the callout goes at once and the line 2 s later, and both may come back 3 s or more after (H12: the synthetic pattern's size does not follow the quality); the console shows the announcement once a spell |
-| S4 | **The move home, live.** Pair with H7's host (`SILL_TEST_ORIGIN=vpn`: the remote session is away), then `-SillDialSaved 1 -SillRemoteRoute vpn -SillMoveHomeTest to:[fe80::…%en0]:HOMEPORT -SillScreenFPS 120` (the remote session asks for 60 fps as one through Tailscale does, the home connection for 120). The host logs "Client connected: fe80::…", "Home quality again: …", then "Client left: 127.0.0.1:…"; one "Streaming" line for the flip, right after the home connection's viewport (on the software encoder the stream stays at 60 fps, so the rate's share of that restart shows only on a hardware host with a 120 Hz device); the panel's route line gone and the readout ending in "Wi‑Fi"; "remote: the session moved home". Variants: `refused` (tries at about 2, 12, 32 and 72 s; the session stays remote); `other:PORT` (refused once, not again while listed) |
-| S5 | **Connect Remotely stays remote.** `-SillDialSaved remotely -SillMoveHomeTest to:…`: no move in 30 s |
+| S1 | **The photo matrix.** `-SkoprySettingsCase away`, `awaymixed`, `awayhome`, `linkbehind`, `linkmixed`, `linklow` and `linkstalled` (no callout may show), and `-SkopryLinkLine behind`, at 1000x710, 710x1000, 500x710 and 710x500, and at `content_size accessibility-extra-large` (reset afterwards). Check: the header's lines never truncate; the callout's button is at least 44 pt; the line never covers the bar and nothing crosses y = 500 at 710x1000. Send Noah the sheet |
+| S2 | **The reader, live.** A remote session through `skopryrelay.py --rate-mbps R`, R such that the first keyframe takes at least 8 s (H0): pair by the typed path through the relay as S3 does. Not `-SkopryConnect`: it reaches the home door, whose drain rule (4 s, after an 8 s grace) evicts a device whose keyframe takes 8 s, whichever reader it runs. The base build's console shows "connection silent for 6 s: lost" within 30 s; the new build's never in 60 s, its HUD counts frames, and the host evicts nobody |
+| S3 | **The callout, live.** Pair by the typed path through a relay (`-SkopryPairCode … -SkopryPairAddress 127.0.0.1:RELAY`, the remote plan's S8) to H7's host (away); the relay at H12's rate. The away quality first raised to Balanced from the panel (at Low · Standard there is no button). The callout appears within about 6 s; a headless tap on its button gives "Settings from … away bitrate …" on the host and one restart; the callout goes at once and the line 2 s later, and both may come back 3 s or more after (H12: the synthetic pattern's size does not follow the quality); the console shows the announcement once a spell |
+| S4 | **The move home, live.** Pair with H7's host (`SKOPRY_TEST_ORIGIN=vpn`: the remote session is away), then `-SkopryDialSaved 1 -SkopryRemoteRoute vpn -SkopryMoveHomeTest to:[fe80::…%en0]:HOMEPORT -SkopryScreenFPS 120` (the remote session asks for 60 fps as one through Tailscale does, the home connection for 120). The host logs "Client connected: fe80::…", "Home quality again: …", then "Client left: 127.0.0.1:…"; one "Streaming" line for the flip, right after the home connection's viewport (on the software encoder the stream stays at 60 fps, so the rate's share of that restart shows only on a hardware host with a 120 Hz device); the panel's route line gone and the readout ending in "Wi‑Fi"; "remote: the session moved home". Variants: `refused` (tries at about 2, 12, 32 and 72 s; the session stays remote); `other:PORT` (refused once, not again while listed) |
+| S5 | **Connect Remotely stays remote.** `-SkopryDialSaved remotely -SkopryMoveHomeTest to:…`: no move in 30 s |
 | S6 | **Accessibility.** The header lines spoken as §8 says; the callout and its button; one announcement per spell (DEBUG print) |
 
 **Noah's devices (P), handed over at the end:** the iPad mini; the iPhone for its hotspot and
@@ -1247,10 +1247,10 @@ for P6.
 
 | # | Check |
 |---|---|
-| P1 | **Pacing on the hotspot** (Tailscale). Pro · Retina, then Extreme · Retina, two minutes each on a busy window (scrolling Safari). Sill.log has no "net.dropped 1 net.sent 3 net.waitKey 5x" every 2 s. The `client iPad` lines stay near what the hotspot carries (≥ 50 fps at Pro where it carries it), and Extreme runs at whatever the link carries rather than a 1–3 fps loop (with PR B, with the link line up). No "Client left" without a real loss |
+| P1 | **Pacing on the hotspot** (Tailscale). Pro · Retina, then Extreme · Retina, two minutes each on a busy window (scrolling Safari). Skopry.log has no "net.dropped 1 net.sent 3 net.waitKey 5x" every 2 s. The `client iPad` lines stay near what the hotspot carries (≥ 50 fps at Pro where it carries it), and Extreme runs at whatever the link carries rather than a 1–3 fps loop (with PR B, with the link line up). No "Client left" without a real loss |
 | P2 | **Liveness on a slow link.** Network Link Conditioner on the iPad (Settings › Developer, a custom profile of 1 Mbps down and 100 ms), at home through Connect Remotely at Pro · Retina (with PR B, pick Pro · Retina away first). The session stays, with slow frames, and never logs "connection silent for 6 s". In the harness the old rule lost such a session about every 10 s. Skip if the Developer menu is not there |
 | P3 | **Home unchanged.** Two minutes on home Wi‑Fi at Extreme: `net.dropped` a minute and frame age as before |
-| P4 | **Away starts low.** At home set Pro · Retina, then leave for the hotspot. The remote session starts at Low · Standard: "Away from home: …" in Sill.log, the panel's "Away: Low · Standard". `defaults read me.saffer.sill.mac bitrate` still 40000000 |
+| P4 | **Away starts low.** At home set Pro · Retina, then leave for the hotspot. The remote session starts at Low · Standard: "Away from home: …" in Skopry.log, the panel's "Away: Low · Standard". `defaults read app.skopry.mac bitrate` still 40000000 |
 | P5 | **The away choice.** Pick Balanced away: one restart at 15 Mbps; `awayBitrate` 15000000; the home bitrate unchanged; the next away session starts at Balanced |
 | P6 | **Mixed.** The iPad streaming away, then the iPhone connects at home on Wi‑Fi: one restart (a 120 Hz iPhone's rate and the home quality together). The home quality runs; the iPad's header says "Home quality: Pro · Retina (a device at home is connected)". Disconnect the iPhone: the away quality, one restart |
 | P7 | **The Mac.** Settings › Streaming shows both sections. Changing the away pickers while the iPad is away restarts once. The menu's Quality subtitle says "Away from home now: …" |
@@ -1259,8 +1259,8 @@ for P6.
 | P10 | **Coming home.** Streaming away through Tailscale, join the home Wi‑Fi. Within about 5 s of the network listing the Mac: "Client connected: fe80::…%en0" (since the merge with main at the Mac's TLS home door, pinned: never "Home door refused", no pairing asked), "Home quality again", "Client left: 100.x". The route line gives way to "Wi‑Fi"; one restart; drag and type through it (no button stays down, no letters swap); the Mac's card shows the iPad once, "Wi‑Fi". At the edge of the home Wi‑Fi, note how often it goes back and forth (§10) |
 | P11 | **Coming home by cable.** An away session; at home, plug the cable in. The move goes to the cable ("Wired"; the Mac logs `%en14` or `%anri0`) |
 | P12 | **Connect Remotely at home** stays remote |
-| P13 | **Mixed builds.** PR #13's iPad against this Sill.app, away: starts at Low · Standard; its Quality shows Low; no header line. This iPad against PR #13's Sill.app, or Sill for Mac 0.3.1 (a plain home door): no header line, no link callout, and no move home: the session stays remote (since the merge with main the move home goes only to a TLS home door). This iPad against Sill for Mac 0.4.0: no header line, no link callout, and the move home works, pinned |
-| P14 | **Extreme through the remote door on a fast path.** Connect Remotely at home through Tailscale's LAN path (rtt under 15 ms), Extreme · Retina picked away, two minutes on a busy window: no `net.dropped` in Sill.log's `[1s]` lines, the `client iPad` lines at its 60 fps. With a 120 Hz device on a remote session by address, the same at 120 fps (§3.2: the harness's host sends over loopback, and a real path's send buffer may stay smaller) |
+| P13 | **Mixed builds.** PR #13's iPad against this Skopry.app, away: starts at Low · Standard; its Quality shows Low; no header line. This iPad against PR #13's Skopry.app, or Skopry for Mac 0.3.1 (a plain home door): no header line, no link callout, and no move home: the session stays remote (since the merge with main the move home goes only to a TLS home door). This iPad against Skopry for Mac 0.4.0: no header line, no link callout, and the move home works, pinned |
+| P14 | **Extreme through the remote door on a fast path.** Connect Remotely at home through Tailscale's LAN path (rtt under 15 ms), Extreme · Retina picked away, two minutes on a busy window: no `net.dropped` in Skopry.log's `[1s]` lines, the `client iPad` lines at its 60 fps. With a 120 Hz device on a remote session by address, the same at 120 fps (§3.2: the harness's host sends over loopback, and a real path's send buffer may stay smaller) |
 
 ---
 
@@ -1273,7 +1273,7 @@ depends on nothing open and can merge first.
 
 0. **Preflight** (no commit): H0.
 1. **"Host: remote pacing counts bytes, not messages: a keyframe no longer starves its followers"**
-   (StreamServer.swift, `Scripts/pacing/`, and the `SILL_TEST_SOFTWARE_ENCODER` hook if the
+   (StreamServer.swift, `Scripts/pacing/`, and the `SKOPRY_TEST_SOFTWARE_ENCODER` hook if the
    pointer plan has not landed it). About 90 lines of host code and the harness (~700 lines,
    moved). Gates: H1, H2, H3, H4, and H0's keyframe measurement and its check of the hook.
 2. **"iOS: the reader takes a message in pieces; liveness counts every byte"** (MessageReader.swift
@@ -1287,12 +1287,12 @@ after PR A or with PR A's commits first. Cherry-pick this plan's commit.
 4. **"Protocol: the away quality and the link report in kind 16"** (HostSettings.swift). About 90
    lines. Gates: H1, H6.
 5. **"Host: away sessions run the away quality; kind 16 per connection"** (HostConfig,
-   DeviceSettings, StreamCoordinator, HostStatus, `sillclient.py`). About 250 lines. Gates: H1,
+   DeviceSettings, StreamCoordinator, HostStatus, `skopryclient.py`). About 250 lines. Gates: H1,
    H2, H7, H8, H13, H14.
 6. **"Host: each device's link"** (StreamServer counters and sweep, LinkJudge.swift new, the
    coordinator's reports, HostStatus, the harness's verdict line). About 300 lines. Gates: H1, H2,
    H3 again, H10, H11, H12.
-7. **"Sill.app: the away quality in Settings and the menu; the link on the card"** (HostSettings,
+7. **"Skopry.app: the away quality in Settings and the menu; the link on the card"** (HostSettings,
    AppModel, SettingsPanes, StatusItemController, StatusText, DebugHooks). About 150 lines. Gates:
    H1, H9, H16.
 8. **"iOS: Away in the panel, the link callout and the stream's line"** (HostSettingsPanel,
@@ -1303,10 +1303,10 @@ after PR A or with PR A's commits first. Cherry-pick this plan's commit.
 10. **"docs: away from home":**
     - this plan's Results;
     - CLAUDE.md: the step; Layout (MessageReader, LinkJudge, `Scripts/pacing/`); Build and run (the
-      harness, the new `sillclient.py` keys, the DEBUG arguments); Untested, for Noah: P1–P14;
+      harness, the new `skopryclient.py` keys, the DEBUG arguments); Untested, for Noah: P1–P14;
     - README: the away quality, the link callout, coming home.
 11. **Review and hand-over.**
-    - Three lenses: pacing and link judging on `sill.net` (bytes, completions, the sweep); the away
+    - Three lenses: pacing and link judging on `skopry.net` (bytes, completions, the sweep); the away
       flag, the per-connection states and restarts on the main actor; the device's UI and the move
       (fences, the kind 18 check, backoff).
     - A "Review fixes" commit if needed.
@@ -1320,7 +1320,7 @@ after PR A or with PR A's commits first. Cherry-pick this plan's commit.
   merge changed `rescue` and the reader). MessageReader replaces the merged `readHeader`/
   `readPayload`; the move's probe keeps its own.
 - **PR #11 (encoder-recovery)** has landed (b50e224): StreamCoordinator, HostStatus,
-  HostSettings.swift (a doc comment), SettingsPanes, StatusText, DebugHooks, `sillclient.py` and
+  HostSettings.swift (a doc comment), SettingsPanes, StatusText, DebugHooks, `skopryclient.py` and
   HostSettingsPanel moved under this plan's line numbers. Its hardware re-check is why the
   software-encoder hook must stop it (§11).
 - **update-notice** touches StreamServer, StreamCoordinator, SessionLink and StreamClient, and takes
@@ -1340,7 +1340,7 @@ after PR A or with PR A's commits first. Cherry-pick this plan's commit.
   could already set.
 - **Never `MainActor.assumeIsolated`** in core code; never reconfigure a running SCStream.
 - **Tests never use the hardware encoder** while Noah may be streaming (H2's rule aside), never
-  touch Sill.app, his defaults domain, keychain or iPad.
+  touch Skopry.app, his defaults domain, keychain or iPad.
 - **New iOS files** need their four pbxproj entries by hand. Swift 5 language mode. Apple
   frameworks only; the test tools use the Python standard library and the system `openssl`.
 
@@ -1424,26 +1424,26 @@ The others are PR B's.
   as a home client (`serve(_:route: .home(.loopback))`: the home branch of `broadcast` and the home
   eviction rule), where the harness first used that listener.
 - **No synthetic host ran:** a synthetic host's doors listen on every interface, and its stream
-  shares the hardware encoder with Noah's Sill.app. So:
-  - **H2 ran only after the merge with main at 2b38179,** whose `SILL_TEST_LOOPBACK` and
-    `SILL_TEST_SOFTWARE_ENCODER` (PR #31) let a synthetic host listen on 127.0.0.1 alone and never
+  shares the hardware encoder with Noah's Skopry.app. So:
+  - **H2 ran only after the merge with main at 2b38179,** whose `SKOPRY_TEST_LOOPBACK` and
+    `SKOPRY_TEST_SOFTWARE_ENCODER` (PR #31) let a synthetic host listen on 127.0.0.1 alone and never
     touch the hardware encoder. Before that it was argued from the code: the CLI opens no remote
     door without `--remote`, every change here is inside `paceRemote`, an `if remote` in `send` or
     the remote sweep, which only a remote client reaches, and the new `Client` fields are touched
     nowhere else. Run then (main's CLI against this branch's, both from clean builds, both hooks
-    on, one run each): idle for 35 s, identical masked and sorted (7 lines); with `sillclient.py
+    on, one run each): idle for 35 s, identical masked and sorted (7 lines); with `skopryclient.py
     PORT 5 desktop`, identical (18 lines), and the client's own output identical but for the order
     its tally lists the kinds it met (a pong or the window list first). The `--direct-wireless`
     runs were left out: the listener is not this branch's.
-  - **H4 ran in the harness:** `relay2` and `blackhole` put Scripts/sillrelay.py (2 Mbit/s,
+  - **H4 ran in the harness:** `relay2` and `blackhole` put Scripts/skopryrelay.py (2 Mbit/s,
     +150 ms) between the harness's host, the same StreamServer.swift, and its device, instead of a
-    paired `SillHost --synthetic --remote`, at a synthetic host's sizes (100 KB keyframes, 2 KB
+    paired `SkopryHost --synthetic --remote`, at a synthetic host's sizes (100 KB keyframes, 2 KB
     deltas).
-  - **No `SILL_TEST_SOFTWARE_ENCODER` hook,** and so no H0 keyframe measurement: no gate here needed
+  - **No `SKOPRY_TEST_SOFTWARE_ENCODER` hook,** and so no H0 keyframe measurement: no gate here needed
     one. PR B's gates (H7–H13, S3–S5) do, and a synthetic host that listens on loopback only; the
     pointer branch has an implementation of the hook (`PointerWatch.swift`, unverified, not merged).
 - **S2 ran against the harness's host** (its plain remote door, so StreamServer serves the app as a
-  remote client) with the app dialling it by address (`-SillConnect`), through bottleneck.py at
+  remote client) with the app dialling it by address (`-SkopryConnect`), through bottleneck.py at
   2 Mbit/s: a 1.7 MB first keyframe, 6.8 s on the link, then 1 KB deltas at 60 fps. The fake
   catalog and frames do not decode, which the app skips; its liveness needs only bytes, and its
   HUD counts the frames that arrive ("no video").
@@ -1496,10 +1496,10 @@ harness case first (a81a58f), which fails on the build before its fix, and then 
 
 **Looked at and left as they are:**
 - **The byte counts.** Every message `send` hands over adds its size to `pendingBytes`, and its
-  completion takes the same size away. Both run on `sill.net`, and a connection's completions come
+  completion takes the same size away. Both run on `skopry.net`, and a connection's completions come
   in order, so the count neither drifts nor goes negative, and a keyframe's completion means
   everything queued before it was taken. Ticks bypass `send`: 14 bytes, at most every 30 ms.
-- **Bufferbloat.** Behind keyframes being taken, what Sill holds for a remote client is at most
+- **Bufferbloat.** Behind keyframes being taken, what Skopry holds for a remote client is at most
   those keyframes and 512 KB. With none, it is at most 256 KB, or the floor and 128 KB. The floor
   is set only as the last keyframe being taken is taken, to what waits behind it: at most 512 KB
   and a delta. Several keyframes are in flight at once only while their deltas stay under the cap,
@@ -1572,7 +1572,7 @@ On this Mac (an M2 Pro), 2026-09-27, with no device, simulator recording or vide
     in every run. The new build's figures stayed where they were.
   - bigkf8 was in the good state in all nine runs of the new build (§3.2 found it bistable), with
     a frame age of 0.6 s at the median and 1.5 s at p95: the standing queue of §3.7.
-  - relay2 has a standing queue in the host's send buffer on both builds, since sillrelay.py reads
+  - relay2 has a standing queue in the host's send buffer on both builds, since skopryrelay.py reads
     through a 64 KB buffer as in the remote plan's H14: the pong's round trip at p95 was 1.2 s on
     the new build and 1.3–1.4 s on the base, on the merge and after the review.
 - **H5, the reader** (`Tests/checks/message-reader`): 46 checks, and 17 of 17 mutants caught (the
@@ -1617,13 +1617,13 @@ the hardware encoder or a real path: the harness sends over loopback, whose kern
 
 Built on `remote-away`, from `remote-pacing` at c564142 (PR A, #34, open) on 2026-09-27, one
 commit per step: the wire (340f98b), the host's away quality and per-connection states (934f997),
-each device's link (98290b6), Sill.app (0e5d4ce), the device's panel, callout and line (6222d7c),
+each device's link (98290b6), Skopry.app (0e5d4ce), the device's panel, callout and line (6222d7c),
 the move home (2e40673) and these docs, then the review (below), and after the pull request the
 adversarial review's two fixes (f882291, a67dc48). It stacks on PR A: its
 pull request, #39, is against `remote-pacing`, to be retargeted to main once PR A merges (GitHub does
 that by itself only when the merge deletes the branch). PR A merged on 2026-09-27 (643af6b) while the
 adversarial review ran, with main's #35 and #36 merged into it first, so this branch must take main
-before it goes to main: a test merge conflicts in CLAUDE.md, ci.yml, sillclient.py,
+before it goes to main: a test merge conflicts in CLAUDE.md, ci.yml, skopryclient.py,
 StreamCoordinator.swift, Tests/checks/README.md, DEVELOPMENT.md, PortraitStreamScreen.swift,
 StreamClient.swift and StreamScreen.swift.
 
@@ -1638,22 +1638,22 @@ kind 18 check, and the host's view of the link (no device-side byte count).
 
 ### Where the build departs from the plan, and why
 
-- **SILL_TEST_REMOTE_ORIGIN=vpn|internet** (new, TEST ONLY, a host that does not advertise): the
+- **SKOPRY_TEST_REMOTE_ORIGIN=vpn|internet** (new, TEST ONLY, a host that does not advertise): the
   remote door alone counts loopback as that origin, the home door keeps it at home. A test host
-  listens on loopback only (SILL_TEST_LOOPBACK), so SILL_TEST_ORIGIN, which applies to both doors,
+  listens on loopback only (SKOPRY_TEST_LOOPBACK), so SKOPRY_TEST_ORIGIN, which applies to both doors,
   could not give one host a device at home beside one away. H8's home client and S4's home door are
   127.0.0.1 through the home door, not this Mac's `fe80::…%en0`, which a loopback-only host
   refuses; the readout after S4's move therefore has no route word (lo0), where the plan expected
   "Wi‑Fi".
-- **SILL_TEST_PATTERN=noise** (new, TEST ONLY, a synthetic host): a square of random pixels, a third
+- **SKOPRY_TEST_PATTERN=noise** (new, TEST ONLY, a synthetic host): a square of random pixels, a third
   of the frame's height on a side, new every frame. The plan set H12's relay at half the synthetic
   stream's rate, but the sweeping bar compresses to about 56 kbit/s whatever the quality, and a
   relay at 28 kbit/s would take minutes to carry the catalog. With the square the software encoder
   keeps about 14 frames a second at 1512×948, about 3.6 Mbit/s at Low and 10.6 at Balanced, so a
   lower quality makes a smaller stream (H12, S3). An earlier try, 8-pixel blocks over the whole
   frame, left the encoder at 8 frames a second and the stream at its own size whatever the quality.
-- **H2 on the software encoder** on both builds (SILL_TEST_SOFTWARE_ENCODER, with
-  SILL_TEST_LOOPBACK): this session kept off the hardware encoder altogether, which Noah's Sill.app
+- **H2 on the software encoder** on both builds (SKOPRY_TEST_SOFTWARE_ENCODER, with
+  SKOPRY_TEST_LOOPBACK): this session kept off the hardware encoder altogether, which Noah's Skopry.app
   shares. The kind 16 lines and their count are the ones H2 compares, and they do not depend on the
   encoder.
 - **The link's reports.** LinkJudge reports the carried rate again during a spell once it has moved
@@ -1681,28 +1681,28 @@ kind 18 check, and the host's view of the link (no device-side byte count).
   the queue before each keyframe), so the suggestion was one step down (Efficient from Balanced).
 - **The move home refuses another launch at its window list,** before its kind 18: a host without a
   remote door sends none, and the move waited out its 5 s and counted as a failure (S4's `other:`).
-  Its test row (`-SillMoveHomeTest`) is named "‹Mac› (home test)": on this Mac the simulator's
-  browser also lists Sill.app under the Mac's name, and a row of the same name hid it.
+  Its test row (`-SkopryMoveHomeTest`) is named "‹Mac› (home test)": on this Mac the simulator's
+  browser also lists Skopry.app under the Mac's name, and a row of the same name hid it.
 - **The fence check** gains two modes, `remotehome` (the fenced hand-over from a TLS connection to a
   plain one, the old one closed once what waited went out; since the merge's review, 2026-10-08, TLS
   to TLS, as the move home dials the home door now) and `remotedead` (the remote connection gone
   mid-move: held, adopted, delivered): 17 modes.
-- **Headless taps:** `-SillSettingsScript '<t> set K=V | suggestion; …'` (DEBUG, under
-  `-SillInputScript`'s guard: a loopback session to a host with no version) takes the panel's
+- **Headless taps:** `-SkoprySettingsScript '<t> set K=V | suggestion; …'` (DEBUG, under
+  `-SkopryInputScript`'s guard: a loopback session to a host with no version) takes the panel's
   controls, and the callout's button, for S3. The device's console prints "link: behind (cannot
   carry Pro; suggesting Low · Standard)", "link: keeping up" and "link: the stream's line “…”
   (announced)" (§6.8).
-- **S1's phone sizes** on the iPad simulator with `-SillIdiom phone` (the harness's way to draw a
+- **S1's phone sizes** on the iPad simulator with `-SkopryIdiom phone` (the harness's way to draw a
   phone's layout on a larger simulator): 440x894 upright and 956x440 on its side.
 - **H16 from the bare binary,** with the SDK recorded by vtool as make-app.sh does and signed ad hoc,
   base and new at one path, instead of the bundle: the bundle's defaults domain is
-  me.saffer.sill.mac, and make-app.sh signs with the login keychain's identity.
+  app.skopry.mac, and make-app.sh signs with the login keychain's identity.
 - **The footnote's qualities are kept whole** (no-break spaces) like the header's: S1 at 1000x710
   wrapped "Low" and "· Standard." onto two lines.
 
 ### Verified
 
-On this Mac (an M2 Pro), 2026-09-27; no device, no hardware encoder, no Sill.app; every host on
+On this Mac (an M2 Pro), 2026-09-27; no device, no hardware encoder, no Skopry.app; every host on
 loopback alone, on the software encoder, killed by PID.
 
 - **H0.** H2's and H3's base is origin/main at 2b38179 (its StreamServer.swift is PR A's base), built
@@ -1711,7 +1711,7 @@ loopback alone, on the software encoder, killed by PID.
   warning; the iOS app for the simulator, Debug (signed ad hoc, for the keychain) and Release, only
   the old `StreamClient` capture warning; step 8's sources, which leave out the move home, also
   typechecked on their own for Debug and Release.
-- **H2** (the step 6 host against origin/main's CLI, idle 35 s and with `sillclient.py PORT 5
+- **H2** (the step 6 host against origin/main's CLI, idle 35 s and with `skopryclient.py PORT 5
   desktop`, with and without `--direct-wireless`): every line but the stats lines identical, masked
   and sorted; the stats lines' count within one; the client's kind 16 lines, their count (2) and
   its first kinds identical: 14 of 14.
@@ -1729,7 +1729,7 @@ loopback alone, on the software encoder, killed by PID.
   bitrate untouched. **H8 and H13** (mixed): 24 of 24: the home client joining brings "Home quality
   again" and one restart (0.01 s after its viewport, 1.01 s without one), the away one back when it
   leaves, each client its own pair.
-- **H9** (the bare app, domain `SillMenuBar`, its own log file, `-remoteAccess 1` for the run): 12 of
+- **H9** (the bare app, domain `SkopryMenuBar`, its own log file, `-remoteAccess 1` for the run): 12 of
   12: away at Low · Standard; a device's Balanced saved as `awayBitrate`, with `bitrate` and
   `remoteAccess` never written; after a relaunch away at Balanced; a SetAfter of the away pair one
   "Settings: away bitrate 15 → 8 Mbps per 60 fps, away points → Retina" and one restart; the domain
@@ -1742,8 +1742,8 @@ loopback alone, on the software encoder, killed by PID.
   2.2 s after the host's first second withholding frames (5.9 s into the dip) and fine 6.0 s after
   its end; the downlink's stop behind 2.2 s after the host's first such second (2.9 s after the
   stop), never stalled; the dead path stalled 5.0 s after the blackhole.
-- **H12** (end to end, a noise host away, sillrelay.py at 5 Mbit/s and 40 ms): 14 of 14: behind 4.8 s
-  after the pick of Balanced was answered, "Link to sillclient (sillclient): cannot carry Balanced
+- **H12** (end to end, a noise host away, skopryrelay.py at 5 Mbit/s and 40 ms): 14 of 14: behind 4.8 s
+  after the pick of Balanced was answered, "Link to skopryclient (skopryclient): cannot carry Balanced
   (withheld 3 of 13 frames in the last second); suggesting Efficient.", one line for the spell,
   never stalled; the pick of Low one restart, its answer without a report, no "keeping up again",
   and at Low 4.3 Mbit/s through the relay with nothing behind. At 6 Mbit/s (two runs) 13 of 14:
@@ -1758,7 +1758,7 @@ loopback alone, on the software encoder, killed by PID.
   signed ad hoc, at one path: only `pane-streaming` (light and dark) and `menu.txt` (the
   `remote-away` sample) differ, and six cards are new (`remote-away`, `link-behind`,
   `link-stalled`); each looked at.
-- **H17:** no new Stats key; no new `assumeIsolated` or `updateConfiguration` in Sources/SillHost
+- **H17:** no new Stats key; no new `assumeIsolated` or `updateConfiguration` in Sources/SkopryHost
   (HostShutdown's one is older); StreamMessage.swift and `HostSettingsChange` unchanged since
   c564142; `standard`'s away pair Low · Standard; DeviceSettings still refuses Direct Wireless
   from afar.
@@ -1769,7 +1769,7 @@ loopback alone, on the software encoder, killed by PID.
   default and accessibility-extra-large text (the sheets went to Noah). The header's lines wrap and
   never truncate; the button is 44 pt (88 px at 2×, measured); the line sits inside the stream
   panel, clear of the bar; at 710x1000 nothing crosses the fold.
-- **S3** (the noise host away through sillrelay.py at 3 Mbit/s; paired by the typed path through the
+- **S3** (the noise host away through skopryrelay.py at 3 Mbit/s; paired by the typed path through the
   relay): 18 of 18. With the panel closed the report came 10 s after the pick of Balanced (the
   software encoder kept 6 to 12 frames a second beside the simulator), the line showed and was
   announced once; the callout's button ("Use Low") restarted the stream once, the report cleared
@@ -1781,14 +1781,14 @@ loopback alone, on the software encoder, killed by PID.
   the host: the home connection, "Home quality again", one restart at 15 Mbps, then the remote
   connection left; the panel's route line and away line gone, the Quality Balanced · Retina.
   `refused`: tries 2.0, 12.2, 32.2 and 72.2 s after the listing, the session staying remote;
-  `other:`: refused once at its window list, no second try in 30 s. **S5:** `-SillDialSaved
+  `other:`: refused once at its window list, no second try in 30 s. **S5:** `-SkopryDialSaved
   remotely`: no move in 30 s.
 - **S6:** the spoken labels ("…, away quality, Low, Standard", "Use Low, Standard") in the away-copy
   check; one announcement a spell in S3.
 
 ### Review (2026-09-27)
 
-Three lenses over the whole of PR B before its pull request: pacing and link judging on `sill.net`
+Three lenses over the whole of PR B before its pull request: pacing and link judging on `skopry.net`
 (bytes, completions, the sweep), the away flag, the per-connection states and restarts on the main
 actor, and the device's UI and the move (fences, the kind 18 check, the back-off).
 
@@ -1807,13 +1807,13 @@ actor, and the device's UI and the move (fences, the kind 18 check, the back-off
 - **Found while verifying, fixed before their commits:** the answer to the pick that lowers the
   quality carried the report it made stale (H12); the move home waited for a kind 18 that a host
   without an identity never sends before refusing another launch (S4's `other:`); the footnote
-  wrapped "Low" from "· Standard" (S1); `-SillLinkLine` suggested Low at Low · Standard, a pick that
+  wrapped "Low" from "· Standard" (S1); `-SkopryLinkLine` suggested Low at Low · Standard, a pick that
   changes nothing (S1); the device's console lacked §6.8's "link: behind …" and "link: keeping
   up"; the move home's end with its remote connection gone printed the move to Wi‑Fi's words; one
   of H15's mutants, the back-off with no failure counted, survived until a case for a listing that
   begins a moment after a try.
 - **Looked at and left as they are:**
-  - Every counter a client's second is made of is touched on `sill.net` only: the sends, their
+  - Every counter a client's second is made of is touched on `skopry.net` only: the sends, their
     completions and the sweep, the remote door's connections included (RemoteServer shares the
     queue).
   - A verdict of the old judge can still be on its way to the main actor as a restart resets it;
@@ -1841,7 +1841,7 @@ one of them live in a new simulator run.
   said it again, the callout and the Mac's card flickered, and the Mac logged the link again at every
   restart. The pacing harness's new `linkrestart` case (over8's stream on its 8 Mbit/s link, restarted
   twice at the same sizes) read `B@3.0 Fr@20.5 B@23.0 Fr@30.2 B@33.0` before and `B@3.0` alone after.
-  End to end (h12r, in the session's scratch: H12's noise host away behind sillrelay.py at 5 Mbit/s,
+  End to end (h12r, in the session's scratch: H12's noise host away behind skopryrelay.py at 5 Mbit/s,
   the away quality raised to Balanced, the Desktop picked again at 14 and 20 s, Low at 28 s), kind 16
   lost its report at each restart and had it back 2.8–3.0 s later, with three "cannot carry Balanced"
   lines, before; after, the report stood through both restarts, one line, and the pick of Low still
@@ -1870,7 +1870,7 @@ one of them live in a new simulator run.
   home quality running (9 of 9).
 - **The away quality never reaches the saved home settings.** A pick lands by its connection's route,
   set before the connection's catalog and never changed, read in kind 17's handler before any await;
-  the answer shows the pair it set; Sill.app saves only the keys that changed (H9); a fenced hand-over
+  the answer shows the pair it set; Skopry.app saves only the keys that changed (H9); a fenced hand-over
   resets the ledger in the same main-thread turn, so a pick after it is made against the home
   connection's state and goes out there; while a move carries a dead remote session, a pick is not
   sent (S4race above).
@@ -1882,7 +1882,7 @@ one of them live in a new simulator run.
   that reaches the new launch is refused at its window list, and the session's own end reconnects as
   ever; a refusal is kept per listing within one session, so the relaunched Mac's new listing, or the
   next session, is tried afresh. The host starts with the away flag off and takes it at the first
-  device, and Sill.app keeps the away pair across the relaunch (H9).
+  device, and Skopry.app keeps the away pair across the relaunch (H9).
 - **Looked at and left:**
   - The move home's kind 18 must be at least as new as the remote session's last one, and a kind 18
     the Mac broadcasts when its addresses change reaches the remote connection too: one read there
@@ -1896,7 +1896,7 @@ one of them live in a new simulator run.
   - The callout's words keep the "·" of "Low · Standard is recommended." for VoiceOver, as the
     footnote's do; the header line and the button have spoken forms ("Low, Standard"). P8 on the device
     says how VoiceOver reads it.
-- **Every gate again on the final build** (a67dc48; no device, no hardware encoder, no Sill.app;
+- **Every gate again on the final build** (a67dc48; no device, no hardware encoder, no Skopry.app;
   hosts on loopback, killed by PID; the Mac kept awake for the runs, and for the simulator's runs
   shared with another checkout's simulator and mutant run, which held its load between 100 and 535 at
   times):
@@ -1964,7 +1964,7 @@ Main at e6b3265 merged into `remote-away` at da250bc, one merge commit, not reba
 be retargeted to main and merged; Noah's request was "Start the #39 merge job". Since the branch
 point (c564142, PR A's branch) main had gained PR A itself (#34, 643af6b), the first-run tour (#35),
 the Mac's menus (#36), pairing at home (#37), the trackpad gestures (#38), the leftovers (#40),
-Sill for Mac 0.4.0 with iOS 0.5 (2) (#41), keychain hardening (#42), the stuck command after
+Skopry for Mac 0.4.0 with iOS 0.5 (2) (#41), keychain hardening (#42), the stuck command after
 Spotlight (#43), a Mac set up again pairing again (#44), iOS build 3 (#45) and a Mac set up again
 retiring its old saved record (#46). Git stopped on 21 files; each was read on both sides and both
 features kept whole. Where they meet, beyond the text:
@@ -1974,7 +1974,7 @@ features kept whole. Where they meet, beyond the text:
   dialed plain, which a TLS home door refuses and a Release build never makes. Now
   `DiscoveryPolicy.moveHomeTrust` (new, pure) gives the move its own trust: the saved Mac's key,
   pinned, at a row whose door speaks TLS, exactly when a tap's dial of that row would be pinned
-  (`homeDial`'s `.pinned`); a plain door (a Sill for Mac before 0.4.0, the CLI without
+  (`homeDial`'s `.pinned`); a plain door (a Skopry for Mac before 0.4.0, the CLI without
   `--pairing`), a Mac that removed this device or one to pair with again (`newKey`) gets no move,
   and the session stays remote: never a plain dial, DEBUG or not. The move's connections (the
   cable's first, the row as listed after) say their hello first inside TLS (`startMove`), the
@@ -1999,7 +1999,7 @@ features kept whole. Where they meet, beyond the text:
   row found not to be the Mac never dialed again while it is listed, the fewest tries first, so a
   look-alike replaying the public tag cannot keep the session from the Mac's own row. After #46's
   `superseding` the session goes on as the newer record, whose key both the remote dial and the move
-  home pin. The DEBUG row of `-SillMoveHomeTest` stands for the session's Mac (main's `stands`) at a
+  home pin. The DEBUG row of `-SkopryMoveHomeTest` stands for the session's Mac (main's `stands`) at a
   door that requires pairing, so its host runs `--remote --pairing`.
 - **The kind 18 floor (the adversarial review's race), fixed.** The move home's kind 18 is now held
   to the remote session's newest one as the move began, not as the probe is judged, so a kind 18
@@ -2012,7 +2012,7 @@ features kept whole. Where they meet, beyond the text:
   (K1 is the rule before the fix: held to the newest). That StreamClient takes the floor at the
   move's start is the glue's, one line in `moveHome`; the race is staged live in the review's runs
   (the next section): this build moves home through it, the rule before the fix refuses the Mac.
-- **The host.** RemoteServer's admission moved into `Door` (#37), so SILL_TEST_REMOTE_ORIGIN's
+- **The host.** RemoteServer's admission moved into `Door` (#37), so SKOPRY_TEST_REMOTE_ORIGIN's
   `remoteDoor` flag is passed from there (`kind == .remote`), and TestHooks lists the variable among
   the door hooks a host that is not a test host ignores. StreamCoordinator keeps both sides' connect
   and disconnect work (paired keys' "last connected", menus, released keys, the away flip, the
@@ -2035,14 +2035,14 @@ features kept whole. Where they meet, beyond the text:
   Current step entries, the Layout, Build and run, and the floor's kind 16) and DEVELOPMENT.md are
   united; README's Away bullet is the release drafts' (`for-0.4.1.md`).
 
-Verified on this Mac (an M2 Pro; no device, Sill.app untouched, nothing posted, the hardware
+Verified on this Mac (an M2 Pro; no device, Skopry.app untouched, nothing posted, the hardware
 encoder never used; hosts on loopback alone and the software encoder):
 
 - **The builds** (Xcode 27.1, 27A9275: the App Store replaced 27.0 with it while the first run of
   the checks went on, so everything ran again on it): `swift build -c release` from a clean scratch
   path, only the CaptureProbe warning; the iOS app for the simulator, Debug and Release, and Debug
   for a generic device, unsigned, only the old `StreamClient` capture warning
-  (StreamClient.swift:3421); Release's Info.plist with `_sill._tcp` alone and none of the harness's
+  (StreamClient.swift:3421); Release's Info.plist with `_skopry._tcp` alone and none of the harness's
   arguments in its binary. The pbxproj: 101 objects, no ID twice, every one of the 39 sources once.
 - **The pure checks** (`Tests/checks/run-all.sh`): all 39 pass; `policy` 360 (main's 336, the
   branch's 17 for the move home, the merge's 7 for its trust).
@@ -2058,22 +2058,22 @@ encoder never used; hosts on loopback alone and the software encoder):
   them. The checks' README had `home-model` and `remote-rules` at their counts before #44 and #46
   (51 and 15, 107 and 52): now 62 and 21, 123 and 72.
 - **H2** (the CLI's default path, the plain door, against main's at e6b3265 built from `git archive`,
-  both on loopback and the software encoder): idle 35 s and with `sillclient.py PORT 5 desktop`,
+  both on loopback and the software encoder): idle 35 s and with `skopryclient.py PORT 5 desktop`,
   every line identical masked and sorted, the stats lines' counts equal, and the client's kind 16
   lines (2) identical masked.
-- **H7 and H8 over pairing at home's doors** (`SillHost --synthetic --remote --pairing`, the remote
+- **H7 and H8 over pairing at home's doors** (`SkopryHost --synthetic --remote --pairing`, the remote
   door counting loopback as a VPN; a test client paired by the link at the remote door), 16 of 16:
   the first session from away flips to the away quality ("Away from home: … Low · Standard (4 Mbps
   per 60 fps, points). The home quality stays Balanced · Retina."), the flag kept while nobody is
-  connected; an away pick sets the away pair only ("Settings from sillclient: away bitrate 4 → 8
+  connected; an away pick sets the away pair only ("Settings from skopryclient: away bitrate 4 → 8
   Mbps per 60 fps", one restart at 8, the home bitrate 15 in the answer); a device at home admitted
   at the TLS home door with the same key ("Client connected"), "Home quality again: … Balanced ·
   Retina." and one restart at 15 Mbps once its viewport came, its kind 16 the home pair with
   `away.thisConnectionAway` 0; then, once it left, the away quality again and one restart at 8.
-- **S4, S4race and S5 over pairing at home's doors** (a private iPad mini simulator, "Sill merge39",
+- **S4, S4race and S5 over pairing at home's doors** (a private iPad mini simulator, "Skopry merge39",
   iOS 27.0, the app Debug signed ad hoc; the host as above, the remote session through
-  `Scripts/sillrelay.py` so it could be cut; the app paired by the typed code at the remote door),
-  28 of 28. S4 (`-SillMoveHomeTest to:` the host's home door): listed a second after the remote
+  `Scripts/skopryrelay.py` so it could be cut; the app paired by the typed code at the remote door),
+  28 of 28. S4 (`-SkopryMoveHomeTest to:` the host's home door): listed a second after the remote
   session's first window list, the move 2.07 s after the listing, its hello inside TLS ("Client
   hello" on the host for the move's connection), the host's TLS home door admitting the paired key
   ("Client connected"), "Home quality again", the stream restarting once at 15 Mbps (4 before), the
@@ -2083,7 +2083,7 @@ encoder never used; hosts on loopback alone and the software encoder):
   pin refused it 10 ms into the move, "move home refused: … answered with another key (-9808)",
   never tried again, and that host served nothing. Another launch (a second host with the first's
   identity copied): admitted at its TLS door, refused at its window list, tried once. S5
-  (`-SillDialSaved remotely`): no move in 25 s. S4race (the home door behind a relay holding 0.8 s
+  (`-SkopryDialSaved remotely`): no move in 25 s. S4race (the home door behind a relay holding 0.8 s
   each way, so TLS and the catalog take their round trips within the move's 5 s; the remote relay
   killed 0.5 s into the move; a pick of High 0.8 s later): "the move carries the session", the pick
   not sent, no connect screen, the session carried on 2.7 s after the cut without a fence (3 held
@@ -2098,15 +2098,15 @@ encoder never used; hosts on loopback alone and the software encoder):
   s on both, stillend 3 of 3). The link: real24, slowkfB and linkstill never behind; dip behind at
   28.0 s and fine at 38.0; linkdead stalled 5 s after the blackhole; linkdown behind and never
   stalled; linkrestart behind at 3.0 s and through both restarts.
-- **H16, Sill.app's previews** (the bare binaries of main and of this tree, run from one path): 124
+- **H16, Skopry.app's previews** (the bare binaries of main and of this tree, run from one path): 124
   of main's files byte for byte the same; only `pane-streaming` (light and dark, the Away from home
   section) and `menu.txt` (the `remote-away` sample) differ, and the six cards `remote-away`,
   `link-behind` and `link-stalled` are new, as on the branch.
 - **S1, a few photos** of the harness's mock on the same simulator: the panel at 1000x710 away
   (the header's "Away: Low · Standard" beside the Menus button), `linkbehind` (the callout and "Use
   Low · Standard"), `awayhome` (a TLS session at home: the footnote), `linkmixed` at 500x710, and
-  the stream's line at 1000x710, 710x1000 and on a phone's arrangement (440x894, `-SillIdiom
-  phone`); with `-SillTourState fresh -SillTour touch` the tour's card shows and the line stays
+  the stream's line at 1000x710, 710x1000 and on a phone's arrangement (440x894, `-SkopryIdiom
+  phone`); with `-SkopryTourState fresh -SkopryTour touch` the tour's card shows and the line stays
   away.
 
 ### The merge's review (2026-10-08)
@@ -2143,7 +2143,7 @@ two of them the same; each was verified here, and each fixed in a commit of its 
   the broadcast race and a replay among them, and mutants K1–K7 (K1 is the rule before the fix). The
   glue is one line in `moveHome` (`moveStarted`), which S4 exercises (a move without its floor would
   accept nothing), and the race is now staged live (below).
-- **`SillHost --pairing` without `--remote` sends kind 16's `away`** (the host and checks reviews,
+- **`SkopryHost --pairing` without `--remote` sends kind 16's `away`** (the host and checks reviews,
   live). Since the merge the CLI makes a RemoteAccess for `--pairing` alone (its TLS home door's
   identity), and `away` is built whenever `remote` is set; no connection there is ever away, so a
   device shows nothing for it (the header needs `thisConnectionAway`, the footnote kind 18's Remote
@@ -2152,7 +2152,7 @@ two of them the same; each was verified here, and each fixed in a commit of its 
   §4.1, §4.4 (a row for `--pairing` alone) and the compatibility floor in CLAUDE.md.
 - **The plan still said the move home works against a plain home door** (the checks' review): §4.4's
   older-host row, §10's impostor row, §7.3's paragraph and rule, P13 and open question 10. Each now
-  says what the merge does: against a plain door (PR #13's Sill.app, Sill for Mac 0.3.1) no move home
+  says what the merge does: against a plain door (PR #13's Skopry.app, Skopry for Mac 0.3.1) no move home
   and the session stays remote; against 0.4.0 the move home works, pinned; a relay's key is refused
   at the handshake; the kind 18 floor is taken as the move starts.
 - **The fence check's move home handed over to plain TCP** (the checks' review), a path the move home
@@ -2162,24 +2162,24 @@ two of them the same; each was verified here, and each fixed in a commit of its 
   that must arrive (as long as inputs still arrive, for a slow runner) and then reset the TLS
   connections still up.
 - **The privacy policy had no line for the link report** (the checks' review): site/privacy.html's
-  "From your Mac" list now ends "Sill's streaming settings, and whether the connection keeps up with
+  "From your Mac" list now ends "Skopry's streaming settings, and whether the connection keeps up with
   them.", the 0.4.1 drafts' line (a policy naming a little more than an older Mac sends is safe to
   publish first). Its date and the drafts' feature lines wait for the release.
 
-Verified after the fixes (this Mac, no device, Sill.app untouched, nothing posted, every host on
+Verified after the fixes (this Mac, no device, Skopry.app untouched, nothing posted, every host on
 127.0.0.1 alone and the software encoder):
 
 - **The builds** (Xcode 27.1, 27A9275): `swift build -c release` from a clean scratch path, only the
   CaptureProbe warning; the iOS app for the simulator, Debug and Release, and Debug for a generic
   device, unsigned, only the old `StreamClient` capture warning (StreamClient.swift:3430); Release's
-  Info.plist with `_sill._tcp` alone and none of the harness's arguments in its binary.
+  Info.plist with `_skopry._tcp` alone and none of the harness's arguments in its binary.
 - **The pure checks** (`Tests/checks/run-all.sh`): all 39 pass; `policy` 392. **The mutants** of the
   checks the fixes changed or that compile a changed file, 388, every one caught: `policy` 130 (H1
   and H5 re-anchored, H12–H18 and K1–K7 new), `remote-rules` 72, `home-device` 124 and `home-model`
   21 (the other checks that compile DiscoveryPolicy.swift), `fence` 32 (its move home TLS to TLS,
   and again after its end-wait) and `away-wire` 9 (W1 re-anchored).
-- **By row, live** (a private iPad mini simulator, "Sill merge39", iOS 27.0, the app Debug signed ad
-  hoc and browsing `_silltest._tcp` alone; hosts `SillHost --synthetic --remote --pairing` with
+- **By row, live** (a private iPad mini simulator, "Skopry merge39", iOS 27.0, the app Debug signed ad
+  hoc and browsing `_skoprytest._tcp` alone; hosts `SkopryHost --synthetic --remote --pairing` with
   identities in test folders; host A paired at its TLS home door through its own Bonjour row, then run
   unadvertised, and rows carrying A's tag registered by `dns-sd` on lo0 under the test type), 29 of 29:
   A's row alone moved home 2 s after it was listed. A look-alike (A's tag at another host's TLS door,
@@ -2193,11 +2193,11 @@ Verified after the fixes (this Mac, no device, Sill.app untouched, nothing poste
 - **The merge's simulator scenarios again** (its `simtest.py`, the app browsing the test type alone):
   S4, `refused`'s back-off, another key refused by the pin once, another launch once, S5 and S4race,
   28 of 28.
-- **The kind 18 race, staged live.** The host is the bare SillMenuBar binary in test pattern mode,
-  the only host whose Mac info can change on cue: `-SillSetAfter` turns internet access on and off
+- **The kind 18 race, staged live.** The host is the bare SkopryMenuBar binary in test pattern mode,
+  the only host whose Mac info can change on cue: `-SkoprySetAfter` turns internet access on and off
   every 0.25 s, and each turn broadcasts a fresh kind 18 to every device (its identity in a test
   folder, no keychain; on 127.0.0.1 alone, the software encoder; its defaults emptied after). The app
-  paired by the typed code at its remote door, dialed it remotely, and `-SillMoveHomeTest to:` listed
+  paired by the typed code at its remote door, dialed it remotely, and `-SkopryMoveHomeTest to:` listed
   its home door behind a relay holding 0.8 s each way, so the home door's catalog kind 18 reaches the
   device after kind 18s the Mac broadcast meanwhile on the remote connection. This build moved home
   through it, 2 of 2; a scratch copy of it whose `accepts` is held to the newest kind 18 (the rule
@@ -2235,8 +2235,8 @@ button, then Done at once: no line comes up and nothing is spoken; and how Voice
 callout's "Low · Standard". Nothing here ran on a device, a real path or the hardware encoder: the
 link's timing on a hotspot, the move's on a real network, and VoiceOver on a device are all
 untested. Since the merge with main the move home goes through the Mac's TLS home door, pinned to its key:
-with Sill.app built from this branch, P10 and P11 show "Client connected" on the Mac (never "Home
-door refused") and no pairing is asked; against Sill for Mac 0.4.0 (main's, which has the TLS door
+with Skopry.app built from this branch, P10 and P11 show "Client connected" on the Mac (never "Home
+door refused") and no pairing is asked; against Skopry for Mac 0.4.0 (main's, which has the TLS door
 but no away quality) the move home works too; against 0.3.1 (a plain door) the session stays remote.
 The merge's review adds nothing for the devices: the move home's choice by row and its kind 18 floor
 ran on a simulator against test hosts (above), and P10 and P11 cover them on the real network.

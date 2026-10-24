@@ -11,9 +11,9 @@ Screen sizes are the iOS 27 simulator's device profiles; the top insets and keyb
 the usual ones, marked where assumed, and S2 measures them.
 
 **Noah's request and approvals (2026-09-27, as the workflow relayed them):**
-1. "Sill for iPhone specifically needs some tweaks in portrait mode. I would get rid of the arrow
+1. "Skopry for iPhone specifically needs some tweaks in portrait mode. I would get rid of the arrow
    keys and spotlight button, and move the keyboard button up to the top row with
-   Aa/Desktop/Settings. Then, I would move the window sill down a level (below search and the stuff
+   Aa/Desktop/Settings. Then, I would move the window skopry down a level (below search and the stuff
    I described, but above esc/tab/ctrl/opt/cmd/shift). The reason I want to do this is because
    when you open the keyboard it covers the keyboard button so it can't be dismissed. I would also
    make the trackpad area larger as the top window tends to be 16:9 or 16:10 so instead of black
@@ -166,7 +166,7 @@ halves; every landscape size stays landscape. The layout reads the device's idio
   iPad's compact halves, the key row's fold into two rows included. `StreamScreen`'s switch draws
   `portrait(metrics: DuoLayout.phoneArrangement ? .phone : .compact)` for `.outerPortrait`
   (StreamScreen.swift:132-133); `PortraitStreamScreen` draws `metrics.phone ? phone : halves`.
-  DEBUG `-SillIdiom pad` (or `phone`) swaps the idiom, so the harness photographs an iPad window's
+  DEBUG `-SkopryIdiom pad` (or `phone`) swaps the idiom, so the harness photographs an iPad window's
   arrangement on an iPhone simulator.
 - **The Duo's outer display is Noah's call to reverse** (as asked). Reversing it is a width test in
   that switch: 480 pt and wider draws `.compact`, the halves (phones are at most 440).
@@ -319,7 +319,7 @@ moves for the keyboard.
 | `iOSClient/StreamScreen.swift` | `DuoLayout`'s doc comment and `phoneArrangement` (the idiom, the one place the layout reads it); the lights below the strip on a phone; `TextScaleControl`'s icon box and its value inside a 50 pt ruler; the DEBUG hooks below |
 | `iOSClient/ContentView.swift` | The harness: screens larger than the simulator; the contract comment |
 | `iOSClient/HostSettingsPanel.swift` | Comments only (the room) |
-| `iOSClient/Sill.xcodeproj/project.pbxproj` | The new file's four entries, by hand |
+| `iOSClient/Skopry.xcodeproj/project.pbxproj` | The new file's four entries, by hand |
 | `Tests/checks/phone-portrait/` (new) | `main.swift`, `run.sh`, `mutants.py` (H2) |
 | `Tests/checks/README.md`, `.github/workflows/ci.yml` | The check's row; `phone-portrait` in the mutants matrix (ci.yml:122) |
 
@@ -332,18 +332,18 @@ language mode, iOS 17 APIs (`Layout` is iOS 16).
   down to fit (`scaleEffect`; layout sizes are unchanged), and the console says so ("harness:
   710x1000 drawn at 0.62"). So the Duo's and the iPad's sizes can be photographed on the iPhone
   simulators this work may use.
-- **`-SillKeyboard 1`** now makes the input view first responder once the stream screen shows, in
-  the harness, under `-SillLive 1` and in the normal app with `-SillConnect`, so the software
+- **`-SkopryKeyboard 1`** now makes the input view first responder once the stream screen shows, in
+  the harness, under `-SkopryLive 1` and in the normal app with `-SkopryConnect`, so the software
   keyboard really comes up; until now it only lit the button (ContentView.swift:66 promised more).
   In the harness a keyboard still upsets the fake screen (CLAUDE.md, iPad host settings, "Known"),
   so keyboard photos come from the normal app (S2).
-- **`-SillKeyboardToggle <s>`:** `<s>` seconds after the stream screen shows, the keyboard toggles
+- **`-SkopryKeyboardToggle <s>`:** `<s>` seconds after the stream screen shows, the keyboard toggles
   as the Keyboard control does (`InputOverlayProxy.toggleKeyboard`). A stand-in for a tap; the gates
   may not drive the UI.
 - **Console:** `viewport: 386×241 pt, scale none, 60 fps` for each viewport `StreamScreen` sends.
-- **`-SillIdiom pad`** (the review): a screen taller than wide and narrower than 600 pt is drawn as
+- **`-SkopryIdiom pad`** (the review): a screen taller than wide and narrower than 600 pt is drawn as
   an iPad draws it, the compact halves, so H4 photographs an iPad window's arrangement on an iPhone
-  simulator; `-SillIdiom phone` the other way round. In the harness and the normal app.
+  simulator; `-SkopryIdiom phone` the other way round. In the harness and the normal app.
 - A software keyboard shows only where the simulator has no hardware keyboard connected (booted
   headless, or Simulator.app's I/O › Keyboard › Connect Hardware Keyboard off for that device). If
   S2's photo shows none, the gate says so and P2 covers it.
@@ -351,16 +351,16 @@ language mode, iOS 17 APIs (`Layout` is iOS 16).
 ## Test gates
 
 **Hard rules, every step:**
-- Never touch `/Applications/Sill.app` or connect anything to it; never `tccutil`; never install
+- Never touch `/Applications/Skopry.app` or connect anything to it; never `tccutil`; never install
   anything on Noah's iPad or iPhone; never push to main.
-- **Simulators:** private ones named "Sill iphone-portrait", of the iPhone 18 Pro Max, iPhone 18 Pro
+- **Simulators:** private ones named "Skopry iphone-portrait", of the iPhone 18 Pro Max, iPhone 18 Pro
   and iPhone 17e types, one at a time, each deleted when its step ends. `xcrun simctl io <udid>
   screenshot` only: never XCUITest, `recordVideo` or the Claude iOS Simulator panel.
-- **Live runs:** only `swift run -c release SillHost --synthetic` on loopback, reached with
-  `-SillConnect 127.0.0.1:P`; only while `Scripts/encoder-check/no-device.sh` passes, before and
+- **Live runs:** only `swift run -c release SkopryHost --synthetic` on loopback, reached with
+  `-SkopryConnect 127.0.0.1:P`; only while `Scripts/encoder-check/no-device.sh` passes, before and
   every 2 s during; each host under 60 s, killed by PID. **No input reaches a host** (a synthetic
   host posts real events on this Mac): no touches on a live simulator; the keyboard's first
-  responder and the viewport send none. If the Application Firewall asks about SillHost, stop and
+  responder and the viewport send none. If the Application Firewall asks about SkopryHost, stop and
   say so.
 - **Disk:** at least 25 GB free before any build (`df -g /System/Volumes/Data`); DerivedData under
   the session's `scratchpad/iphone-portrait/`, deleted when the step ends.
@@ -373,15 +373,15 @@ language mode, iOS 17 APIs (`Layout` is iOS 16).
 | H1 | **Builds.** iOS Debug and Release for the simulator (`ARCHS=arm64 CODE_SIGNING_ALLOWED=NO`), Debug for a generic device (unsigned) | `** BUILD SUCCEEDED **`, only the known `StreamClient` capture warning |
 | H2 | **The pure check**, `Tests/checks/run-all.sh phone-portrait`, at least 120 cases. Pinned: every row of the two tables above, and 320 pt wide (buttons 52, caps 42 as today's outer layout has, step 28). A grid of every width from 300 to 599 and every height from the width + 1 to 1400: all inside the container and ordered picture, row 1, strip, keys, trackpad; the gaps (24 from the picture to the buttons, 16 from them to the strip, 10, 10, 16 at the bottom); five equal buttons and six equal caps spanning 14 to W − 14, 8 apart, the caps at least 44 pt from 332 pt up; the picture exactly ⌊(W − 16) ÷ 1.6⌋ whenever the trackpad keeps 120, else the trackpad exactly 120 (down to 360 pt of height); the span the width ÷ 1.6; the ruler inside the row and centred on Aa; the panels under row 1 across its span, the anchor their corner; the dim covering all but row 1's buttons. The keyboard table as assertions. `--mutants phone-portrait`, at least 15 (step 1) | All pass; every mutant caught; `Tests/checks/run-all.sh` passes whole |
 | H3 | **By grep** | `git diff origin/main --stat -- Sources Packaging Scripts iOSClient/Info.plist iOSClient/PrivacyInfo.xcprivacy` is empty; `PhonePortraitLayout.swift` imports CoreGraphics or Foundation only; the idiom read once in the layout code, in `DuoLayout.phoneArrangement` (the review: before it, none); A501 and F501 each in their places; `phone-portrait` in ci.yml's matrix |
-| H4 | **Nothing else moved.** On the 18 Pro Max, base (H0) against this build: 1000x710, 710x1000 and 710x500 (scaled), 956x440 and 874x402 (turned), each plain, `-SillDrawer 1`, `-SillSettings 1`, `-SillScaleOpen 1 -SillScale 1.5` and `-SillWindowMenu 1`; 710x1000 also with `-SillActive desktop` (the Spotlight cap). Since the review also the iPads' sizes (1133x744, 744x1133, 1376x1032, 1032x1376) and 844x390 (a smaller phone on its side), and the iPad's windows narrower than 600 pt held upright (500x710, 320x820, 375x800, 590x820 with `-SillIdiom pad`), these also with `-SillActive desktop` and with the keyboard's cap lit | Pixel for pixel equal, but for the ruler's value in the compact halves' 50 pt window bar (the review's fix) |
+| H4 | **Nothing else moved.** On the 18 Pro Max, base (H0) against this build: 1000x710, 710x1000 and 710x500 (scaled), 956x440 and 874x402 (turned), each plain, `-SkopryDrawer 1`, `-SkoprySettings 1`, `-SkopryScaleOpen 1 -SkopryScale 1.5` and `-SkopryWindowMenu 1`; 710x1000 also with `-SkopryActive desktop` (the Spotlight cap). Since the review also the iPads' sizes (1133x744, 744x1133, 1376x1032, 1032x1376) and 844x390 (a smaller phone on its side), and the iPad's windows narrower than 600 pt held upright (500x710, 320x820, 375x800, 590x820 with `-SkopryIdiom pad`), these also with `-SkopryActive desktop` and with the keyboard's cap lit | Pixel for pixel equal, but for the ruler's value in the compact halves' 50 pt window bar (the review's fix) |
 
 **Simulator (S),** photographed and sheeted per size, the sheets sent to Noah:
 
 | # | Check |
 |---|---|
-| S1 | **The mock at every phone container**, on the 18 Pro Max: 440x894, 402x812, 393x793, 390x797, 375x762, 375x647, and 500x710 (scaled); each plain, `-SillDrawer 1`, `-SillSettings 1`, `-SillSettings 1 -SillSettingsEnd 1`, `-SillScaleOpen 1 -SillScale 1.5`, `-SillWindowMenu 1`, `-SillActive desktop` and `-SillActive none` (56 photos). Each against the tables: the picture's pane at the top; five equal buttons whose outer edges line up with esc's and shift's; the first thumbnail under Apps; no arrow, Spotlight or keyboard cap; the trackpad to 16 pt from the bottom; the drawer and the panel 8 pt under row 1 with row 1 undimmed; the ruler inside row 1 with the other four hidden; nothing truncated |
-| S2 | **Live, with the real insets and keyboard**, on the 18 Pro Max, the 18 Pro and the 17e, one at a time: the app with `-SillConnect 127.0.0.1:P -SillKeyboard 1 -SillKeyboardToggle 5` against a synthetic host. A photo at 3 s: the keyboard up, row 1 whole above it with Keyboard lit, and rows 2 and 3 above it; each margin measured and written down (the check's assumed keyboard heights follow what the simulators draw, in the same commit). A photo at 6.5 s: the keyboard gone, Keyboard unlit. The console's `viewport:` line is the table's picture (424×265, 386×241, 374×233), and the test pattern (1512×949 points, 1.59:1) fills the pane but for bars of about 1 pt at the sides |
-| S3 | **Text size**, `xcrun simctl ui <udid> content_size` at `extra-extra-extra-large` and `accessibility-extra-extra-extra-large`, on the 18 Pro: the mock at 402x812 plain and `-SillSettings 1`. The rows are pixel for pixel the default size's; the panel's text stops at xxLarge and scrolls, its header and Disconnect pinned. The size set back after |
+| S1 | **The mock at every phone container**, on the 18 Pro Max: 440x894, 402x812, 393x793, 390x797, 375x762, 375x647, and 500x710 (scaled); each plain, `-SkopryDrawer 1`, `-SkoprySettings 1`, `-SkoprySettings 1 -SkoprySettingsEnd 1`, `-SkopryScaleOpen 1 -SkopryScale 1.5`, `-SkopryWindowMenu 1`, `-SkopryActive desktop` and `-SkopryActive none` (56 photos). Each against the tables: the picture's pane at the top; five equal buttons whose outer edges line up with esc's and shift's; the first thumbnail under Apps; no arrow, Spotlight or keyboard cap; the trackpad to 16 pt from the bottom; the drawer and the panel 8 pt under row 1 with row 1 undimmed; the ruler inside row 1 with the other four hidden; nothing truncated |
+| S2 | **Live, with the real insets and keyboard**, on the 18 Pro Max, the 18 Pro and the 17e, one at a time: the app with `-SkopryConnect 127.0.0.1:P -SkopryKeyboard 1 -SkopryKeyboardToggle 5` against a synthetic host. A photo at 3 s: the keyboard up, row 1 whole above it with Keyboard lit, and rows 2 and 3 above it; each margin measured and written down (the check's assumed keyboard heights follow what the simulators draw, in the same commit). A photo at 6.5 s: the keyboard gone, Keyboard unlit. The console's `viewport:` line is the table's picture (424×265, 386×241, 374×233), and the test pattern (1512×949 points, 1.59:1) fills the pane but for bars of about 1 pt at the sides |
+| S3 | **Text size**, `xcrun simctl ui <udid> content_size` at `extra-extra-extra-large` and `accessibility-extra-extra-extra-large`, on the 18 Pro: the mock at 402x812 plain and `-SkoprySettings 1`. The rows are pixel for pixel the default size's; the panel's text stops at xxLarge and scrolls, its header and Disconnect pinned. The size set back after |
 
 **Noah's devices (P),** handed over (no agent installs on them): the iPhone 15 Pro and the iPad
 mini.
@@ -391,7 +391,7 @@ mini.
 | P1 | **The iPhone upright, a window streaming.** The picture on top, 16:10; a 16:9 window (or the Desktop of a 16:9 display) with black bars above and below; switching between the two moves nothing below the picture |
 | P2 | **The keyboard.** Keyboard brings it up under the key row, with esc to shift in view; type; Keyboard takes it down. Latch cmd, then C: copy. With the Desktop streaming, cmd then space: Spotlight on the Mac. A hardware keyboard's arrows still work |
 | P3 | **The trackpad.** A diagonal stroke moves the pointer at the finger's angle; one stroke down the pad crosses the picture; two-finger scrolling at about today's speed; tap, two-finger tap, hold and drag as before |
-| P4 | **Aa.** The ruler over row 1, the other buttons hidden; on release the Mac window resizes to 16:10 (Sill.log: "Resized … for a 377×235 panel at …") |
+| P4 | **Aa.** The ruler over row 1, the other buttons hidden; on release the Mac window resizes to 16:10 (Skopry.log: "Resized … for a 377×235 panel at …") |
 | P5 | **Apps and Settings.** Each hangs under row 1, which stays live: Apps again closes the drawer, Settings swaps them; a tap on the picture closes either and clicks nothing on the Mac |
 | P6 | **Rotation.** Sideways, exactly as before; upright again, the drawer, the panel, the keyboard and a latch as they were |
 | P7 | **VoiceOver.** Swiping right: Apps, Text size, Keyboard, Desktop, Settings, the thumbnails, Escape to Shift, the trackpad's hint. With the drawer open: Apps ("Close the app list") to Settings, then the drawer's search field and apps, nothing dimmed. At an accessibility text size, a long press on Keyboard or on cmd shows it large |
@@ -442,7 +442,7 @@ mini.
 
 - **CLAUDE.md:** the Current step entry; Layout (`PortraitStreamScreen`'s two arrangements,
   `PhonePortraitLayout.swift`, `Tests/checks/phone-portrait`); Build and run (the harness's scaling,
-  `-SillKeyboard`, `-SillKeyboardToggle`, the `viewport:` line).
+  `-SkopryKeyboard`, `-SkopryKeyboardToggle`, the `viewport:` line).
 - **`ContentView.swift`'s contract comment** (step 2).
 - **docs/DEVELOPMENT.md:** The iOS app (a paragraph on the phone upright); The iOS debug harness
   (phone sizes, the scaling, the two keyboard arguments).
@@ -521,7 +521,7 @@ fixed; the sections above now describe the result.
    screen reached into the simulator's safe area (its comment already said so). Not a layout
    fault; the sheets show the Pro Max from the live app instead.
 10. **An iPad window narrower than 600 pt got the phone layout,** which the approval (iPhones) did
-    not cover. `DuoLayout.phoneArrangement` reads the idiom (DEBUG `-SillIdiom pad|phone`), so an
+    not cover. `DuoLayout.phoneArrangement` reads the idiom (DEBUG `-SkopryIdiom pad|phone`), so an
     iPad keeps the compact halves, `.compact` as on main with its two-row key fold, and the phone's
     metrics are `.phone`. Open question 1 and P8 say so.
 
@@ -534,7 +534,7 @@ Verified (2026-09-27, 04:40–05:10; private simulators of the iPhone 18 Pro Max
   only; the idiom read once, in `DuoLayout.phoneArrangement`.
 - H4, 81 harness photos on the Pro Max against the base build (the harness commit 85920e3 on
   main's layout): the landscape sizes, the inner portrait, the iPads' sizes, the phones on their
-  side and the iPad's windows narrower than 600 pt (`-SillIdiom pad`), plain, drawer, Settings,
+  side and the iPad's windows narrower than 600 pt (`-SkopryIdiom pad`), plain, drawer, Settings,
   ruler and lights, with the Desktop and the keyboard's cap. 56 identical at once. The ruler's
   value in the compact halves' 50 pt bar changed as intended (four photos). The rest is what
   retakes show the base doing against itself: the held thumbnail's wiggle in the 14 lights photos
@@ -554,14 +554,14 @@ Verified (2026-09-27, 04:40–05:10; private simulators of the iPhone 18 Pro Max
   and Aa's value 5 px high); the drawer's and the panel's edges on Apps' leading and Settings'
   trailing edges; the ruler's value 2.3 pt inside the ruler; the lights below the strip at every
   size.
-- S2, the normal app against `SillHost --synthetic` on loopback behind a relay that drops input
+- S2, the normal app against `SkopryHost --synthetic` on loopback behind a relay that drops input
   (no-device.sh passed before, every 2 s during and after each run; each host under 55 s, killed
   by PID). The Pro Max: the viewport 424×265 (and at 1.5× from the ruler); the rows exactly as
   above; the keyboard's top at 636 pt, 95 under row 3, Keyboard lit, and down again; the drawer
   and the panel across row 1; the ruler's value whole; row 1, the key row and the trackpad pixel
   for pixel the same with a 16:10 and a 16:9 picture (bars of 13.3 pt above and below, from a
   scratch host whose test pattern is 1600×900), with the keyboard up and at AX-XL;
-  `-SillInputTest`: ⌘esc, the stroke's 40 pt down counted against 257.5 pt, the tap with ctrl and
+  `-SkopryInputTest`: ⌘esc, the stroke's 40 pt down counted against 257.5 pt, the tap with ctrl and
   shift around it, the scroll, every event dropped at the relay. The 18 Pro: 386×241, the
   trackpad 374×331, the keyboard's top at 573, 56 under row 3. The 17e: 374×233, 362×324, 543,
   49. (A fresh simulator's first keyboard shows the slide-to-type tip over its keys.)

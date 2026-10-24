@@ -1,5 +1,5 @@
-// Sill for Android: the client half of Sill (docs/BRIEF.md) for Android phones, tablets and
-// foldables. It speaks the same wire protocol as iOSClient/ (Sources/StreamProtocol), so Sill for
+// Skopry for Android: the client half of Skopry (docs/BRIEF.md) for Android phones, tablets and
+// foldables. It speaks the same wire protocol as iOSClient/ (Sources/StreamProtocol), so Skopry for
 // Mac needs no change to serve it.
 pluginManagement {
     repositories {
@@ -15,5 +15,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "SillAndroid"
+rootProject.name = "SkopryAndroid"
 include(":app")

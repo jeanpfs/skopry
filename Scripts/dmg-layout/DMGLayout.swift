@@ -22,7 +22,7 @@ struct DMGLayout: Equatable {
     var background: String
     /// The view's colour behind the picture, for where the window is larger than it: the picture's
     /// edge colour. (Finder may show its own fill there instead: white in Light Mode, so a picture
-    /// white to its edges, as Sill's is, looks the same either way.)
+    /// white to its edges, as Skopry's is, looks the same either way.)
     var backgroundColor: (red: Int, green: Int, blue: Int)
     /// Where each icon's centre sits, in points from the content's top-left corner.
     var items: [Item]

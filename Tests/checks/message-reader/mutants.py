@@ -31,7 +31,7 @@ MUTANTS = {
         ("            if ended {\n                self.header = nil", "            if ended {\n                if !buffer.isEmpty { onMessage(header, buffer) }\n                self.header = nil")],
     "R10 no stillReads before a read": [("    private func readHeader() {\n        guard stillReads() else { return }\n", "    private func readHeader() {\n")],
     "R11 no stillReads in a piece's callback": [(PIECE_CLOSURE, "maximumLength: min(remaining, Self.piece)) { [self] data, _, isComplete, error in\n")],
-    "R12 a header's read not reported": [("            onBytes(data.count)\n            // Nothing a Sill host sends", "            // Nothing a Sill host sends")],
+    "R12 a header's read not reported": [("            onBytes(data.count)\n            // Nothing a Skopry host sends", "            // Nothing a Skopry host sends")],
     "R13 a piece replaces the buffer": [("                    buffer.append(data)\n", "                    buffer = data\n")],
     "R14 the reading stops after an empty payload": [
         ("end is not this reader's to report.\n                if ended { if stillReads() { onEnd(.closed(error)) } } else { readHeader() }\n",

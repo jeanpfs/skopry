@@ -9,33 +9,33 @@ import Security
 /// the certificate and a removed device could come back on an old ticket.
 ///
 /// Two application protocols tell a pairing connection from a session before any data:
-/// `sill/1` (a session: paired devices only) and `sill-pair/1` (pairing, one message each way).
+/// `skopry/1` (a session: paired devices only) and `skopry-pair/1` (pairing, one message each way).
 /// A host offers both for good (`serverALPNs`, the compatibility floor): a device from the first
 /// public build speaks nothing else, and a server that offers neither of its protocols fails its
-/// handshake (-9838 on the device) before a word of Sill is said. A later generation's `sill/2`
-/// goes beside them, never in their place, with `SillProtocol.current` (Compatibility.swift).
+/// handshake (-9838 on the device) before a word of Skopry is said. A later generation's `skopry/2`
+/// goes beside them, never in their place, with `SkopryProtocol.current` (Compatibility.swift).
 /// Inside TLS: the same 14-byte header and the same kinds as the home door.
 ///
 /// Measured on loopback (2026-09-24): mutual TLS 1.3 is ready in 12–20 ms with suite 0x1302. The
 /// server's verify block sees the negotiated ALPN already, so the host refuses an unpaired key on
-/// `sill/1` inside the handshake (the client is `.ready`, then its first read fails with -9825).
+/// `skopry/1` inside the handshake (the client is `.ready`, then its first read fails with -9825).
 /// A client whose pin does not match goes `.waiting(-9808)` without ever sending its certificate.
 /// An ALPN the server does not offer fails the handshake (server -9810, client -9838).
 public enum RemoteTLS {
     /// A session: the catalog, frames and input, as on the home door.
-    public static let sessionALPN = "sill/1"
+    public static let sessionALPN = "skopry/1"
     /// Pairing: exactly one kind 19 from the device and one kind 20 back, then close.
-    public static let pairingALPN = "sill-pair/1"
+    public static let pairingALPN = "skopry-pair/1"
     /// What a host offers, both doors, for good (the compatibility floor, CLAUDE.md): a device from
-    /// the first public build offers `sill/1` for a session and `sill-pair/1` for pairing, and only
-    /// inside a `sill/1` session can a host tell it anything, kind 22 "update" included. So a later
+    /// the first public build offers `skopry/1` for a session and `skopry-pair/1` for pairing, and only
+    /// inside a `skopry/1` session can a host tell it anything, kind 22 "update" included. So a later
     /// host adds a later generation beside these and never drops one: a host that no longer serves
-    /// such a device still completes its `sill/1` handshake, reads its hello through the device
-    /// gate and says "update"; without `sill/1` the device sees only a failed handshake and redials.
+    /// such a device still completes its `skopry/1` handshake, reads its hello through the device
+    /// gate and says "update"; without `skopry/1` the device sees only a failed handshake and redials.
     public static let serverALPNs = [sessionALPN, pairingALPN]
     /// The SNI every client sends, so a dynamic DNS or MagicDNS name never crosses the network in
     /// clear. The host ignores it.
-    public static let serverName = "sill"
+    public static let serverName = "skopry"
     /// A device's TCP connect timeout for one attempt, seconds.
     public static let dialTimeout = 10
 

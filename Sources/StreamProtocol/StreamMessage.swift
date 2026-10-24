@@ -32,8 +32,8 @@ public enum StreamMessageKind: UInt8 {
     // Remote access (Remote.swift, Pairing.swift). Older readers map all five to `.unknown` and skip them.
     case macInfo = 18        // host → device: JSON SignedMacInfo — who this Mac is and how to reach it from afar, signed
                              // with its identity key. In the catalog right after kind 16, on both doors, and again whenever
-                             // it changes. Only from a host with an identity (Sill.app always; SillHost with --remote)
-    case pairRequest = 19    // device → host: JSON PairRequest — the one message of a pairing connection (ALPN sill-pair/1),
+                             // it changes. Only from a host with an identity (Skopry.app always; SkopryHost with --remote)
+    case pairRequest = 19    // device → host: JSON PairRequest — the one message of a pairing connection (ALPN skopry-pair/1),
                              // at most `maxPairingPayload` bytes, within 10 s of the connection
     case pairResult = 20     // host → device: JSON PairResult — the answer to 19; the host then closes the connection
     case pairingWanted = 21  // device → host, empty payload: "show your pairing code" (Pair This iPad…). Home door only,

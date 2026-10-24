@@ -41,7 +41,7 @@ import StreamProtocol
 //   the same sizes (a window picked, a rotation: the quality kept, so the links keep their
 //   judgement), so its first keyframe goes out while that keyframe may still be crossing the link.
 //   It prints "Restart: …".
-// --log: the host's lines with Sill.log's timestamps (HostLog), which summarize.py reads.
+// --log: the host's lines with Skopry.log's timestamps (HostLog), which summarize.py reads.
 
 setvbuf(stdout, nil, _IOLBF, 0)
 

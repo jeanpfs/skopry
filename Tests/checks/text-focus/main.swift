@@ -156,9 +156,9 @@ do {
 
 do {
     var c = TitleSwitchCounter()
-    check(c.observe(title: "π ⠼ 🤖 SILL: Analisar projeto") == 0, "the first title is the starting point")
-    check(c.observe(title: "π ⠴ 🤖 SILL: Analisar projeto") == 0, "a spinner turning is not a switch")
-    check(c.observe(title: "π > ⭐ SILL: Analisar projeto") == 0, "a status symbol changing is not a switch")
+    check(c.observe(title: "π ⠼ 🤖 SKOPRY: Analisar projeto") == 0, "the first title is the starting point")
+    check(c.observe(title: "π ⠴ 🤖 SKOPRY: Analisar projeto") == 0, "a spinner turning is not a switch")
+    check(c.observe(title: "π > ⭐ SKOPRY: Analisar projeto") == 0, "a status symbol changing is not a switch")
     check(c.observe(title: nil) == 0, "an unreadable title changes nothing")
     check(c.observe(title: "π > ⭐ ASO: Plan ASO") == 1, "another tab's title is a switch")
     check(c.observe(title: "π ⠋ ⭐ ASO: Plan ASO") == 1, "and its spinner is not another")

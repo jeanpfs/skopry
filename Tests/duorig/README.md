@@ -10,7 +10,7 @@ to an app.
 **Private interfaces, simulator only.** `duorig.m` uses HID.framework's `HIDVirtualEventService` and
 IOKit's `IOHIDEvent` calls through `dlopen`/`dlsym`, and posts into the HID event system of the
 simulator it runs in (the simulated backboardd's `com.apple.iohideventsystem`). It is never part of
-Sill, never built for a device, and refuses to run outside a simulator. Nothing reaches the Mac's own
+Skopry, never built for a device, and refuses to run outside a simulator. Nothing reaches the Mac's own
 HID system: it runs inside the simulator through `xcrun simctl spawn`, a binary for the simulator
 platform that macOS's dyld will not start on its own ("DYLD_ROOT_PATH not set for simulator
 program").

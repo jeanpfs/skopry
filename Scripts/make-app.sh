@@ -1,20 +1,20 @@
 #!/bin/bash
-# Builds Sill.app, the menu bar Mac host, from this SwiftPM package.
+# Builds Skopry.app, the menu bar Mac host, from this SwiftPM package.
 #
-#   Scripts/make-app.sh                    .build/Sill.app, signed with your Apple Development identity
-#   SILL_UNIVERSAL=1 Scripts/make-app.sh   …for Apple silicon and Intel Macs (arm64 and x86_64; #62)
-#   Scripts/make-app.sh --install          …then replace /Applications/Sill.app (a running copy quits first)
+#   Scripts/make-app.sh                    .build/Skopry.app, signed with your Apple Development identity
+#   SKOPRY_UNIVERSAL=1 Scripts/make-app.sh   …for Apple silicon and Intel Macs (arm64 and x86_64; #62)
+#   Scripts/make-app.sh --install          …then replace /Applications/Skopry.app (a running copy quits first)
 #   Scripts/make-app.sh --install --open   …and launch it: Noah's one command after any change
-#   SILL_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' Scripts/make-app.sh --release
+#   SKOPRY_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)' Scripts/make-app.sh --release
 #                                          (M6; refused unless HEAD carries the tag v‹version› and
 #                                          the signature is Developer ID; Scripts/release.sh --dry-run
-#                                          sets SILL_RELEASE_DRY_RUN=1, which only warns about the tag)
-#   SILL_INSTALL_DIR=~/Applications Scripts/make-app.sh --install   (another install folder)
+#                                          sets SKOPRY_RELEASE_DRY_RUN=1, which only warns about the tag)
+#   SKOPRY_INSTALL_DIR=~/Applications Scripts/make-app.sh --install   (another install folder)
 #
 # Why a script: SwiftPM builds executables, not app bundles, and everything the host needs from
 # macOS belongs to an app bundle. Screen Recording, Accessibility, Local Network and Login Items
 # are granted to the CFBundleIdentifier plus the code's designated requirement. So: swift build,
-# wrap the SillMenuBar executable with Packaging/Info.plist and an icon compiled from
+# wrap the SkopryMenuBar executable with Packaging/Info.plist and an icon compiled from
 # design/AppIcon.svg, sign the whole bundle last, verify.
 #
 # Grants survive rebuilds only with a real identity: its designated requirement names the bundle ID
@@ -34,21 +34,21 @@ for arg in "$@"; do
 done
 # --release is for notarization, which accepts only a Developer ID Application signature and says
 # so only after the upload. The default identity is Apple Development, so without
-# SILL_SIGN_IDENTITY stop now, before building; the signature itself is checked after signing.
-if [ "$release" = 1 ] && [ -z "${SILL_SIGN_IDENTITY:-}" ]; then
-    echo "error: --release needs SILL_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)'" >&2
+# SKOPRY_SIGN_IDENTITY stop now, before building; the signature itself is checked after signing.
+if [ "$release" = 1 ] && [ -z "${SKOPRY_SIGN_IDENTITY:-}" ]; then
+    echo "error: --release needs SKOPRY_SIGN_IDENTITY='Developer ID Application: … (9B2KKVM937)'" >&2
     exit 2
 fi
 # A release is built only from the commit its tag names: the tag is "v" + Packaging/Info.plist's
-# CFBundleShortVersionString (v0.4.0 for 0.4.0), and every Sill.app's update check compares the
-# latest release's tag on GitHub with the version it runs (Sources/SillMenuBar/UpdatePolicy.swift).
-# A rehearsal (release.sh --dry-run, which sets SILL_RELEASE_DRY_RUN=1) builds any commit and only
+# CFBundleShortVersionString (v0.4.0 for 0.4.0), and every Skopry.app's update check compares the
+# latest release's tag on GitHub with the version it runs (Sources/SkopryMenuBar/UpdatePolicy.swift).
+# A rehearsal (release.sh --dry-run, which sets SKOPRY_RELEASE_DRY_RUN=1) builds any commit and only
 # warns: its zip is never notarized, so it is never published.
 if [ "$release" = 1 ]; then
     version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Packaging/Info.plist)"
     tags="$(git tag --points-at HEAD 2>/dev/null | tr '\n' ' ' | sed 's/ $//' || true)"
     if ! git tag --points-at HEAD 2>/dev/null | grep -Fx "v$version" >/dev/null; then   # -F: dots are dots
-        if [ "${SILL_RELEASE_DRY_RUN:-}" = 1 ]; then
+        if [ "${SKOPRY_RELEASE_DRY_RUN:-}" = 1 ]; then
             echo "warning: HEAD is not tagged v$version (it is tagged '${tags:-nothing}'); a dry run builds it anyway, a release only a commit tagged v$version." >&2
         else
             echo "error: --release builds only a commit tagged v$version (HEAD is tagged '${tags:-nothing}'): the update check compares the release's tag with this version." >&2
@@ -59,7 +59,7 @@ fi
 
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' Packaging/Info.plist)"
 
-# SILL_UNIVERSAL=1: one Sill.app for Apple silicon and Intel Macs (#62), one build per architecture
+# SKOPRY_UNIVERSAL=1: one Skopry.app for Apple silicon and Intel Macs (#62), one build per architecture
 # joined with lipo. Not one `swift build --arch arm64 --arch x86_64`: that needs Xcode's XCBuild, and
 # the Command Line Tools alone must still build this. Each architecture has its own scratch path: in
 # one shared .build, every switch of triple costs a relink (16 s measured), so no rebuild stays at
@@ -67,19 +67,19 @@ bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' Packaging/In
 # measured 2026-10-20), the x86_64 slice had not streamed on an Intel Mac by then, and releases stay
 # arm64 until #62 decides (release.sh names the architectures it built). Unset, the build is for this
 # Mac's own architecture, as it always was.
-if [ "${SILL_UNIVERSAL:-}" = 1 ]; then
+if [ "${SKOPRY_UNIVERSAL:-}" = 1 ]; then
     bin=.build/universal
     for arch in arm64 x86_64; do
-        swift build -c release --product SillMenuBar --triple "$arch-apple-macosx" --scratch-path "$bin/$arch"
-        cp "$(swift build -c release --product SillMenuBar --triple "$arch-apple-macosx" --scratch-path "$bin/$arch" --show-bin-path)/SillMenuBar" "$bin/SillMenuBar-$arch"
+        swift build -c release --product SkopryMenuBar --triple "$arch-apple-macosx" --scratch-path "$bin/$arch"
+        cp "$(swift build -c release --product SkopryMenuBar --triple "$arch-apple-macosx" --scratch-path "$bin/$arch" --show-bin-path)/SkopryMenuBar" "$bin/SkopryMenuBar-$arch"
     done
-    lipo -create "$bin/SillMenuBar-arm64" "$bin/SillMenuBar-x86_64" -output "$bin/SillMenuBar"
+    lipo -create "$bin/SkopryMenuBar-arm64" "$bin/SkopryMenuBar-x86_64" -output "$bin/SkopryMenuBar"
 else
-    swift build -c release --product SillMenuBar
-    bin="$(swift build -c release --product SillMenuBar --show-bin-path)"
+    swift build -c release --product SkopryMenuBar
+    bin="$(swift build -c release --product SkopryMenuBar --show-bin-path)"
 fi
-app=.build/Sill.app
-stage=.build/Sill.app.partial      # assembled aside, so a failed run never leaves half a bundle
+app=.build/Skopry.app
+stage=.build/Skopry.app.partial      # assembled aside, so a failed run never leaves half a bundle
 rm -rf "$stage"
 mkdir -p "$stage/Contents/MacOS" "$stage/Contents/Resources"
 # The executable, with the SDK it was compiled against recorded in it. SwiftPM links without
@@ -87,9 +87,9 @@ mkdir -p "$stage/Contents/MacOS" "$stage/Contents/Resources"
 # then draw the whole app in the look of a pre-26 app (Settings' sections, buttons, pop-ups and
 # segmented controls). vtool writes the copy with the build version an Xcode build would have:
 # minos from the binary, sdk from the SDK in use. The signature this breaks is replaced below.
-minos="$(xcrun vtool -show-build "$bin/SillMenuBar" | awk '$1 == "minos" && !found { print $2; found = 1 }')"
-xcrun vtool -set-build-version macos "${minos:?vtool reported no deployment target for $bin/SillMenuBar}" \
-    "$(xcrun --sdk macosx --show-sdk-version)" -output "$stage/Contents/MacOS/Sill" "$bin/SillMenuBar"
+minos="$(xcrun vtool -show-build "$bin/SkopryMenuBar" | awk '$1 == "minos" && !found { print $2; found = 1 }')"
+xcrun vtool -set-build-version macos "${minos:?vtool reported no deployment target for $bin/SkopryMenuBar}" \
+    "$(xcrun --sdk macosx --show-sdk-version)" -output "$stage/Contents/MacOS/Skopry" "$bin/SkopryMenuBar"
 cp Packaging/Info.plist "$stage/Contents/Info.plist"
 build_number="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build_number" "$stage/Contents/Info.plist"
@@ -113,32 +113,32 @@ if [ ! -f "$icon_out/compiled/Assets.car" ] || [ design/AppIcon.svg -nt "$icon_o
         doc="$icon_out/AppIcon.icon"
         mkdir -p "$doc/Assets"
         qlmanage -t -s 1024 -o "$icon_out" "$PWD/design/AppIcon.svg" >/dev/null 2>&1 || true
-        mv "$icon_out/AppIcon.svg.png" "$doc/Assets/Sill.png" 2>/dev/null || true
+        mv "$icon_out/AppIcon.svg.png" "$doc/Assets/Skopry.png" 2>/dev/null || true
         cat > "$doc/icon.json" <<'JSON'
 {
   "fill" : { "solid" : "srgb:0.00000,0.00000,0.00000,1.00000" },
-  "groups" : [ { "layers" : [ { "image-name" : "Sill.png", "name" : "Sill" } ] } ],
+  "groups" : [ { "layers" : [ { "image-name" : "Skopry.png", "name" : "Skopry" } ] } ],
   "supported-platforms" : { "squares" : [ "macOS" ] }
 }
 JSON
     fi
-    if [ -f "$doc/icon.json" ] && { [ "$doc" = "$PWD/Packaging/AppIcon.icon" ] || [ -f "$doc/Assets/Sill.png" ]; }; then
+    if [ -f "$doc/icon.json" ] && { [ "$doc" = "$PWD/Packaging/AppIcon.icon" ] || [ -f "$doc/Assets/Skopry.png" ]; }; then
         xcrun actool --compile "$icon_out/compiled" --platform macosx --minimum-deployment-target 14.0 \
             --app-icon AppIcon --output-partial-info-plist "$icon_out/partial.plist" "$doc" >/dev/null \
-            || echo "warning: actool could not compile the icon; Sill.app gets the generic icon" >&2
+            || echo "warning: actool could not compile the icon; Skopry.app gets the generic icon" >&2
     else
-        echo "warning: Quick Look did not render design/AppIcon.svg; Sill.app gets the generic icon" >&2
+        echo "warning: Quick Look did not render design/AppIcon.svg; Skopry.app gets the generic icon" >&2
     fi
 fi
 cp "$icon_out"/compiled/* "$stage/Contents/Resources/" 2>/dev/null || true
 
-# SILL_SIGN_IDENTITY (a name, part of one, or a SHA-1 hash), else the first Apple Development
+# SKOPRY_SIGN_IDENTITY (a name, part of one, or a SHA-1 hash), else the first Apple Development
 # identity in the keychain, by its SHA-1 hash: codesign refuses a name that two valid
 # certificates share, as they do after an early renewal until the old one expires. Either of them
 # keeps the grants, because the designated requirement names the leaf certificate's common name,
 # which a renewal keeps. (`|| true`: no keychain or no match must fall through to the ad hoc
 # warning below, not end the script under `set -e`.)
-identity="${SILL_SIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | awk '/"Apple Development: / { print $2; exit }' || true)}"
+identity="${SKOPRY_SIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | awk '/"Apple Development: / { print $2; exit }' || true)}"
 if [ -z "$identity" ]; then
     identity="-"
     echo "warning: no Apple Development identity in the keychain; signing ad hoc. Screen Recording and" >&2
@@ -148,18 +148,18 @@ if [ "$release" = 1 ]; then
     # Developer ID: hardened runtime and a secure timestamp (notarization needs both), no get-task-allow.
     #
     # The identity items' keychain (docs/keychain-plan.md): with a Developer ID provisioning profile
-    # that authorises the access group, embed it and sign with Packaging/SillRelease.entitlements, so
-    # Sill.app keeps its key and trust list in the data-protection keychain, which no other process
+    # that authorises the access group, embed it and sign with Packaging/SkopryRelease.entitlements, so
+    # Skopry.app keeps its key and trust list in the data-protection keychain, which no other process
     # can pre-create or read. Without the profile, sign without those entitlements: they are
     # profile-restricted, so a build that carried them without a matching profile would pass codesign
     # yet be killed by AMFI at launch. The profile-free build is a valid, notarizable Developer ID
     # app that keeps its identity in the login keychain (the same store as before this change) — safe,
     # and said in the log so the softer keychain is never a silent surprise.
     #
-    # SillRelease.entitlements holds exactly three profile-restricted entitlements —
-    # com.apple.application-identifier 9B2KKVM937.me.saffer.sill.mac,
+    # SkopryRelease.entitlements holds exactly three profile-restricted entitlements —
+    # com.apple.application-identifier 9B2KKVM937.app.skopry.mac,
     # com.apple.developer.team-identifier 9B2KKVM937 and keychain-access-groups
-    # [9B2KKVM937.me.saffer.sill.mac] — and NO XML comments: codesign feeds it to AMFI's entitlement
+    # [9B2KKVM937.app.skopry.mac] — and NO XML comments: codesign feeds it to AMFI's entitlement
     # parser (AMFIUnserializeXML), which rejects a comment with "syntax error", so a commented file
     # fails the sign. The application identifier goes under the macOS key: a Mac profile grants
     # com.apple.application-identifier, never iOS's application-identifier, and an app signed with
@@ -167,9 +167,9 @@ if [ "$release" = 1 ]; then
     # then AMFI's kill; measured with the real profile, 2026-09-27). A development build must never
     # carry these either: it is signed with the Apple Development certificate, which the Developer
     # ID profile does not list, so it would be killed at launch too (measured the same day); the
-    # default path below keeps SillDebug.entitlements.
-    ents=Packaging/SillRelease.entitlements
-    profile="${SILL_PROVISION_PROFILE:-Packaging/embedded.provisionprofile}"
+    # default path below keeps SkopryDebug.entitlements.
+    ents=Packaging/SkopryRelease.entitlements
+    profile="${SKOPRY_PROVISION_PROFILE:-Packaging/embedded.provisionprofile}"
     group="$(/usr/libexec/PlistBuddy -c 'Print :keychain-access-groups:0' "$ents")"
     if [ -f "$profile" ]; then
         # What macOS checks at every launch of an app with a profile (taskgated, then AMFI), checked
@@ -294,7 +294,7 @@ if [ "$release" = 1 ]; then
     fi
 else
     # get-task-allow lets lldb and Xcode's Attach to Process attach to the hardened app.
-    codesign --force --options runtime --timestamp=none --entitlements Packaging/SillDebug.entitlements --sign "$identity" "$stage"
+    codesign --force --options runtime --timestamp=none --entitlements Packaging/SkopryDebug.entitlements --sign "$identity" "$stage"
     keychain_note="login keychain (a development build has no keychain-access-groups entitlement)"
 fi
 codesign --verify --strict "$stage"
@@ -313,9 +313,9 @@ echo "Built $app, version $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVers
 echo "  identity keychain: ${keychain_note:-login keychain}"
 codesign -d -r- "$app" 2>&1 | sed -n 's/^# *designated => /  designated requirement: /p; s/^designated => /  designated requirement: /p'
 
-dest="${SILL_INSTALL_DIR:-/Applications}/Sill.app"
+dest="${SKOPRY_INSTALL_DIR:-/Applications}/Skopry.app"
 if [ "$install" = 1 ]; then
-    # An iPad build of the iOS client installed on this Mac would also be a Sill.app: never replace
+    # An iPad build of the iOS client installed on this Mac would also be a Skopry.app: never replace
     # anything that is not this app.
     if [ -e "$dest" ]; then
         existing="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$dest/Contents/Info.plist" 2>/dev/null || true)"
@@ -324,16 +324,16 @@ if [ "$install" = 1 ]; then
             exit 1
         fi
     fi
-    # Quit a running Sill.app first. SIGTERM goes through HostShutdown, which puts a staged window
-    # back. The pattern matches Mac bundles only: the iOS Simulator's Sill.app is flat, and
-    # `pkill -x Sill` would kill it too.
-    if pgrep -f 'Sill\.app/Contents/MacOS/Sill' >/dev/null; then
-        pkill -TERM -f 'Sill\.app/Contents/MacOS/Sill' || true
-        for _ in $(seq 1 50); do pgrep -f 'Sill\.app/Contents/MacOS/Sill' >/dev/null || break; sleep 0.1; done
+    # Quit a running Skopry.app first. SIGTERM goes through HostShutdown, which puts a staged window
+    # back. The pattern matches Mac bundles only: the iOS Simulator's Skopry.app is flat, and
+    # `pkill -x Skopry` would kill it too.
+    if pgrep -f 'Skopry\.app/Contents/MacOS/Skopry' >/dev/null; then
+        pkill -TERM -f 'Skopry\.app/Contents/MacOS/Skopry' || true
+        for _ in $(seq 1 50); do pgrep -f 'Skopry\.app/Contents/MacOS/Skopry' >/dev/null || break; sleep 0.1; done
     fi
     rm -rf "$dest"
     ditto "$app" "$dest"
-    # One registered Sill: LaunchServices (the login item, `open -b`, Spotlight) must not pick the
+    # One registered Skopry: LaunchServices (the login item, `open -b`, Spotlight) must not pick the
     # copy in .build.
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$PWD/$app" 2>/dev/null || true
     echo "Installed $dest"

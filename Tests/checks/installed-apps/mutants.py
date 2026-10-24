@@ -5,7 +5,7 @@ APFS listing a folder in its own order (by a hash of each name), which puts the 
 before "left"; a file system that lists names sorted would miss it. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillHost/InstalledApps.swift")
+F = os.path.join(WT, "Sources/SkopryHost/InstalledApps.swift")
 MUTANTS = [
     ("one level down only (the rule before #135's depth)",
      "            level = next\n", "            level = level == [dir] ? next : []\n"),

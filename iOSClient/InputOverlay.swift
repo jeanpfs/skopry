@@ -117,7 +117,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
 
         // The iPad's own trackpad and mouse scroll with scroll events, not touches, which only a pan
         // that allows them gets (#68): one for a trackpad's two fingers (continuous: a gesture with a
-        // lift, then Sill's own coast, as a finger's), one for a wheel (discrete: plain deltas). Scroll
+        // lift, then Skopry's own coast, as a finger's), one for a wheel (discrete: plain deltas). Scroll
         // events only: no touch, so a click or a drag with the trackpad stays the pointer's
         // (`touchesBegan`), and a finger stays the finger pan's.
         let pointerOnly = [NSNumber(value: UITouch.TouchType.indirectPointer.rawValue)]
@@ -213,7 +213,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
     /// The iPad's trackpad (two fingers) or a Magic Mouse over the picture: the finger pan's path, at
     /// the pointer, with its lift's coast. iPadOS hands a pan no momentum of its own (a scroll view
     /// decelerates by itself; in the simulator, scroll events marked as momentum after a scroll's end
-    /// never reached a pan), so the coast is Sill's alone, as a finger's.
+    /// never reached a pan), so the coast is Skopry's alone, as a finger's.
     @objc private func handleTrackpadScroll(_ gesture: UIPanGestureRecognizer) { scroll(gesture, .trackpad) }
 
     /// A mouse's wheel over the picture: plain deltas at the pointer, no gesture around them and no
@@ -360,7 +360,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
     }
 
     #if DEBUG
-    /// `-SillInputScript`'s `tap X,Y` (ContentView): a finger's tap at that fraction of the video
+    /// `-SkopryInputScript`'s `tap X,Y` (ContentView): a finger's tap at that fraction of the video
     /// frame, through the tap's own path.
     func scriptTap(x: Double, y: Double) {
         let rect = videoRect
@@ -401,7 +401,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
         scroll(.ended, at: at, translation: CGPoint(x: dx, y: dy), velocity: velocity, from: source)
     }
 
-    /// `-SillInputTest 1`'s third part (InputTest), in every layout, 4.4 s after the overlay joins a
+    /// `-SkopryInputTest 1`'s third part (InputTest), in every layout, 4.4 s after the overlay joins a
     /// window (after the portrait key row's and trackpad's): Esc and ⇧Esc through the key command's own
     /// action, each only while this view takes Esc; at 5 s a trackpad's two-finger scroll of 40 pt down
     /// with its lift's coast; at 7.2 s a wheel's 30 pt up, plain deltas.
@@ -514,7 +514,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
 
     /// None of iPadOS's three-finger editing gestures (undo and redo, copy, cut and paste, the edit
     /// bar): three fingers here are the Mac's (docs/trackpad-gestures-plan.md §6.5). This view is the
-    /// one responder Sill makes first, in every layout, and holds no text of its own; the Mac's undo
+    /// one responder Skopry makes first, in every layout, and holds no text of its own; the Mac's undo
     /// is ⌘Z.
     override var editingInteractionConfiguration: UIEditingInteractionConfiguration { .none }
 
@@ -666,7 +666,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
 
     /// This view takes Esc: it is first responder (it holds the keyboard), and no EscapeKey is on screen
     /// in its window (the tour, the pairing overlay, the Settings panel, whose Esc closes them). Only its
-    /// own window's: Settings open in another Sill window, behind this one, never sees a key pressed
+    /// own window's: Settings open in another Skopry window, behind this one, never sees a key pressed
     /// here. A leaf view is in the responder chain only while it is first responder, so this says again
     /// what the chain does.
     private var takesEscape: Bool { isFirstResponder && !EscapeKey.onScreen(in: window) }
@@ -744,10 +744,10 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
             let usage = UInt16(key.keyCode.rawValue)
             let modifiers = UInt64(key.modifierFlags.rawValue)
             #if DEBUG
-            // `-SillEscViaCommand 1`: this view leaves Esc to the text system, as a device that keeps it
+            // `-SkopryEscViaCommand 1`: this view leaves Esc to the text system, as a device that keeps it
             // from pressesBegan does, so the simulator's Esc fires the key command instead.
             if usage == HIDKey.escape, Self.escViaCommand {
-                Self.hwkey(usage, down: down, via: channel, modifiers: modifiers, to: "handed on (-SillEscViaCommand)")
+                Self.hwkey(usage, down: down, via: channel, modifiers: modifiers, to: "handed on (-SkopryEscViaCommand)")
                 unhandled.insert(press)
                 continue
             }
@@ -768,7 +768,7 @@ final class InputOverlayView: UIView, UIKeyInput, UIGestureRecognizerDelegate {
     }
 
     #if DEBUG
-    private static let escViaCommand = UserDefaults.standard.bool(forKey: "SillEscViaCommand")
+    private static let escViaCommand = UserDefaults.standard.bool(forKey: "SkopryEscViaCommand")
     #endif
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -888,8 +888,8 @@ final class InputOverlayProxy {
 }
 
 /// Whether a hardware keyboard is attached: GameController's coalesced keyboard, and its connect and
-/// disconnect notifications (all keyboards count as one). DEBUG `-SillHardwareKeyboard 1|0` says so
-/// instead for a run (the harness, the gates), and `-SillKeyProbe 1` prints every key GameController
+/// disconnect notifications (all keyboards count as one). DEBUG `-SkopryHardwareKeyboard 1|0` says so
+/// instead for a run (the harness, the gates), and `-SkopryKeyProbe 1` prints every key GameController
 /// sees ("hwkey: usage 41 down via GameController"), beside UIKit's own channels. Main thread.
 final class HardwareKeyboardMonitor: ObservableObject {
     static let shared = HardwareKeyboardMonitor()
@@ -908,7 +908,7 @@ final class HardwareKeyboardMonitor: ObservableObject {
     private func connected(_ now: Bool) {
         #if DEBUG
         print("keyboard: GameController says a keyboard is \(now ? "attached" : "gone")"
-              + (Self.override.map { " (-SillHardwareKeyboard \($0 ? 1 : 0) keeps it \($0 ? "attached" : "gone"))" } ?? ""))
+              + (Self.override.map { " (-SkopryHardwareKeyboard \($0 ? 1 : 0) keeps it \($0 ? "attached" : "gone"))" } ?? ""))
         if now { installProbe() }
         #endif
         guard Self.override == nil, now != attached else { return }
@@ -917,20 +917,20 @@ final class HardwareKeyboardMonitor: ObservableObject {
 
     private static var override: Bool? {
         #if DEBUG
-        if let raw = UserDefaults.standard.string(forKey: "SillHardwareKeyboard") { return raw == "1" }
+        if let raw = UserDefaults.standard.string(forKey: "SkopryHardwareKeyboard") { return raw == "1" }
         #endif
         return nil
     }
 
     #if DEBUG
-    /// `-SillInputScript`'s `keyboard attach|detach`: as GameController's notifications would say.
+    /// `-SkopryInputScript`'s `keyboard attach|detach`: as GameController's notifications would say.
     func scriptSet(attached now: Bool) {
         print("keyboard: the input script says a keyboard is \(now ? "attached" : "gone")")
         attached = now
     }
 
     private func installProbe() {
-        guard UserDefaults.standard.bool(forKey: "SillKeyProbe") else { return }
+        guard UserDefaults.standard.bool(forKey: "SkopryKeyProbe") else { return }
         GCKeyboard.coalesced?.keyboardInput?.keyChangedHandler = { _, _, code, pressed in
             InputOverlayView.hwkey(UInt16(truncatingIfNeeded: code.rawValue), down: pressed, via: "GameController")
         }

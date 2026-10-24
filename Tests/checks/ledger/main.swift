@@ -20,8 +20,8 @@ let decoder = JSONDecoder()
 func enc<T: Encodable>(_ v: T) -> Data { try! encoder.encode(v) }
 func dec<T: Decodable>(_ t: T.Type, _ d: Data) -> T? { try? decoder.decode(t, from: d) }
 
-/// The host's acceptance rule, as Sources/SillHost/DeviceSettings.swift has it (that file needs
-/// SillHostCore, so the model carries a copy).
+/// The host's acceptance rule, as Sources/SkopryHost/DeviceSettings.swift has it (that file needs
+/// SkopryHostCore, so the model carries a copy).
 func accepted(_ c: HostSettingsChange, virtualDisplayAvailable: Bool) -> HostSettingsChange {
     var ok = HostSettingsChange(prioritizeSpeed: c.prioritizeSpeed, directWireless: c.directWireless)
     if let v = c.maxFPS, SettingsChoices.maxFPS.contains(v) { ok.maxFPS = v }
@@ -80,10 +80,10 @@ do {   // tapping back to the host's value while a pick is pending sends
     check(l.pick(HostSettingsChange(maxFPS: 120), token: 3, now: 0.2) == nil, "the same value again sends nothing")
 }
 do {   // a refused toggle snaps back, is reported, and the note says why
-    var l = SettingsLedger(); _ = l.receive(st(base, vd: false, note: "Start SillHost with --virtual-display to use it."))
+    var l = SettingsLedger(); _ = l.receive(st(base, vd: false, note: "Start SkopryHost with --virtual-display to use it."))
     _ = l.pick(HostSettingsChange(virtualDisplay: true), token: 1, now: 0)
     check(l.displayed?.virtualDisplay == true, "the toggle moves at once")
-    let refused = l.receive(st(base, answering: 1, vd: false, note: "Start SillHost with --virtual-display to use it."))
+    let refused = l.receive(st(base, answering: 1, vd: false, note: "Start SkopryHost with --virtual-display to use it."))
     check(refused == [.virtualDisplay] && l.displayed?.virtualDisplay == false && l.host?.virtualDisplayNote != nil,
           "the refused toggle returns, is reported, and the host's reason is there")
 }
@@ -282,7 +282,7 @@ final class Host {
         if old { self.target.directWireless = nil }
         persistent = app
         virtualDisplayAvailable = app   // the CLI in this model runs without --virtual-display
-        if !app { self.target.virtualDisplay = false; note = "Start SillHost with --virtual-display to use it." }
+        if !app { self.target.virtualDisplay = false; note = "Start SkopryHost with --virtual-display to use it." }
     }
 
     func state(answering: Int? = nil) -> HostSettingsState {
@@ -334,7 +334,7 @@ final class Host {
         netQ.append(.send(conn: conn, enc(state(answering: change.token))))
     }
 
-    func macMenu(_ change: HostSettingsChange) {   // Sill.app: HostSettings.config → setTarget, synchronously
+    func macMenu(_ change: HostSettingsChange) {   // Skopry.app: HostSettings.config → setTarget, synchronously
         var change = change
         if old { change.directWireless = nil }   // an older Mac has no such control
         if old, let b = change.bitrate, [QualityPreset.low, .ultra, .extreme].map(\.rawValue).contains(b) { change.bitrate = nil }   // nor these items

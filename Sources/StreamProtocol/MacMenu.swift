@@ -38,7 +38,7 @@ public struct MacMenu: Codable, Hashable, Sendable {
     public var app: String?
     public var bundleID: String?
     /// The top level in the Mac's order, the Apple menu left out: each a submenu whose items come
-    /// with kind 27. Empty when there are no menus (nothing streams, Sill's own app, no menu bar,
+    /// with kind 27. Empty when there are no menus (nothing streams, Skopry's own app, no menu bar,
     /// no Accessibility: `note` says which when the device should show it).
     public var menus: [MacMenuItem]?
     /// The token of the kind 27 or 25 this answers.

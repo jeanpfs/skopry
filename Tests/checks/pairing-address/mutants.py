@@ -1,7 +1,7 @@
 """Mutants of PairingWindowAddress.choose and isTailscale: each must make the check print a FAIL."""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillMenuBar/PairingWindowAddress.swift")
+F = os.path.join(WT, "Sources/SkopryMenuBar/PairingWindowAddress.swift")
 NAME = "        if let name = vpn.first(where: { $0.parsed.kind == .name }) {\n"
 LANLINE = "        if let lan {\n"
 LAN = ("        if let lan {\n"

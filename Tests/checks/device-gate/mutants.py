@@ -2,15 +2,15 @@
 with the check by build.sh and must make it fail. usage: mutants.py WORKTREE"""
 import os, subprocess, sys, tempfile
 WT = sys.argv[1]; HERE = os.path.dirname(os.path.abspath(__file__))
-F = os.path.join(WT, "Sources/SillHost/DeviceGate.swift")
+F = os.path.join(WT, "Sources/SkopryHost/DeviceGate.swift")
 MUTANTS = [
     ("admits only above the floor", "DeviceGate.swift", "version(hello) >= floor", "version(hello) > floor"),
-    ("no version counts as 1", "DeviceGate.swift", "hello?.appVersion.flatMap { SillVersion($0) } ?? .zero", "hello?.appVersion.flatMap { SillVersion($0) } ?? SillVersion(components: [1])"),
+    ("no version counts as 1", "DeviceGate.swift", "hello?.appVersion.flatMap { SkopryVersion($0) } ?? .zero", "hello?.appVersion.flatMap { SkopryVersion($0) } ?? SkopryVersion(components: [1])"),
     ("iPhone anywhere in the name", "DeviceGate.swift", "if name.hasPrefix(\"iPhone\") { return \"iPhone\" }", "if name.contains(\"iPhone\") { return \"iPhone\" }"),
     ("device word from the raw name", "DeviceGate.swift", "let name = SafeText.label(hello?.device ?? \"\")\n        if name.hasPrefix(\"iPhone\")", "let name = hello?.device ?? \"\"\n        if name.hasPrefix(\"iPhone\")"),
     ("no minimumVersion", "DeviceGate.swift", "minimumVersion: floor.description, reconnect: false)", "minimumVersion: nil, reconnect: false)"),
     ("reconnect left out", "DeviceGate.swift", "minimumVersion: floor.description, reconnect: false)", "minimumVersion: floor.description, reconnect: nil)"),
-    ("no hello reads as no version", "DeviceGate.swift", "what = \"an older Sill\"", "what = \"no version\""),
+    ("no hello reads as no version", "DeviceGate.swift", "what = \"an older Skopry\"", "what = \"no version\""),
     ("hello line without the endpoint", "DeviceGate.swift", "if !name.isEmpty { line += \" (\\(endpoint))\" }", ""),
     ("slowed from the seventh", "DeviceGate.swift", "count >= loopRefusals", "count > loopRefusals"),
     ("hello line's name not cleaned", "DeviceGate.swift", "let name = SafeText.label(hello.device ?? \"\")\n        let v = SafeText.label(hello.appVersion ?? \"\", limit: 32)", "let name = hello.device ?? \"\"\n        let v = SafeText.label(hello.appVersion ?? \"\", limit: 32)"),

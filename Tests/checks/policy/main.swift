@@ -303,7 +303,7 @@ check("model: ...B leaves at 20 s and this Mac is listed at 20.3 s: moved at 22.
 m = sameName({ $0 >= 5 ? ["Studio"] : [] }, host: { _ in nil }, session: nil)
 check("model: two hosts from before the ID: moved at 7.0 s by name, as before (\(m.events))", m.events == ["7.00 moved"])
 m = sameName({ $0 >= 5 ? ["Studio"] : [] }, host: { _ in nil })
-check("model: this session's host has an ID and the network's Studio none (an older Sill): refused (\(m.events))",
+check("model: this session's host has an ID and the network's Studio none (an older Skopry): refused (\(m.events))",
       m.events == ["7.00 refused"])
 m = sameName({ $0 >= 5 ? ["Studio"] : [] }, host: { _ in "A" })
 check("model: the same host on the network: moved at exactly 7.0 s, as before (\(m.events))", m.events == ["7.00 moved"])
@@ -321,11 +321,11 @@ var names = Model(); names.wanted = "Studio"
 simulate(&names, from: 0, to: 30) { _ in ([], [("Studio (2)", ["awdl0"])]) }
 check("model: names: \"Studio (2)\" Direct is not the wanted Mac (\(names.events))", names.events.isEmpty)
 
-// The home race: Sill relaunched (the Mac away for a minute), awdl0 reported first, the network row later.
+// The home race: Skopry relaunched (the Mac away for a minute), awdl0 reported first, the network row later.
 func homeRace(_ netAt: Double) -> Model {
     var m = Model(); m.wanted = "Studio"; m.connected = true          // streaming over the network
     simulate(&m, from: -120, to: -60.05) { _ in (["Studio"], []) }
-    m.lose(-60)                                                        // Sill quit: the connection and the listing go
+    m.lose(-60)                                                        // Skopry quit: the connection and the listing go
     simulate(&m, from: -60, to: -0.05) { _ in ([], []) }
     simulate(&m, from: 0, to: 30) { t in (t >= netAt ? ["Studio"] : [], awdl) }   // relaunched: awdl0 first
     return m
@@ -900,7 +900,7 @@ check("model: a cable flapping every 0.5 s never settles: never moves (\(ev))", 
 // works: it is made again over the cable at once (the Wired row's dial, the row as listed as the
 // fallback), not over Wi-Fi, from which the session came back to the cable 2 s later (two hand-overs
 // while the cable was up). 4: a listing of the cable a move up found to reach another Mac, or another
-// launch of Sill, is not tried again while it lasts, and after moves up that did not complete the next
+// launch of Skopry, is not tried again while it lasts, and after moves up that did not complete the next
 // waits 10, 20, 40, then 60 s (every 5 s before, for as long as the cable stayed in).
 check("review: upWait: 5, 10, 20, 40, then 60 s (the cap), 5 for a count below zero",
       P.upWait(failures: 0) == 5 && P.upWait(failures: 1) == 10 && P.upWait(failures: 2) == 20 && P.upWait(failures: 3) == 40
@@ -940,7 +940,7 @@ check("review: ...the settle still counts (a move down at 69: at 71, not 70), an
       && plan(pin(.wifi, now: 12, wired: "anpi0", since: 0, wifi: "en0", up: 10)) == .stay(.upTooSoon, recheckAt: 15))
 check("review: the new reasons read as the console prints them",
       P.Keep.cableFailing.text == "the cable is up, but the last move to it did not complete; the next waits longer"
-      && P.Keep.cableRefused.text == "the cable reaches another Mac, or another launch of Sill; not tried again until it is plugged in again")
+      && P.Keep.cableRefused.text == "the cable reaches another Mac, or another launch of Skopry; not tried again until it is plugged in again")
 check("review: the memberwise defaults: no refused listing, no failures",
       PI(now: 1, route: .wifi, lastPong: 1).refusedCable == nil && PI(now: 1, route: .wifi, lastPong: 1).upFailures == 0)
 

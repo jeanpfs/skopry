@@ -1,7 +1,7 @@
-# CI for Sill: on pull requests and pushes to main (unless they touch only documents), and by hand
+# CI for Skopry: on pull requests and pushes to main (unless they touch only documents), and by hand
 # (Actions › CI › Run workflow).
 #
-# One macOS job builds the Mac side with SwiftPM (release: the host library, the CLI, Sill.app's
+# One macOS job builds the Mac side with SwiftPM (release: the host library, the CLI, Skopry.app's
 # executable and the probes), runs the pure checks in Tests/checks, builds the iOS app for the
 # simulator without signing, and runs the CLI where it exits before capturing, encoding or
 # listening. Nothing here signs anything or uses a secret. Run by hand with "mutants" ticked, it
@@ -48,7 +48,7 @@ concurrency:
 jobs:
   build:
     name: Build and check
-    # The newest macOS image GitHub offers, and the only one with Xcode 27, which Sill is built
+    # The newest macOS image GitHub offers, and the only one with Xcode 27, which Skopry is built
     # with: macOS 27 with Xcode 27.0, Xcode_27.1_beta.app and a 27.2 beta, a public preview, in
     # October 2026. macos-latest (macOS 26) has Xcode 26.6 at most. See docs/release-checklist.md.
     runs-on: xcode-27
@@ -60,7 +60,7 @@ jobs:
           persist-credentials: false
 
       # The Mac side (SwiftPM, the pure checks, the CLI) on the newest Xcode 27 that is not a beta, as
-      # Sill for Mac's releases are built; without one, a warning and the newest Xcode there. The iOS
+      # Skopry for Mac's releases are built; without one, a warning and the newest Xcode there. The iOS
       # app picks its own below.
       - name: Select Xcode 27
         id: xcode
@@ -94,7 +94,7 @@ jobs:
       # the newest Xcode 27.1 that is not a beta, else its newest beta (the image had only
       # Xcode_27.1_beta.app, 27A9269, in October 2026); without either, a warning and the newest Xcode
       # there, whose iOS build then fails if it is older. Selected only here, after the Mac side, so
-      # nothing of Sill for Mac is ever built with a beta.
+      # nothing of Skopry for Mac is ever built with a beta.
       - name: Select Xcode 27.1 for the iOS app
         uses: ./.github/actions/select-xcode
         with:
@@ -107,7 +107,7 @@ jobs:
       # twice the work on this arm64 runner, and no source depends on the architecture.
       - name: Build the iOS app for the simulator (Debug, arm64, not signed)
         run: |
-          xcodebuild -project iOSClient/Sill.xcodeproj -scheme Sill \
+          xcodebuild -project iOSClient/Skopry.xcodeproj -scheme Skopry \
             -destination 'generic/platform=iOS Simulator' -configuration Debug \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build
 
@@ -118,13 +118,13 @@ jobs:
         timeout-minutes: 2
         run: |
           status=0
-          message="$(.build/release/SillHost --internet 2>&1)" || status=$?
-          echo "SillHost --internet: exit status $status, \"$message\""
+          message="$(.build/release/SkopryHost --internet 2>&1)" || status=$?
+          echo "SkopryHost --internet: exit status $status, \"$message\""
           if [ "$status" -ne 2 ] || [ "$message" != "--internet needs --remote." ]; then
-            echo "::error::SillHost --internet should refuse with exit status 2"
+            echo "::error::SkopryHost --internet should refuse with exit status 2"
             exit 1
           fi
-          .build/release/SillHost --print-reachability
+          .build/release/SkopryHost --print-reachability
 
   mutants:
     name: Mutants (${{ matrix.check }})

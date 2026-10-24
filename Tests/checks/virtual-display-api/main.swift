@@ -4,7 +4,7 @@ import ObjectiveC
 // Checks VirtualDisplay's private API surface and how a method's type encoding, as the Objective-C
 // runtime reports it, is matched against it (#87, #62): every encoding measured on Apple silicon or
 // reported from Intel machines passes for its method, a BOOL return passes spelled "B" or "c" and
-// nothing else does, and the offsets come off. Compiled with Sources/SillHost/VirtualDisplay.swift
+// nothing else does, and the offsets come off. Compiled with Sources/SkopryHost/VirtualDisplay.swift
 // whole, as VirtualDisplayProbe compiles it. The decision is Runtime.method's own: each encoding is
 // put on a method of a class this check makes at run time and judged by VirtualDisplay.methodProblem,
 // which checkPrivateAPI asks too, and applySettings: is sent as init sends it
@@ -37,7 +37,7 @@ func makeClass(_ name: String, _ methods: [(selector: String, imp: IMP, types: S
 // The methods `passes` adds are only looked up, as `checkPrivateAPI` looks up a CGVirtualDisplay's.
 let neverCalled: @convention(block) (AnyObject) -> Void = { _ in fatalError("a looked-up method was called") }
 let neverCalledIMP = imp_implementationWithBlock(neverCalled)
-let lookedUp: AnyClass = makeClass("SillCheckLookedUp")
+let lookedUp: AnyClass = makeClass("SkopryCheckLookedUp")
 var methodsAdded = 0
 
 /// Whether the runtime's `raw` encoding passes for `expected`: `Runtime.method`'s own decision
@@ -48,7 +48,7 @@ func passes(_ raw: String, _ expected: String) -> Bool {
     guard class_addMethod(lookedUp, NSSelectorFromString(selector), neverCalledIMP, raw) else {
         fatalError("\(selector) typed \(raw): not added")
     }
-    return VirtualDisplay.methodProblem(cls: "SillCheckLookedUp", selector: selector, encoding: expected) == nil
+    return VirtualDisplay.methodProblem(cls: "SkopryCheckLookedUp", selector: selector, encoding: expected) == nil
 }
 
 // --- What the runtime reported ------------------------------------------------------------------
@@ -138,9 +138,9 @@ let answer: @convention(block) (AnyObject, AnyObject) -> ObjCBool = { _, setting
 }
 let answerIMP = imp_implementationWithBlock(answer)
 let surfaceEncoding = applySettings?.encoding ?? ""
-for (name, types, isBOOL) in [("SillCheckAnswersBool", "B24@0:8@16", true),
-                              ("SillCheckAnswersSignedChar", "c24@0:8@16", true),
-                              ("SillCheckAnswersUnsignedChar", "C24@0:8@16", false)] {
+for (name, types, isBOOL) in [("SkopryCheckAnswersBool", "B24@0:8@16", true),
+                              ("SkopryCheckAnswersSignedChar", "c24@0:8@16", true),
+                              ("SkopryCheckAnswersUnsignedChar", "C24@0:8@16", false)] {
     let display = (makeClass(name, [("applySettings:", answerIMP, types)]) as! NSObject.Type).init()
     let problem = VirtualDisplay.methodProblem(cls: name, selector: "applySettings:", encoding: surfaceEncoding)
     let refusal = "\(name) applySettings: changed signature: expected B@:@ or c@:@, found C@:@"
@@ -160,9 +160,9 @@ for (name, types, isBOOL) in [("SillCheckAnswersBool", "B24@0:8@16", true),
 }
 // A method the class lacks, and a class that is not there, as checkPrivateAPI lists them.
 for (cls, selector, encoding, line) in [
-    ("SillCheckAnswersBool", "displayID", "I@:", "private class SillCheckAnswersBool does not respond to displayID"),
-    ("SillCheckNoSuchClass", "applySettings:", "B@:@",
-     "private class SillCheckNoSuchClass not found in CoreGraphics (API removed or renamed)"),
+    ("SkopryCheckAnswersBool", "displayID", "I@:", "private class SkopryCheckAnswersBool does not respond to displayID"),
+    ("SkopryCheckNoSuchClass", "applySettings:", "B@:@",
+     "private class SkopryCheckNoSuchClass not found in CoreGraphics (API removed or renamed)"),
 ] {
     let problem = VirtualDisplay.methodProblem(cls: cls, selector: selector, encoding: encoding)
     check(problem == line, "\(cls) \(selector): \"\(line)\" (\(problem ?? "taken"))")

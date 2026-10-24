@@ -96,17 +96,17 @@ func homeRemote() {
     saved = SavedMacs.adding(again, to: saved)
     r = row(door: .pairingRequired, method: .wifi, tag: tagM)
     check("4 paired again: pinned, not revoked, homeTLS kept by the new record", r.tap == .pinned && saved[0].revoked == nil && saved[0].homeTLS == true)
-    // 5. An older Sill.app on the Mac (no p, same tag): nothing dialed, in DEBUG too; -SillForgetHomeTLS lets DEBUG dial it plain.
+    // 5. An older Skopry.app on the Mac (no p, same tag): nothing dialed, in DEBUG too; -SkopryForgetHomeTLS lets DEBUG dial it plain.
     r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-    check("5 an older Sill.app: Update Sill and nothing dialed, in DEBUG too (no downgrade)", r.word == .updateSill && r.tap == .updateSill && r.reconnect == .updateSill)
+    check("5 an older Skopry.app: Update Skopry and nothing dialed, in DEBUG too (no downgrade)", r.word == .updateSkopry && r.tap == .updateSkopry && r.reconnect == .updateSkopry)
     saved = SavedMacs.forgettingHomeTLS(saved)
     r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-    check("5 after -SillForgetHomeTLS 1: DEBUG dials it plain, as before pairing at home", r.tap == .plain && P.sessionTrust(r.tap, savedPin: nil) == .plain)
+    check("5 after -SkopryForgetHomeTLS 1: DEBUG dials it plain, as before pairing at home", r.tap == .plain && P.sessionTrust(r.tap, savedPin: nil) == .plain)
     r = row(door: .plain, method: .wifi, tag: tagM, debug: false)
-    check("5 a Release build never does", r.tap == .updateSill && r.word == .updateSill)
+    check("5 a Release build never does", r.tap == .updateSkopry && r.word == .updateSkopry)
     sawRow(door: .pairingRequired, tag: tagM)
     r = row(door: .plain, method: .wifi, tag: tagM, debug: true)
-    check("5 seen with p once more: homeTLS again, and the plain row is refused again", saved[0].homeTLS == true && r.tap == .updateSill)
+    check("5 seen with p once more: homeTLS again, and the plain row is refused again", saved[0].homeTLS == true && r.tap == .updateSkopry)
     // 6. An open door (Require pairing off), another Mac, not saved: any key, then that key for the session.
     r = row(door: .open, method: .wifi, tag: strangerTag)
     check("6 an open door's unsaved Mac: Not paired (never a paired Mac's word); a tap connects with any key", r.id == nil && r.word == .openDoor
@@ -140,7 +140,7 @@ func homeRemote() {
           && P.sessionTrust(lookTap, savedPin: lookMac?.fingerprintData) == .saved(pin: fpM))
     check("9 the stranger's key fails that pin (-9808): another key as M, never a session", P.homeEnd(trust: .saved(pin: fpM), goodbye: nil, tls: -9808) == .wrongKey)
     check("9 without p, M seen over TLS: nothing dialed, in DEBUG too", P.homeDial(door: .plain, saved: true, revoked: false, homeTLS: lookMac?.homeTLS == true,
-          debug: true, tap: true) == .updateSill)
+          debug: true, tap: true) == .updateSkopry)
     check("9 a tagless row under another name is no saved Mac: an open door's reads Not paired", P.rowMac(tagged: nil, carriesTag: false, name: "Office", saved: byName) == nil
           && P.rowWord(door: .open, saved: false, revoked: false, homeTLS: false, debug: true, method: .wifi, cable: false) == .openDoor)
 

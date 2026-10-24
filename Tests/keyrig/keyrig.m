@@ -6,7 +6,7 @@
 //
 // PRIVATE INTERFACES, SIMULATOR ONLY, as Tests/duorig: HID.framework's HIDVirtualEventService and
 // IOKit's IOHIDEvent calls through dlopen/dlsym, posting into the HID event system of the simulator it
-// runs in (the simulated backboardd's). It is never part of Sill, never built for a device, and refuses
+// runs in (the simulated backboardd's). It is never part of Skopry, never built for a device, and refuses
 // to run outside a simulator (no SIMULATOR_UDID/SIMULATOR_ROOT). Run it only through Tests/keyrig/run.sh,
 // which uses `xcrun simctl spawn`.
 //

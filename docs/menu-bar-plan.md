@@ -8,7 +8,7 @@ begun at 8b0d418 and checked again at 150f781, after PRs #20 and #21 merged; lin
 lines after :130 have moved with the host's hooks. Nothing but this file was written. The evidence
 is the feasibility probe of 2026-09-25 (session scratchpad `menubar-result.json` and `menubar/`).
 It read the menu bars of 13 Mac apps and of a scratch AppKit fixture over Accessibility, read-only:
-nothing was pressed. It also ran a scratch SwiftUI app shaped like Sill in a private iOS 27
+nothing was pressed. It also ran a scratch SwiftUI app shaped like Skopry in a private iOS 27
 simulator. For this plan no host was started, no app was activated and no menu item was pressed.
 
 **Noah's request (2026-09-25):**
@@ -24,7 +24,7 @@ the iPad's menu bar.
   would.
 - **On an iPad with iPadOS 26 or later they appear in the iPad's own menu bar.** That is the bar
   that the pointer at the top edge, or a swipe down from it, reveals.
-- **Everywhere, a Menus button in Sill's bar opens the same menus.** That covers iPhone, the Duo's
+- **Everywhere, a Menus button in Skopry's bar opens the same menus.** That covers iPhone, the Duo's
   outer display, iPadOS before 26, and an iPad whose bar is hidden.
 - **With the Desktop streaming, the menus are the frontmost app's,** as the Mac's own menu bar
   shows.
@@ -45,7 +45,7 @@ the iPad's menu bar.
 
 | Surface | Where | Content |
 |---|---|---|
-| **The iPadOS 26 menu bar** | An iPad (idiom `.pad`) on iPadOS 26 or later with one Sill window, while its session streams an app with menus | One menu per Mac menu, in the Mac's order, the Apple menu left out (Q4). Inserted after the iPad's View menu, the HIG's place for an app's own menus (Q1) |
+| **The iPadOS 26 menu bar** | An iPad (idiom `.pad`) on iPadOS 26 or later with one Skopry window, while its session streams an app with menus | One menu per Mac menu, in the Mac's order, the Apple menu left out (Q4). Inserted after the iPad's View menu, the HIG's place for an app's own menus (Q1) |
 | **The Menus button** | Every bar that holds it, in every layout, whenever the Mac sent menus (Q2) | A pull-down with the same menus as submenus |
 | **Each menu** | Both surfaces | Loaded when it opens and fresh every time, from the Mac (kind 27, answered by a read of at most 1 s ago) |
 
@@ -81,7 +81,7 @@ What each item shows:
   line 137; measured). No Accessibility notification announces a change, so there is nothing to
   observe. A timer would make the streamed app go through its menu delegates every few seconds for
   nothing.
-- **Off the main actor.** Every read and press runs on a serial queue of its own, `sill.menus`. The
+- **Off the main actor.** Every read and press runs on a serial queue of its own, `skopry.menus`. The
   coordinator's main actor carries every device's input, and one AX call into Blender takes 6 ms;
   into a hung app it waits out the whole timeout.
 
@@ -135,8 +135,8 @@ What each item shows:
   answer). An action that then holds the app's main thread (that sleep) makes a read made meanwhile
   run into the 1 s timeout: the app shows as not answering until a poll finds it answering again. A
   modal loop may keep answering Accessibility (not measured). An app whose `AXPress` answers only
-  once its action has run holds `sill.menus` up to the timeout instead.
-  - This happens on `sill.menus`, never on the main actor.
+  once its action has run holds `skopry.menus` up to the timeout instead.
+  - This happens on `skopry.menus`, never on the main actor.
   - An answer that does not come within the 1 s timeout counts as pressed, with a note in the log.
     The app may just be showing a dialog.
 
@@ -199,7 +199,7 @@ rebuilds it is P8.
 
 ### What the probe did not settle (the gates do)
 
-- **Pressing.** H5 is the first press through Sill's own code, against the fixture.
+- **Pressing.** H5 is the first press through Skopry's own code, against the fixture.
 - **Whether reading the top level alone makes an app validate its menus.** H4 records it in the
   fixture's delegate log. It decides Q12.
 - **States in an active app.** P1.
@@ -223,8 +223,8 @@ rebuilds it is P8.
    - The streamed app's menu bar: the top level to devices that asked for it, each menu's items on
      request (kept 1 s), and presses. All of it off the main actor.
    - Activation first for window sources; for the Desktop, the frontmost app.
-   - `--menu-selftest`, the TEST ONLY hook `SILL_TEST_MENU_PID`, the fixture
-     (`Scripts/menufixture.swift`) and new `sillclient.py` flags.
+   - `--menu-selftest`, the TEST ONLY hook `SKOPRY_TEST_MENU_PID`, the fixture
+     (`Scripts/menufixture.swift`) and new `skopryclient.py` flags.
 3. **Device.**
    - `MacMenuState` (pure) and one element builder.
    - The iPadOS 26 bar through an app delegate adaptor.
@@ -249,24 +249,24 @@ rebuilds it is P8.
 ### 2. The design on one page
 
 ```
- ┌──────────────── Mac (Sill.app / SillHost) ─────────────────────────────────────────────────┐
+ ┌──────────────── Mac (Skopry.app / SkopryHost) ─────────────────────────────────────────────────┐
  │ kind 27 without an id (a device asks for the menus, once per connection) ─▶ subscribers ◀──┼── kind 27 {token}
  │ main: select; the Desktop's frontmost app changes ─▶ MenuMirror.setTarget(pid)             │
- │   └▶ sill.menus: MenuReader.topLevel(pid): the bar's titles, 0.4–50 ms                     │
+ │   └▶ skopry.menus: MenuReader.topLevel(pid): the bar's titles, 0.4–50 ms                     │
  │        └▶ main: version += 1 when the app or its titles changed ─▶ each subscriber ────────┼─▶ kind 24 {version, app, menus}
  │ kind 27 {version, id, title, token} ─▶ main: MenuMirror.fetch (subscribers, one at a time) │◀─ kind 27
  │   a window source: its app activated, the window made key (as a click), up to 0.6 s        │
  │   read less than 1 s ago? answered from the cache                                          │
- │   else sill.menus: MenuReader.items(path, title): one menu if its title is the one shown   │
+ │   else skopry.menus: MenuReader.items(path, title): one menu if its title is the one shown   │
  │     └▶ main: cache, elements[id] ─▶ that device ───────────────────────────────────────────┼─▶ kind 24 {version, answering, menu, items}
  │ kind 25 {version, id, title, token} ─▶ main: MenuMirror.press                              │◀─ kind 25
- │   a leaf; the same activation; sill.menus: AXPress, if its title is still the one shown    │
+ │   a leaf; the same activation; skopry.menus: AXPress, if its title is still the one shown    │
  │     └▶ main: "Menu from …" ─▶ that device ─────────────────────────────────────────────────┼─▶ kind 24 {version, answering, pressed, note?}
  └────────────────────────────────────────────────────────────────────────────────────────────┘
  ┌──────────────── device ────────────────────────────────────────────────────────────────────┐
  │ StreamClient: first window list ─▶ kind 27 without an id; kind 24 ─▶ main: MacMenuState    │
  │ iPadOS 26 iPad: MacMenuHub (the one window's client) ─▶ UIMenuSystem.main.setNeedsRebuild  │
- │   SillAppDelegate.buildMenu ─▶ one UIMenu per Mac menu, after View                         │
+ │   SkopryAppDelegate.buildMenu ─▶ one UIMenu per Mac menu, after View                         │
  │ every bar that holds it: the Menus button (a UIKit pull-down over the bar's BarButton)     │
  │ both from MacMenuElements: UIMenu ▸ UIDeferredMenuElement.uncached ▸ fetch (kind 27)       │
  │   leaves: UIAction(title, subtitle "⇧⌘S", disabled?, state) ─▶ press (kind 25)             │
@@ -298,7 +298,7 @@ rebuilds it is P8.
   StreamClient's `handle` ignores it (StreamClient.swift:2444-2445). A host from before this change
   skips 25 and 27 the same way: `default: break` at StreamCoordinator.swift:664-666.
 - **Nothing else changes.** Kinds 0–23 are untouched, and so is the catalog sent on connect
-  (`sendCatalog`, StreamCoordinator.swift:1582-1601). `SillProtocol.current` stays 1: these kinds
+  (`sendCatalog`, StreamCoordinator.swift:1582-1601). `SkopryProtocol.current` stays 1: these kinds
   are additive (Compatibility.swift:16-23). Its comment's "kinds 0–23" becomes "kinds 0–23, and any
   later kind an older peer can skip".
 - **Order in the enum.** 24, 25, 26 (the pointer's, which landed first: PR #31) and 27.
@@ -318,7 +318,7 @@ public struct MacMenu: Codable, Hashable, Sendable {
     public var app: String?
     public var bundleID: String?
     /// The top level in the Mac's order, the Apple menu left out: each a submenu whose items come
-    /// with kind 27. Empty when there are no menus (nothing streams, Sill's own app, no menu bar,
+    /// with kind 27. Empty when there are no menus (nothing streams, Skopry's own app, no menu bar,
     /// no Accessibility: `note` says which when the device should show it).
     public var menus: [MacMenuItem]?
     /// The token of the kind 27 or 25 this answers.
@@ -422,7 +422,7 @@ Each type gets an explicit public memberwise `init`, as HostSettings.swift's typ
     an id, is answered at once with "The menus changed. Open the menu again.", nothing read or
     pressed. A fetch whose connection left before its turn is dropped unread; a press accepted
     before its connection left still runs (a move's hand-over counts on it, §7.2).
-  - So an older device, `sillclient.py` without `--menus`, and every parity run are served exactly
+  - So an older device, `skopryclient.py` without `--menus`, and every parity run are served exactly
     as before.
 - **Order.** Each connection is one TCP stream, and the host serves every request one at a time in
   arrival order (§4.4), so answers follow requests. The exceptions are a refusal over the rate limit
@@ -456,7 +456,7 @@ Each type gets an explicit public memberwise `init`, as HostSettings.swift's typ
 // kind 24, a top level while the app does not answer
 {"version":4,"app":"Blender","bundleID":"org.blenderfoundation.blender","menus":[…],"stale":true,
  "note":"Blender isn’t responding."}
-// kind 24, no menus (nothing streams, or Sill itself is frontmost)
+// kind 24, no menus (nothing streams, or Skopry itself is frontmost)
 {"version":5,"menus":[]}
 ```
 
@@ -465,9 +465,9 @@ Each type gets an explicit public memberwise `init`, as HostSettings.swift's typ
 | Device | Host | Result |
 |---|---|---|
 | Older (any build since b67f87d) | This host | Never sends kind 27, so it is never a subscriber. The host reads nothing for it and sends it nothing |
-| This device | Older host (main at 150f781, and every earlier Sill.app and CLI) | Its kind 27 is skipped as unknown and no kind 24 comes. No Menus button, no menus in the iPad's bar, nothing else changes. The device waits for nothing: it shows the button only once a kind 24 arrives |
+| This device | Older host (main at 150f781, and every earlier Skopry.app and CLI) | Its kind 27 is skipped as unknown and no kind 24 comes. No Menus button, no menus in the iPad's bar, nothing else changes. The device waits for nothing: it shows the button only once a kind 24 arrives |
 | This device | This host | This plan |
-| `sillclient.py` at 150f781 | This host | Unaffected: it never sends kind 27 |
+| `skopryclient.py` at 150f781 | This host | Unaffected: it never sends kind 27 |
 | Devices before b67f87d | Any current host | They already stop at kinds 14–23; nothing new |
 
 #### 3.6 Rules for later changes
@@ -483,14 +483,14 @@ optional field.
 
 ---
 
-### 4. Host (`SillHostCore`, folder `Sources/SillHost`), file by file
+### 4. Host (`SkopryHostCore`, folder `Sources/SkopryHost`), file by file
 
 The ground rules for this section:
 - Nothing becomes `public`. The pure files use `package` access, so their checks compile them with
-  `-package-name sill`, as `clientlink`'s does.
+  `-package-name skopry`, as `clientlink`'s does.
 - The main actor is reached with `Task { @MainActor }`, never `MainActor.assumeIsolated`.
 - Accessibility:
-  - It runs only on `sill.menus`, except the activation, which is the coordinator's existing code
+  - It runs only on `skopry.menus`, except the activation, which is the coordinator's existing code
     on the main actor: the app made active and the streamed window made key (`focusForMenus`, §4.5),
     as for a click.
   - Every element touched gets `AXUIElementSetMessagingTimeout(element, 1.0)` before its first
@@ -686,14 +686,14 @@ The rules:
   `revalidation` has passed. The probe's reads 0.43 and 0.83 s after a validation got no new one,
   and reads 1.03, 1.29 and 1.83 s after did.
 
-#### 4.3 `MenuReader.swift` (new): Accessibility on `sill.menus`
+#### 4.3 `MenuReader.swift` (new): Accessibility on `skopry.menus`
 
 ```swift
 /// Accessibility reads and presses of one app's menu bar. Every call runs on `queue`, never on the
-/// main actor or `sill.net`: an app's answer can take a second (Blender: 6 ms a call; a hung app the
+/// main actor or `skopry.net`: an app's answer can take a second (Blender: 6 ms a call; a hung app the
 /// whole timeout), and a press waits for the app's action.
 final class MenuReader: @unchecked Sendable {
-    let queue = DispatchQueue(label: "sill.menus", qos: .userInitiated)
+    let queue = DispatchQueue(label: "skopry.menus", qos: .userInitiated)
     static let timeout: Float = 1.0
     static let maxMenus = 32, maxItems = 500
     static let readBudget = 1.5                  // seconds for one menu's items
@@ -835,7 +835,7 @@ final class MenuMirror {
 - **Otherwise:** `version += 1`, and the cache, the elements and the top level are cleared.
   - Nil target, or no subscribers: send `{version, menus: []}` to the subscribers, if any. Read
     nothing.
-  - Else read the top level on `sill.menus`, and send one kind 24 to each subscriber when it
+  - Else read the top level on `skopry.menus`, and send one kind 24 to each subscriber when it
     returns. Never send an empty one in between: the device's button would flicker.
   - A read that fails with `failed` (a passing error) sends nothing. The next catalog poll reads
     again (`catalogPolled`), and so on while it fails. Until then the devices keep the previous
@@ -867,7 +867,7 @@ final class MenuMirror {
    - `frontmost` false and `fresh(id, title, now, frontmostNow: false)` → answered from it
      (`menu.cached`);
    - else wait `cache.wait(id, now)`; then the subscriber and the deadline checked again;
-   - on `sill.menus`: re-read the top level (only a second or more after the last read, with no
+   - on `skopry.menus`: re-read the top level (only a second or more after the last read, with no
      request waiting behind this one and time for a top-level read and a whole menu before the
      answer must go out: a sweep across the iPad's bar reads it once), then read the menu under
      its title, walking from the bar past the recorded submenus if its element is gone, by `until`.
@@ -893,7 +893,7 @@ final class MenuMirror {
   menus), stale, the deadline (past it: refused, "…: it waited 4.2 s behind other requests").
   A press whose connection left meanwhile still runs.
 - `await prepare()`.
-- On `sill.menus`: `reader.press(…)`, which refuses an item with children or another title (§4.2),
+- On `skopry.menus`: `reader.press(…)`, which refuses an item with children or another title (§4.2),
   and, found again by walking, one past a menu that is not the one recorded there (`moved`: the
   version moves too).
 - Back on main: log (§4.7), answer, and clear the cache: a press can change any state.
@@ -943,8 +943,8 @@ anything older is dropped when it comes back, so no read can answer for the wron
       plain CLI an app with no window on screen (Finder with only the desktop) therefore reads as
       the next app with one, or none, as input's activation already does.
     - The name and bundle ID come from `NSRunningApplication(processIdentifier:)`.
-  - Nil when it is this process (`WindowCatalog.ownPID`, WindowCatalog.swift:119): Sill never
-    mirrors itself (a device's "Quit Sill" would end the host).
+  - Nil when it is this process (`WindowCatalog.ownPID`, WindowCatalog.swift:119): Skopry never
+    mirrors itself (a device's "Quit Skopry" would end the host).
 - **The Desktop's frontmost app changes.** `menuTargetChanged()` runs, while the Desktop streams
   and someone subscribes:
   - after every catalog poll (2 s): `WindowCatalog.onPolled`, new, fires after each poll's window
@@ -952,7 +952,7 @@ anything older is dropped when it comes back, so no read can answer for the wron
     the list changed, and a new frontmost app need not change it.)
   - 0.3 s after a delivered left or right mouse down, or a key down, at most once per 0.5 s (a click
     in the picture on another app's window activates it 50–200 ms later);
-  - under the AppKit loop (Sill.app, the CLI's `--virtual-display`), on
+  - under the AppKit loop (Skopry.app, the CLI's `--virtual-display`), on
     `NSWorkspace.didActivateApplicationNotification`, observed only while someone subscribes.
 - **`menusPolled()`**, the `onPolled` hook: with a subscriber, the Desktop's target check above,
   then `menus.catalogPolled()` (the retries of §4.4). Nothing without a subscriber.
@@ -989,8 +989,8 @@ anything older is dropped when it comes back, so no read can answer for the wron
 | Nothing (`.none`) | None (`menus: []`) | — |
 | A window, regular mode | The window's app (`SCWindow.owningApplication`) | The app activated and the window made key, as a click does |
 | A window on the virtual display | The staged window's app (`stage.placement.pid`) | The same, with the staged element made key. The Mac's focus moves to that app, as a click from the device already moves it (Q5) |
-| The Desktop | The frontmost app, unless it is Sill | None: it is already frontmost |
-| The synthetic test pattern | None; the hook's process with `SILL_TEST_MENU_PID` | None, ever: the Desktop's rule |
+| The Desktop | The frontmost app, unless it is Skopry | None: it is already frontmost |
+| The synthetic test pattern | None; the hook's process with `SKOPRY_TEST_MENU_PID` | None, ever: the Desktop's rule |
 
 #### 4.7 Log lines and Stats keys (exact; none unless a device uses the menus)
 
@@ -1026,7 +1026,7 @@ Menus of Blender answering again.
 
 #### 4.8 The self-test and the TEST ONLY hook
 
-- **`--menu-selftest[=APP]`**, in the CLI and in Sill.app (`Sill.app/Contents/MacOS/Sill
+- **`--menu-selftest[=APP]`**, in the CLI and in Skopry.app (`Skopry.app/Contents/MacOS/Skopry
   --menu-selftest`), like the two other self-tests.
   - **Read-only:** it never activates anything and never presses.
   - **The app.** `APP` is a pid, or the start of a running app's name, case-insensitive. Without
@@ -1043,7 +1043,7 @@ Menus of Blender answering again.
     2 File, 24 items in 6.0 ms: New Text File ⌘N | New File… ⌃⌥⌘N | New Window ⇧⌘N | — | … | Revert File (off) | …
   ```
 
-- **`SILL_TEST_MENU_PID=<pid>`.** Honoured only by a `--synthetic` host, which does not advertise.
+- **`SKOPRY_TEST_MENU_PID=<pid>`.** Honoured only by a `--synthetic` host, which does not advertise.
   - The test pattern's menus are that process's.
   - The host reads and presses them through the same code, and never activates it (the Desktop's
     rule).
@@ -1051,8 +1051,8 @@ Menus of Blender answering again.
 
   ```
   Test menus: the test pattern's menus are pid 4242's (menufixture); read and pressed without activating it.
-  SILL_TEST_MENU_PID=4242 ignored: only a --synthetic host takes it.
-  SILL_TEST_MENU_PID=abc ignored: not a running process.
+  SKOPRY_TEST_MENU_PID=4242 ignored: only a --synthetic host takes it.
+  SKOPRY_TEST_MENU_PID=abc ignored: not a running process.
   ```
 
 #### 4.9 Cost
@@ -1060,7 +1060,7 @@ Menus of Blender answering again.
 | What | Cost | How often |
 |---|---|---|
 | Top level | 0.4–3.8 ms (Blender 26 ms; 15–50 ms the first read of an app) | At a pick or app change, and with a fetch at most once a second while nothing waits behind it; only with a subscriber |
-| One menu | 3–20 ms (Blender 290 ms for 42 items), on `sill.menus`; 1.5 s at most (`readBudget`) | When a device opens it, unless read less than 1 s ago |
+| One menu | 3–20 ms (Blender 290 ms for 42 items), on `skopry.menus`; 1.5 s at most (`readBudget`) | When a device opens it, unless read less than 1 s ago |
 | A press | One read of the item (title, description, enabled, children) and one `AXPress`; up to 1 s when the action is modal | Per choice |
 | Activation | As a click's (StreamCoordinator.swift:1185-1199), at most one attempt per 2 s | Before a read or press of a window source whose app is not active |
 | The streamed window made key | An AX window lookup and two writes, on the main actor | Before every uncached read and every press of a window source |
@@ -1068,16 +1068,16 @@ Menus of Blender answering again.
 
 ---
 
-### 5. CLI, `sillclient.py` and the fixture
+### 5. CLI, `skopryclient.py` and the fixture
 
-**`Sources/SillHostCLI/main.swift`:**
+**`Sources/SkopryHostCLI/main.swift`:**
 - `--menu-selftest[=APP]` (§4.8).
 - **The default path is byte for byte what it prints today, idle and streaming.**
   - A synthetic host has no menus without the hook.
-  - No device subscribes without a kind 27; the parity runs' `sillclient.py` sends none.
+  - No device subscribes without a kind 27; the parity runs' `skopryclient.py` sends none.
   - Nothing prints until a device presses.
 
-**`Scripts/sillclient.py` gains:**
+**`Scripts/skopryclient.py` gains:**
 - `--menus`: a kind 27 without an id right after the select (token 1). Each kind 24 is printed on
   one line:
   - `  menus v3 at 1.234s: menufixture ▸ | File ▸ | Edit ▸ | Probe ▸ (menufixture, stale=0)`;
@@ -1089,10 +1089,10 @@ Menus of Blender answering again.
   id. It always carries the last top level's version, so a press with an older one takes `--raw25`.
 - `--raw25=JSON@T`, `--raw27=JSON@T`: literal payloads, for the malformed cases.
 - `--expect-menus=TITLE[,TITLE…]`: at exit, the last top level's titles, in order.
-- **A guard.** `--fetch`, `--press`, `--raw25` and `--raw27` exit 2 unless `SILL_TEST_MENU_PID` is
-  set in sillclient's own environment: "sillclient.py: --fetch and --press would open and choose
+- **A guard.** `--fetch`, `--press`, `--raw25` and `--raw27` exit 2 unless `SKOPRY_TEST_MENU_PID` is
+  set in skopryclient's own environment: "skopryclient.py: --fetch and --press would open and choose
   the menus of whatever app this Mac has in front; run them against a host started with
-  SILL_TEST_MENU_PID." `--menus` alone is allowed: a top level is read, and nothing is activated.
+  SKOPRY_TEST_MENU_PID." `--menus` alone is allowed: a top level is read, and nothing is activated.
 - Tokens are shared with `--set`'s: 1, 2, 3… in send order.
 - `KIND` gains `24: "menu"`, and kind 24 counts in `kinds=` like any other.
 
@@ -1133,7 +1133,7 @@ Menus of Blender answering again.
 Ids after 4.5 depend on where AppKit lists the hidden item: H4 records them. Each action sets the
 label: Set Label A → "A", Deep Leaf → "Deep", Rebuilt Leaf → "Rebuilt".
 
-### 6. Sill.app
+### 6. Skopry.app
 
 Nothing changes on the Mac's screen:
 - no setting (Q10);
@@ -1156,9 +1156,9 @@ is connected.
 | `MacMenuState.swift` (new; pure: Foundation and StreamProtocol; checked with swiftc) | One connection's menus: the top level, waiting fetches, presses, their timeouts (§7.2) |
 | `MacMenuElements.swift` (new; UIKit) | The one builder of `UIMenuElement`s, for the bar and the button (§7.3) |
 | `MacMenuHub.swift` (new; UIKit) | Which session the bar shows (the app's one window's); rebuilds (§7.4) |
-| `SillAppDelegate.swift` (new; UIKit) | `buildMenu(with:)` (§7.4) |
+| `SkopryAppDelegate.swift` (new; UIKit) | `buildMenu(with:)` (§7.4) |
 | `MacMenuButton.swift` (new; SwiftUI and UIKit) | The bar's Menus button and its UIKit trigger (§7.5) |
-| `SillApp.swift` | `@UIApplicationDelegateAdaptor(SillAppDelegate.self) var appDelegate` |
+| `SkopryApp.swift` | `@UIApplicationDelegateAdaptor(SkopryAppDelegate.self) var appDelegate` |
 | `StreamClient.swift` | The subscription, kind 24, `fetchMenu`, `pressMenuItem`, the timeout, tear-down (§7.6) |
 | `StreamScreen.swift`, `PortraitStreamScreen.swift` | The button in `TopBar` and `windowBar` (§7.5) |
 | `ContentView.swift` | The window's session observer (§7.4); the harness contract (§7.8) |
@@ -1246,7 +1246,7 @@ The rules:
 11. **A bar menu asks by what it showed.** UIKit rebuilds the bar lazily (at the next key event or
     focus change, measured), so a bar menu can have been built from an older top level than the
     current one, even another session's: versions start again at each launch of the Mac's host, so
-    a reconnect to a relaunched Sill.app, or another Mac, can reach the version the bar was built in
+    a reconnect to a relaunched Skopry.app, or another Mac, can reach the version the bar was built in
     with other menus (the review's finding: "Selection" opened Safari's View).
     - The current top level's menu at its own id has its title: its own id.
     - Otherwise: the id of the current top level's first menu with the same title (the old app's
@@ -1278,9 +1278,9 @@ happening.
    user presses with nothing first responder can reach a Mac menu either. The Mac's shortcut is the
    `UIAction`'s `subtitle`.
 2. **Identifiers.**
-   - Each menu inserted in the bar gets `UIMenu.Identifier("me.saffer.sill.macmenu.\(i)")`, where
+   - Each menu inserted in the bar gets `UIMenu.Identifier("app.skopry.macmenu.\(i)")`, where
      `i` is the Mac menu's id (its index in the Mac's bar, 1–32), unique within a build. In `.one`
-     the wrapper is `me.saffer.sill.macmenu` and the Mac's menus inside keep theirs.
+     the wrapper is `app.skopry.macmenu` and the Mac's menus inside keep theirs.
    - Every nested menu, every action, every deferred element's contents and the pull-down's menus
      get none: UIKit makes unique ones (the probe's 2,041 elements went in clean that way).
    - **Inserted at most once per build.** Before inserting, `MacMenuBar.insert` looks for its first
@@ -1305,10 +1305,10 @@ happening.
 7. **A note, "No items", or "‹n› more on the Mac"** is one disabled `UIAction`.
 8. **Nothing here needs iOS 26.**
 
-#### 7.4 The iPadOS 26 menu bar (`SillAppDelegate`, `MacMenuHub`)
+#### 7.4 The iPadOS 26 menu bar (`SkopryAppDelegate`, `MacMenuHub`)
 
-**`SillAppDelegate: UIResponder, UIApplicationDelegate`** implements nothing but
-`buildMenu(with:)`. SwiftUI keeps its own handling of `sill://` links (`onOpenURL`, ContentView)
+**`SkopryAppDelegate: UIResponder, UIApplicationDelegate`** implements nothing but
+`buildMenu(with:)`. SwiftUI keeps its own handling of `skopry://` links (`onOpenURL`, ContentView)
 and of scenes (S5 checks it).
 
 ```swift
@@ -1319,12 +1319,12 @@ override func buildMenu(with builder: UIMenuBuilder) {
     guard let client = MacMenuHub.shared.focused, !client.menus.menus.isEmpty else { return }
     MacMenuBar.insert(MacMenuElements.topMenus(client, barIdentifiers: true), app: client.menus.app, into: builder)
     #if DEBUG
-    if UserDefaults.standard.bool(forKey: "SillMenuDump") { MacMenuBar.dump(builder) }   // the probe's root dump (S3)
+    if UserDefaults.standard.bool(forKey: "SkopryMenuDump") { MacMenuBar.dump(builder) }   // the probe's root dump (S3)
     #endif
 }
 ```
 
-**`MacMenuBar.insert`** follows `MacMenuBar.layout` (Q1; DEBUG `-SillMenuBarLayout`). Every call is
+**`MacMenuBar.insert`** follows `MacMenuBar.layout` (Q1; DEBUG `-SkopryMenuBarLayout`). Every call is
 behind `#available(iOS 26, *)`, so it uses iOS 26's `insertElements`, which puts all the Mac's menus
 in with one call, in order:
 - **Once per build.** If `builder.menu(for:)` finds the first identifier already there, nothing is
@@ -1334,14 +1334,14 @@ in with one call, in order:
   and the root's end is the last resort (`insertElements(_:atEndOfMenu: .root)`).
 - **`.perMenu` (the default).** The Mac's menus in order right after the iPad's View,
   `insertElements(_:afterMenu: .view)`; without View, `insertElements(_:beforeMenu: .window)`;
-  without either, at the root's end. Sill's own menus stay.
-- **`.replace`.** Sill's File, Edit, Format and View are removed first, each only where
+  without either, at the root's end. Skopry's own menus stay.
+- **`.replace`.** Skopry's File, Edit, Format and View are removed first, each only where
   `builder.menu(for:)` finds it (SwiftUI's root has no Format). Then the Mac's menus go in order
   before `.window` (else at the root's end).
-  - Removing Edit also removes its key commands (⌘C, ⌘V, ⌘Z, ⌘A) while a session streams. Sill's
+  - Removing Edit also removes its key commands (⌘C, ⌘V, ⌘Z, ⌘A) while a session streams. Skopry's
     own text fields may need them with a hardware keyboard: the pairing overlay's code field, over
     the stream. Q1 says so; S3 cannot check it.
-- **`.one`.** One menu, titled with the app's name and identified `me.saffer.sill.macmenu`, holds
+- **`.one`.** One menu, titled with the app's name and identified `app.skopry.macmenu`, holds
   the Mac's menus. It goes after View, with the same fallbacks.
 
 **`MacMenuHub`** (main actor, one per process):
@@ -1462,7 +1462,7 @@ in with one call, in order:
 | Disconnected while open (device) | "Not connected." |
 | An empty menu (device) | "No items" |
 | More than 500 (device) | "‹n› more on the Mac" |
-| No Accessibility on the Mac (host `note`) | "Allow Accessibility for Sill on the Mac (System Settings › Privacy & Security › Accessibility)." |
+| No Accessibility on the Mac (host `note`) | "Allow Accessibility for Skopry on the Mac (System Settings › Privacy & Security › Accessibility)." |
 | The app not answering (host `note`) | "Blender isn’t responding." |
 | A disabled item pressed (host `note`) | "It isn’t available right now." |
 | The app gone (host `note`) | "Code is no longer open." |
@@ -1473,7 +1473,7 @@ in with one call, in order:
 
 #### 7.8 Harness (DEBUG; the contract comment at ContentView.swift:55-171, and CLAUDE.md)
 
-- **`-SillMacMenu <case>`** sets the mock's menus. The default is `code`, so the default bar is the
+- **`-SkopryMacMenu <case>`** sets the mock's menus. The default is `code`, so the default bar is the
   bar as it will be.
   - **`code`:** Code, File, Edit, Selection, View, Go, Run, Terminal, Window, Help.
     - File has shortcuts, sections, a ✓, a disabled item and Open Recent ▸.
@@ -1483,23 +1483,23 @@ in with one call, in order:
   - **`long`:** a Window menu of 300 windows, and 600 in another (the cap).
   - **`stale`, `noaccess`** (a note, no menus), **`none`** (no button).
   - **`slow`, `timeout`, `refuse`.**
-- **`-SillMenusOpen 1`** opens the pull-down after launch (`performPrimaryAction()`, iOS 17.4), on
-  whichever Menus button shows by then (a layout change makes the bar anew); `-SillMenusOpen
-  'File/Open Recent'` opens it on that menu, each level fetched on the way; `-SillMenusAt <s>` opens
-  it `s` seconds after the button shows, and `-SillMenusCloseAfter <s>` dismisses it `s` seconds
+- **`-SkopryMenusOpen 1`** opens the pull-down after launch (`performPrimaryAction()`, iOS 17.4), on
+  whichever Menus button shows by then (a layout change makes the bar anew); `-SkopryMenusOpen
+  'File/Open Recent'` opens it on that menu, each level fetched on the way; `-SkopryMenusAt <s>` opens
+  it `s` seconds after the button shows, and `-SkopryMenusCloseAfter <s>` dismisses it `s` seconds
   later, as a tap outside would.
-- **`-SillMenuPress 'File/Save'`** chooses that item once the first top level is in, as a tap
-  would. It and the path form of `-SillMenusOpen` act only on the mock's menus or the test app's
+- **`-SkopryMenuPress 'File/Save'`** chooses that item once the first top level is in, as a tap
+  would. It and the path form of `-SkopryMenusOpen` act only on the mock's menus or the test app's
   through a test host (dialled to a loopback address, no host version, menufixture's top level:
   `StreamClient.menuHarnessRefusal`, main's InputScript rule); anything else prints "refused" and
   chooses nothing (the review's finding: on a real Mac they chose in whatever app it streams).
-- **`-SillSecondWindow 1`** opens a second window (scene) 2 s after launch: the bar then gets none
+- **`-SkoprySecondWindow 1`** opens a second window (scene) 2 s after launch: the bar then gets none
   of the Mac's menus.
-- **`-SillMenuBarLayout perMenu|replace|one`:** Q1's flip for one run.
-- **`-SillMenuDump 1`:** the root after each build, on the console (S3).
-- **`-SillMenuBuildTwice 1`, `-SillMenuNoView 1`:** the insertion's guards under test (S3): the
+- **`-SkopryMenuBarLayout perMenu|replace|one`:** Q1's flip for one run.
+- **`-SkopryMenuDump 1`:** the root after each build, on the console (S3).
+- **`-SkopryMenuBuildTwice 1`, `-SkopryMenuNoView 1`:** the insertion's guards under test (S3): the
   insertion made twice in one build; View removed before it.
-- All but `-SillMenuDump` and the two guards' flags are ignored with `-SillLive 1`, whose session
+- All but `-SkopryMenuDump` and the two guards' flags are ignored with `-SkopryLive 1`, whose session
   has the real menus.
 
 #### 7.9 DEBUG console lines (device)
@@ -1561,9 +1561,9 @@ menubar: Selection was built from version 3; version 5 has none
 | An item retitled between the menu opening and the choice ("Undo Typing" → "Undo Paste", "Dynamic 5" → "Dynamic 6") | Refused: "The menus changed. Open the menu again." The press's own read validates the menu, so this happens only when the app's state changed meanwhile |
 | A kind 25 for one of the bar's menus ("2") or an item with a submenu | Refused, nothing pressed: `AXPress` there would open that menu on the Mac, in menu tracking. The device never sends one |
 | A press that opens a new window (File › New, Window › a window's name) | The new window appears where the app puts it. The device keeps its source until someone picks the new window, which the strip lists at the next catalog poll. The Desktop shows it at once |
-| The Desktop: the frontmost app changes (a click in the picture, the Mac's own user) | Within about 0.3 s after a device's click; at once in Sill.app (NSWorkspace); by the next catalog poll (2 s) in the plain CLI, where the owner of the topmost window stands for the frontmost app. The version moves, and the device rebuilds. A menu open on the device at that moment settles with "The menus changed…" |
-| Sill itself frontmost on the Desktop (its Settings window) | No menus |
-| A press whose action takes long (a runModal alert, a blocking action) | An AppKit app answers `AXPress` before running the action (the fixture: 2–3 ms). An action that holds the app's main thread makes the reads meanwhile run into the 1 s timeout: stale until a poll finds it answering (a modal loop may keep answering; not measured). An app that answers only after its action holds `sill.menus` up to 1 s: logged with "did not answer within 1 s", answered `pressed: true`. Nothing else waits |
+| The Desktop: the frontmost app changes (a click in the picture, the Mac's own user) | Within about 0.3 s after a device's click; at once in Skopry.app (NSWorkspace); by the next catalog poll (2 s) in the plain CLI, where the owner of the topmost window stands for the frontmost app. The version moves, and the device rebuilds. A menu open on the device at that moment settles with "The menus changed…" |
+| Skopry itself frontmost on the Desktop (its Settings window) | No menus |
+| A press whose action takes long (a runModal alert, a blocking action) | An AppKit app answers `AXPress` before running the action (the fixture: 2–3 ms). An action that holds the app's main thread makes the reads meanwhile run into the 1 s timeout: stale until a poll finds it answering (a modal loop may keep answering; not measured). An app that answers only after its action holds `skopry.menus` up to 1 s: logged with "did not answer within 1 s", answered `pressed: true`. Nothing else waits |
 | A dialog or panel in regular mode (Save…, Page Setup) | It is a window of its own. Window capture does not show it, so the device sees nothing happen, as with ⌘S from the keyboard today. The Desktop and the virtual display show it (P6) |
 | A press during a source switch | No activation (the old source is still named). The version check decides: another app → refused; the same app → pressed |
 | Two devices | One tree for both. Each fetches for itself; answers go to the asker; presses from either act on the one app |
@@ -1573,40 +1573,40 @@ menubar: Selection was built from version 3; version 5 has none
 | Titles with control or bidirectional characters | Cleaned (`SafeText.label`) |
 | A pointer sweeping across the iPad's bar | Each menu that opens asks once; the host serves them in turn, and a second fetch of a menu just read is answered from that read; at most 20 a second |
 | The iPad's bar not rebuilt yet after the Mac's app changed (the rebuild waits for a key or focus event) | Each bar menu asks by its title: one the new app also has opens with the new app's items, and any other says "The menus changed. Open the menu again." (§7.3 rule 5; P8) |
-| What a device can do with the menus | What it can already do with a click: choose what the streamed app offers. Never the Apple menu (Restart, Shut Down, Log Out, Force Quit), and never Sill's own app. Titles (Open Recent's file names, History) travel on the session's connection, as window titles already do |
-| Several Sill windows on an iPad | The bar shows none of the Mac's menus while more than one window scene is connected: every window is key in its own scene, so nothing says which session its choices would reach. The Menus button in each window shows its own. With one window left, the bar has them again at its next rebuild |
+| What a device can do with the menus | What it can already do with a click: choose what the streamed app offers. Never the Apple menu (Restart, Shut Down, Log Out, Force Quit), and never Skopry's own app. Titles (Open Recent's file names, History) travel on the session's connection, as window titles already do |
+| Several Skopry windows on an iPad | The bar shows none of the Mac's menus while more than one window scene is connected: every window is key in its own scene, so nothing says which session its choices would reach. The Menus button in each window shows its own. With one window left, the bar has them again at its next rebuild |
 | iPhone, the Duo's outer display, iPadOS 17–25 | The Menus button only (on a phone upright, at the end of the thumbnails' row) |
 | A narrow iPad window (Slide Over, 320 pt; a 460 pt landscape window) | No Menus button: the bar would not hold it and a thumbnail. On iPadOS 26 the iPad's bar has the menus; before 26, none |
 | An app that adds or removes items above a submenu while its menus are open on a device | The first read that finds a submenu moved (or a walk that meets one) moves the version: every device's open menus say "The menus changed. Open the menu again.", and the menus opened again show the new items. A choice from before, by its kept element, still acts on the item that was shown; one that would have to be found again by its path is refused |
 | Keys while a menu is open | Unchanged; P checks that none reach the Mac |
-| ⌘W on the iPad with nothing first responder (the keyboard down, the Settings panel open) | Unchanged by this step: the iPad's File › Close closes Sill's window, as the probe measured for its scratch app (Q8) |
+| ⌘W on the iPad with nothing first responder (the keyboard down, the Settings panel open) | Unchanged by this step: the iPad's File › Close closes Skopry's window, as the probe measured for its scratch app (Q8) |
 | An older device, newer host (and the reverse) | §3.5 |
 
 ### 10. Test gates
 
 **Hard rules for the implementing session** (the workflow's of 2026-09-26 included):
-- **Never touch** `/Applications/Sill.app`, the `me.saffer.sill.mac` domain or Noah's iPad and
-  iPhone: nothing connects to Sill.app, and nothing is installed on a device. No
+- **Never touch** `/Applications/Skopry.app`, the `app.skopry.mac` domain or Noah's iPad and
+  iPhone: nothing connects to Skopry.app, and nothing is installed on a device. No
   `make-app.sh --install` or `--open`; building is fine. No `tccutil`, no system settings.
 - **Presses** happen only through the host's own code (a synthetic host's kind 25). They go only to
   the fixture, a process the gate starts and kills.
-- **No device on Sill.app while a gate presses or streams:** `Scripts/encoder-check/no-device.sh`
-  exits 0 (it reads Sill.log only). Otherwise wait, and say so in the results.
+- **No device on Skopry.app while a gate presses or streams:** `Scripts/encoder-check/no-device.sh`
+  exits 0 (it reads Skopry.log only). Otherwise wait, and say so in the results.
 - **Real apps' menus are read only with `--menu-selftest=TextEdit`** (or `=menufixture`), never a
   bare `--menu-selftest`, which reads whatever app is frontmost. The self-test is read-only and
   never activates. No gate starts, quits, activates or raises an app of Noah's, and no gate posts
-  an input event. `sillclient.py --menus` goes only to a synthetic host: against any other it
+  an input event. `skopryclient.py --menus` goes only to a synthetic host: against any other it
   would read the frontmost app's menu bar.
 - **The encoder rule for every host that streams** (the synthetic Desktop encodes on the hardware):
   `no-device.sh` first, one host at a time, under 90 s.
 - **Synthetic hosts only,** from `.build/release`, started from Python with
-  `start_new_session=True`, killed by PID, none left running. `SILL_TEST_MENU_PID` is the fixture's
+  `start_new_session=True`, killed by PID, none left running. `SKOPRY_TEST_MENU_PID` is the fixture's
   pid. Test listeners on loopback only.
 - **The fixture never activates:** the prohibited policy (it cannot be activated), its window off
   every display, ignoring the mouse. The synthetic Desktop's path never activates it either. The
   gates sample `lsappinfo front` throughout: it must never change.
 - **The simulator:**
-  - a device of its own named "Sill menubar", in a device set under the scratchpad, deleted when
+  - a device of its own named "Skopry menubar", in a device set under the scratchpad, deleted when
     the step ends;
   - screenshots with `xcrun simctl io <udid> screenshot` only;
   - taps with the control tool's headless `tap` (never its `attach`: the Simulator panel encodes on
@@ -1623,31 +1623,31 @@ No Screen Recording is needed.
 |---|---|---|
 | H0 | **Preflight** (no commit). Record the base (this plan's commit); `git archive` it to `$SP/base` and build it; H2's baselines. Kinds 24, 25 and 27 still free on every branch. Build the fixture: `menufixture serve` for 20 s; `menufixture label PID` prints "none"; `CGWindowListCopyWindowInfo` shows its window off every display (or the alpha-0 fallback) | Files exist; the fixture's label reads over AX; its window is invisible |
 | H1 | **Builds.** `swift build -c release`; iOS Debug and Release for the simulator | Only the known warnings (CaptureProbe; the old `StreamClient` capture warning) |
-| H2 | **The CLI byte for byte.** Base and new `SillHost --synthetic`: idle 35 s, and with `sillclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted | Identical; `kinds=` and `first kinds:` identical (no 24) |
+| H2 | **The CLI byte for byte.** Base and new `SkopryHost --synthetic`: idle 35 s, and with `skopryclient.py PORT 5 desktop`; both again with `--direct-wireless`; digits masked, sorted | Identical; `kinds=` and `first kinds:` identical (no 24) |
 | H3 | **Pure checks, each with mutants caught.** `menus`: `MenuFormat.shortcut` (at least 45: every row of §4.1's tables, the probe's examples, fn, NoCommand, unknown private-use, a glyph outside the table, the 16-character limit); `item` (separators, missing and empty titles, the description fallback, custom views, submenus, marks, enabled); `MenuPath` (parse, format, 0 first, 9 levels, 5 digits, junk); `MenuCache` (0.99 s and 1.0 s; a read made while not frontmost answering while the app still is not, and waited out to 1.05 s once it is); `RequestRate` (20 and 21, 4 and 5, the one line a second); `PressDecision` (every row: the title compared for a kept element and for one found again, an empty or missing title, children, disabled); `TopLevel` equality; `MacMenu` JSON (round trips, `{}` decodes, unknown keys ignored). `menu-state`: `MacMenuState` (at least 45: rules 1–11, a joined fetch, a late answer, a version change mid-fetch, stale, refusals, reset's completions exactly once, `sections`' collapses, a bar menu resolved by its title after the top level changed) | All pass. At least 10 mutants of `menus` (for example the ⌘ shown with NoCommand, ⌥ before ⌃, the character over the glyph, F-keys off by one, the Apple menu allowed, `<=` for the cache's `<`, the kept element's title not compared, an empty title matching, an item with children pressed, the inactive entry served to a frontmost app, the wait ending at 1.0 s) and 8 of `menu-state` (stale not disabling, separators kept doubled, the version ignored, `>` for `>=` in the timeout, a joined fetch sending twice, reset missing a completion, "-" as on, a press for a disabled row) |
-| H4 | **The fixture's tree through the host.** A synthetic host with `SILL_TEST_MENU_PID`. Run 1: `sillclient.py PORT 20 desktop --menus --fetch=2@2 --fetch=4@3 --fetch=4@3.4 --fetch=4@4.6`; it prints Probe's ids. Run 2, with run 1's ids (Deep is 4.19 if AppKit leaves the hidden item out, as the probe saw): `--fetch=` Deep, Level 2 and Level 3 in turn, a second apart. Also, in a scratch copy with `readBudget` 0.005 s: `--fetch=` 600 Items | The "Test menus" line. Top level `menufixture, File, Edit, Probe`, ids 1–4. Probe's items as §5's table: "✓", "-" mixed, `enabled:false`, keys "⌥⌘A", "⌃⇧B", "F5", "⌘⌫", "⌃⌘↑", "⎋", "⌥⌘Space", "⌘K", "⌥⌘K". The hidden item absent; the custom-view and image-only items absent; Deep reached level by level. Whether Edit's Cut, Copy and Paste read disabled (no key window) is recorded, not judged. The fetch at 3.4 answered from the cache (`menu.cached`, no fixture callback logged after the one at 3); the one at 4.6 read again (callbacks logged); Dynamic N's number grew. The budgeted read: fewer than 500 items and `more` counting the rest. **Recorded:** whether the top-level read made the fixture log any callback (decides Q12) |
-| H5 | **Presses.** `--press=4.0@3`, Deep Leaf's (its id from H4, its levels fetched first), and Unavailable's (4.5); Set Label B's id with another title (`--press=4.1,Set Label A@…`); a bar item (`--press=4,Probe@…`) and a submenu item (`--press=4.19,Deep@…`, Deep's id from run 1); a press with an old version, after `--pick=none@5 --pick=desktop@6`: `--raw25='{"version":2,"id":"4.0","title":"Set Label A","token":90}@7'`, 2 being the fixture's first top level's version on a fresh host (§3.3; check it in the run's own output; `--press` always sends the newest) | `pressed=1` twice. `menufixture label PID` prints "A", then "Deep". The fixture logged "ACTION Set Label A" and "ACTION Deep Leaf". The host printed "Menu from sillclient: menufixture › Probe › Set Label A". Refused, with no ACTION: the disabled one ("disabled", `pressed=0`), the other title ("the menus changed"), the old version ("the menus changed", the line giving the id), the bar item and the submenu item ("the menus changed", each answered within 100 ms, and no line naming Deep in the fixture's log after them: nothing opened). Nothing activated: the frontmost app before and after is the same (`lsappinfo front`) |
+| H4 | **The fixture's tree through the host.** A synthetic host with `SKOPRY_TEST_MENU_PID`. Run 1: `skopryclient.py PORT 20 desktop --menus --fetch=2@2 --fetch=4@3 --fetch=4@3.4 --fetch=4@4.6`; it prints Probe's ids. Run 2, with run 1's ids (Deep is 4.19 if AppKit leaves the hidden item out, as the probe saw): `--fetch=` Deep, Level 2 and Level 3 in turn, a second apart. Also, in a scratch copy with `readBudget` 0.005 s: `--fetch=` 600 Items | The "Test menus" line. Top level `menufixture, File, Edit, Probe`, ids 1–4. Probe's items as §5's table: "✓", "-" mixed, `enabled:false`, keys "⌥⌘A", "⌃⇧B", "F5", "⌘⌫", "⌃⌘↑", "⎋", "⌥⌘Space", "⌘K", "⌥⌘K". The hidden item absent; the custom-view and image-only items absent; Deep reached level by level. Whether Edit's Cut, Copy and Paste read disabled (no key window) is recorded, not judged. The fetch at 3.4 answered from the cache (`menu.cached`, no fixture callback logged after the one at 3); the one at 4.6 read again (callbacks logged); Dynamic N's number grew. The budgeted read: fewer than 500 items and `more` counting the rest. **Recorded:** whether the top-level read made the fixture log any callback (decides Q12) |
+| H5 | **Presses.** `--press=4.0@3`, Deep Leaf's (its id from H4, its levels fetched first), and Unavailable's (4.5); Set Label B's id with another title (`--press=4.1,Set Label A@…`); a bar item (`--press=4,Probe@…`) and a submenu item (`--press=4.19,Deep@…`, Deep's id from run 1); a press with an old version, after `--pick=none@5 --pick=desktop@6`: `--raw25='{"version":2,"id":"4.0","title":"Set Label A","token":90}@7'`, 2 being the fixture's first top level's version on a fresh host (§3.3; check it in the run's own output; `--press` always sends the newest) | `pressed=1` twice. `menufixture label PID` prints "A", then "Deep". The fixture logged "ACTION Set Label A" and "ACTION Deep Leaf". The host printed "Menu from skopryclient: menufixture › Probe › Set Label A". Refused, with no ACTION: the disabled one ("disabled", `pressed=0`), the other title ("the menus changed"), the old version ("the menus changed", the line giving the id), the bar item and the submenu item ("the menus changed", each answered within 100 ms, and no line naming Deep in the fixture's log after them: nothing opened). Nothing activated: the frontmost app before and after is the same (`lsappinfo front`) |
 | H6 | **A rebuilt menu, a retitled item.** Fetch Probe › Rebuilt, SIGUSR1 (same title), press its leaf; again with SIGUSR2 (renamed). Fetch Probe at T and press Dynamic N 0.3 s later; fetch Probe at T+2 and press Dynamic N at T+3.5 | Rebuilt: first pressed, found again by its path, the label "Rebuilt"; second refused, the label unchanged. Dynamic N: first pressed (AppKit's second had not passed, so the title held); second refused, "the menus changed" (the press's own read validated the menu and retitled it) |
 | H7 | **Rates.** `--fetch=4x50@2`; ten presses of 4.0 within 0.5 s | At most 20 fetches answered with items that second, the rest "Too many requests…", one "ignored" line. Presses: 4 pressed, 6 refused |
 | H8 | **The target moves.** `--pick=none@3 --pick=desktop@4`; kill the fixture at 6; `--fetch=4@7` | Kind 24s: `menus:[]` with version+1 at 3; the fixture's top level with version+2 at 4; after the kill a top level `menus:[]` with version+3, and the fetch refused with "menufixture is no longer open.", or with "The menus changed…" when a catalog poll saw the process gone first (both are right) |
-| H9 | **Compatibility and junk.** The base's `sillclient.py` against an H4 host; the base's StreamMessage.swift reading headers of kinds 24, 25 and 27 (swiftc); the base host with the new `sillclient.py --menus --fetch`; `--raw27` with `{"id":"0"}`, nine levels, `"-1"`, `"a"`, `"04"`, not JSON; `--raw25` without a version, and with 4.0's id and a title of 1,000,000 bytes (under the 1 MiB cap); a message over the cap | The old client fails nothing and gets no 24. `.unknown` three times. The base host sends no 24 and prints nothing new. Junk is answered with a note or ignored, and the host streams on; the long title is refused ("the menus changed") and never printed; the message over the cap closes that connection with StreamServer's "announced a … message" line |
-| H10 | **The main actor stays free.** Press Slow Action (2 s); fetch Probe 0.3 s later; `--set=bitrate=25000000@…` 0.6 s and `--set=bitrate=15000000@…` 1.0 s after the press | The press answered `pressed=1` (at once where `AXPress` answers before the action runs, as on the fixture; else after about 1 s, with "did not answer within 1 s"). The fetch, made while the action holds the fixture's main thread, answered stale with "menufixture isn’t responding.", the host's not-answering line, a stale top level, then "answering again" and a fresh top level at a later poll. Both kind 16 answers within 100 ms while `sill.menus` waits; `[1s]` lines every second |
+| H9 | **Compatibility and junk.** The base's `skopryclient.py` against an H4 host; the base's StreamMessage.swift reading headers of kinds 24, 25 and 27 (swiftc); the base host with the new `skopryclient.py --menus --fetch`; `--raw27` with `{"id":"0"}`, nine levels, `"-1"`, `"a"`, `"04"`, not JSON; `--raw25` without a version, and with 4.0's id and a title of 1,000,000 bytes (under the 1 MiB cap); a message over the cap | The old client fails nothing and gets no 24. `.unknown` three times. The base host sends no 24 and prints nothing new. Junk is answered with a note or ignored, and the host streams on; the long title is refused ("the menus changed") and never printed; the message over the cap closes that connection with StreamServer's "announced a … message" line |
+| H10 | **The main actor stays free.** Press Slow Action (2 s); fetch Probe 0.3 s later; `--set=bitrate=25000000@…` 0.6 s and `--set=bitrate=15000000@…` 1.0 s after the press | The press answered `pressed=1` (at once where `AXPress` answers before the action runs, as on the fixture; else after about 1 s, with "did not answer within 1 s"). The fetch, made while the action holds the fixture's main thread, answered stale with "menufixture isn’t responding.", the host's not-answering line, a stale top level, then "answering again" and a fresh top level at a later poll. Both kind 16 answers within 100 ms while `skopry.menus` waits; `[1s]` lines every second |
 | H11 | **Cost.** `--menu-selftest=menufixture` times. A subscribed client idle 35 s | Its times within the probe's ranges; no `menu.*` keys while nothing is asked; idle CPU 0.0 % |
-| H12 | **A real app, read-only.** `SillHost --menu-selftest=TextEdit`, only if TextEdit is already running (none is started; otherwise recorded as not run). No other app of Noah's: the workflow's rule of 2026-09-26 | It reads; the top-level titles equal the probe's `menubar/dumps/textedit.txt`; the times within twice the probe's |
+| H12 | **A real app, read-only.** `SkopryHost --menu-selftest=TextEdit`, only if TextEdit is already running (none is started; otherwise recorded as not run). No other app of Noah's: the workflow's rule of 2026-09-26 | It reads; the top-level titles equal the probe's `menubar/dumps/textedit.txt`; the times within twice the probe's |
 | H14 | **The tree changed in place** (the review's). `--fetch=4@1.5 --fetch=4.21@2.2`, SIGHUP at 3, `--press=4.21.5@4`, `--fetch=4.21,600 Items@5`, `--raw25` of 4.21.5 at the old version at 6, `--fetch=4@7`; and `Scripts/menu-check/run.sh mirror` (the same, SIGALRM's walks, the deadline behind a slow `prepare`, a sweep) | The choice at 4 pressed in 600 Items (the fixture's PRESS line); the fetch at 5 "The menus changed…" with 300 Items never read; the same top level sent again with the next version; the old version's choice refused; Probe at the new version with Inserted first and 600 Items at 4.22 |
 | H15 | **Only subscribers** (the review's). A client that never subscribes: `--raw27` of Probe, `--raw25` of 4.0; then its subscription and the same fetch | Both answered "The menus changed…" at once, the label "none", no fixture callback, the refusal logged with the id; after the subscription the fetch served |
-| H13 | **Hard rules** (grep), and previews | No `UIKeyCommand(` or `UICommand(` in the new iOS files. No `AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide`. No AX call in MenuMirror (the reader's only). No `assumeIsolated` in the new files (HostShutdown's and the app's are older). `SILL_TEST_MENU_PID` honoured only where `synthetic` (it is read on every host, for §4.8's "ignored" line). `kAXPressAction` only in MenuReader, after `PressDecision`, and WindowSizer's close button. Every `insertSibling`, `insertElements` and `remove(menu:)` in `MacMenuBar` after a `menu(for:)` check. The bare app's `-SillRenderPreviews` identical before and after |
+| H13 | **Hard rules** (grep), and previews | No `UIKeyCommand(` or `UICommand(` in the new iOS files. No `AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide`. No AX call in MenuMirror (the reader's only). No `assumeIsolated` in the new files (HostShutdown's and the app's are older). `SKOPRY_TEST_MENU_PID` honoured only where `synthetic` (it is read on every host, for §4.8's "ignored" line). `kAXPressAction` only in MenuReader, after `PressDecision`, and WindowSizer's close button. Every `insertSibling`, `insertElements` and `remove(menu:)` in `MacMenuBar` after a `menu(for:)` check. The bare app's `-SkopryRenderPreviews` identical before and after |
 
 **Simulator (S):**
 
 | # | Check |
 |---|---|
-| S1 | **The button.** `-SillMacMenu code` at 1000x710, 710x1000, 500x710 and 710x500: Menus between the strip and Aa, the bar otherwise as before. `none` at the four: no button, the bars as the base's photos. `code` with `-SillScaleOpen 1` at 1000x710 and 500x710: Menus faded. Ten photos; send Noah the sheet |
-| S2 | **The pull-down.** `-SillMenusOpen 1` at the four sizes: Code, File, Edit, Selection, View, Go, Run, Terminal, Window, Help. A headless tap on File, at 1000x710 and 500x710: subtitles, sections, ✓, a disabled row. `slow`: the placeholder at 0.5 s, then the items. `timeout`: "Mac mini didn’t answer. Open the menu again." after 4 s. `stale`: the note, then every row disabled. `noaccess`: the note. `long`: 300 rows scroll, and "100 more on the Mac" in the 600 one. xxLarge text at 1000x710 and 500x710. A tap on Save: the console's "menus: chose Save". `refuse`: the console's refusal and its announcement |
-| S3 | **The main menu's root,** on an iPad simulator with an iOS 26 or later runtime, `-SillMenuDump 1`. `code`: the 10 menus right after View, identifiers `me.saffer.sill.macmenu.1`…`10`, each holding one deferred element, and no key command or command inside any. `-SillMenuBarLayout replace`: File, Edit and View gone, the 10 before Window. `one`: one "Code" menu holding the 10. `none`: nothing inserted. An iPhone simulator: nothing inserted. An iOS 17 or 18 runtime, if one is installed: nothing inserted. The guards: DEBUG `-SillMenuBuildTwice 1` calls `MacMenuBar.insert` twice in one build (the dump shows the 10 once, no exception), and `-SillMenuNoView 1` removes View first (the 10 before Window). **The iPadOS 26 menu bar itself cannot be shown headless.** It appears only for a pointer at the top edge or a finger swiping down from it, which the harness cannot drive without the live panel. So everything up to it is checked here, and its drawing (subtitles, marks, deferred loading, its width) is P8's |
-| S4 | **Live.** A synthetic host with the fixture; `-SillLayout 1000x710 -SillLive 1 -SillConnect 127.0.0.1:P`. The Menus button shows the fixture's menus. Tap Probe: its items load. Tap Set Label A: `menufixture label PID` prints "A", and the host logs the press. `-SillMenuDump 1` shows the fixture's four menus after View |
-| S5 | **Tear-down and SwiftUI's own handling.** Disconnect from the Settings panel: the button goes; the next dump has nothing inserted. `xcrun simctl openurl <udid> 'sill://pair?…'` still reaches the link's confirmation, so the adaptor took nothing from SwiftUI |
-| S6 | **The review's (device).** `-SillSecondWindow 1 -SillMenuDump 1`: "nothing inserted (2 windows: …)". 320x700 and 460x400: no Menus button, the bars as main's. The phone's arrangement (`-SillIdiom phone`) at 320x548, 375x647, 393x793, 440x894 and 500x710: the button at the end of the thumbnails' row, two whole thumbnails and more. `stale`: the note a section of its own. `-SillSettings 1 -SillKeyboard 1 -SillMenusOpen 1 -SillMenusCloseAfter 1.5`: the keyboard back when the pull-down goes (the console). Live, against a copy of the fixture named `notfixture`: `-SillMenuPress` and `-SillMenusOpen 'Probe/Deep'` refused, nothing chosen |
+| S1 | **The button.** `-SkopryMacMenu code` at 1000x710, 710x1000, 500x710 and 710x500: Menus between the strip and Aa, the bar otherwise as before. `none` at the four: no button, the bars as the base's photos. `code` with `-SkopryScaleOpen 1` at 1000x710 and 500x710: Menus faded. Ten photos; send Noah the sheet |
+| S2 | **The pull-down.** `-SkopryMenusOpen 1` at the four sizes: Code, File, Edit, Selection, View, Go, Run, Terminal, Window, Help. A headless tap on File, at 1000x710 and 500x710: subtitles, sections, ✓, a disabled row. `slow`: the placeholder at 0.5 s, then the items. `timeout`: "Mac mini didn’t answer. Open the menu again." after 4 s. `stale`: the note, then every row disabled. `noaccess`: the note. `long`: 300 rows scroll, and "100 more on the Mac" in the 600 one. xxLarge text at 1000x710 and 500x710. A tap on Save: the console's "menus: chose Save". `refuse`: the console's refusal and its announcement |
+| S3 | **The main menu's root,** on an iPad simulator with an iOS 26 or later runtime, `-SkopryMenuDump 1`. `code`: the 10 menus right after View, identifiers `app.skopry.macmenu.1`…`10`, each holding one deferred element, and no key command or command inside any. `-SkopryMenuBarLayout replace`: File, Edit and View gone, the 10 before Window. `one`: one "Code" menu holding the 10. `none`: nothing inserted. An iPhone simulator: nothing inserted. An iOS 17 or 18 runtime, if one is installed: nothing inserted. The guards: DEBUG `-SkopryMenuBuildTwice 1` calls `MacMenuBar.insert` twice in one build (the dump shows the 10 once, no exception), and `-SkopryMenuNoView 1` removes View first (the 10 before Window). **The iPadOS 26 menu bar itself cannot be shown headless.** It appears only for a pointer at the top edge or a finger swiping down from it, which the harness cannot drive without the live panel. So everything up to it is checked here, and its drawing (subtitles, marks, deferred loading, its width) is P8's |
+| S4 | **Live.** A synthetic host with the fixture; `-SkopryLayout 1000x710 -SkopryLive 1 -SkopryConnect 127.0.0.1:P`. The Menus button shows the fixture's menus. Tap Probe: its items load. Tap Set Label A: `menufixture label PID` prints "A", and the host logs the press. `-SkopryMenuDump 1` shows the fixture's four menus after View |
+| S5 | **Tear-down and SwiftUI's own handling.** Disconnect from the Settings panel: the button goes; the next dump has nothing inserted. `xcrun simctl openurl <udid> 'skopry://pair?…'` still reaches the link's confirmation, so the adaptor took nothing from SwiftUI |
+| S6 | **The review's (device).** `-SkoprySecondWindow 1 -SkopryMenuDump 1`: "nothing inserted (2 windows: …)". 320x700 and 460x400: no Menus button, the bars as main's. The phone's arrangement (`-SkopryIdiom phone`) at 320x548, 375x647, 393x793, 440x894 and 500x710: the button at the end of the thumbnails' row, two whole thumbnails and more. `stale`: the note a section of its own. `-SkoprySettings 1 -SkopryKeyboard 1 -SkopryMenusOpen 1 -SkopryMenusCloseAfter 1.5`: the keyboard back when the pull-down goes (the console). Live, against a copy of the fixture named `notfixture`: `-SkopryMenuPress` and `-SkopryMenusOpen 'Probe/Deep'` refused, nothing chosen |
 
 **Noah's Mac and devices (P), handed over at the end:** the iPad (iPadOS 26 or later for P8) and an
 iPhone for P13.
@@ -1658,14 +1658,14 @@ iPhone for P13.
 | P2 | **Weather (Catalyst).** Its menus open; a View item with ✓ toggles, and shows its new mark next time. It may ask for Location on its first launch: answer that on the Mac first |
 | P3 | **Bambu Studio.** File › Recent projects is filled. Edit › Deselect all shows "⎋". View › Use Perspective View toggles its ✓ |
 | P4 | **Blender's limits.** Only Blender and Window. Its File and Edit are tapped in the picture. The Window menu shows the placeholder briefly |
-| P5 | **The Desktop.** With only the desktop clicked, the menus are Finder's. Click a Safari window in the picture: Safari's within about a second (at once in Sill.app). Open Sill's Settings on the Mac: no menus |
+| P5 | **The Desktop.** With only the desktop clicked, the menus are Finder's. Click a Safari window in the picture: Safari's within about a second (at once in Skopry.app). Open Skopry's Settings on the Mac: no menus |
 | P6 | **The virtual display.** A staged window's app not frontmost on the Mac: opening Menus brings it forward, as a click does. File › Save As… opens its sheet, and the device shows it. In regular mode the same sheet does not show on the device (window capture); note it |
 | P7 | **⌘-shortcuts still pass through the keyboard.** A Magic Keyboard with the keyboard up: ⌘S reaches the Mac (the app saves) while the menu shows "⌘S" as text. With the Settings panel open (nothing first responder): ⌘S does nothing on the Mac and no mirrored item fires. Keys while the Menus pull-down is open reach neither the Mac nor a mirrored item |
-| P8 | **The iPadOS 26 menu bar.** Reveal it with the pointer at the top or a swipe down: the Mac's menus after View; each opens with a brief placeholder, then its items; ✓ and disabled items as on the Mac; sections; shortcuts as subtitles (or not drawn: note which). Note whether ten or more menus fit. **The lazy rebuild:** with the keyboard down and no key pressed, pick another app's window with a tap on its thumbnail, then reveal the bar with a swipe. Note whether it shows the new app's menus (showing the bar rebuilt it) or the old titles. With the old titles, a menu the new app also has (File) must open with the new app's items, and one it lacks must say "The menus changed. Open the menu again."; after one key press the bar must be the new app's. The console's "menubar: built" lines say when each rebuild ran. Q1: try `-SillMenuBarLayout replace` and `one` from Xcode's scheme, and pick one |
+| P8 | **The iPadOS 26 menu bar.** Reveal it with the pointer at the top or a swipe down: the Mac's menus after View; each opens with a brief placeholder, then its items; ✓ and disabled items as on the Mac; sections; shortcuts as subtitles (or not drawn: note which). Note whether ten or more menus fit. **The lazy rebuild:** with the keyboard down and no key pressed, pick another app's window with a tap on its thumbnail, then reveal the bar with a swipe. Note whether it shows the new app's menus (showing the bar rebuilt it) or the old titles. With the old titles, a menu the new app also has (File) must open with the new app's items, and one it lacks must say "The menus changed. Open the menu again."; after one key press the bar must be the new app's. The console's "menubar: built" lines say when each rebuild ran. Q1: try `-SkopryMenuBarLayout replace` and `one` from Xcode's scheme, and pick one |
 | P9 | **An app that stops answering** (a paused or beach-balled one). Its menus show "‹App› isn’t responding." within about 2 s, every item disabled; they come back once it answers |
-| P10 | **Mixed builds.** This iPad against main's Sill.app: no Menus button, no bar menus, the rest as before. An iPad on main's build against this Sill.app: as before |
+| P10 | **Mixed builds.** This iPad against main's Skopry.app: no Menus button, no bar menus, the rest as before. An iPad on main's build against this Skopry.app: as before |
 | P11 | **VoiceOver.** The button reads "Code menus"; items read with their states and shortcuts; a refused press is announced |
-| P12 | **Five minutes streaming,** the menus used now and then. Frame age and rtt in the `client …` lines unchanged. Sill.app's CPU as before. `menu.*` keys only in seconds a menu was opened |
+| P12 | **Five minutes streaming,** the menus used now and then. Frame age and rtt in the `client …` lines unchanged. Skopry.app's CPU as before. `menu.*` keys only in seconds a menu was opened |
 | P13 | **An iPhone.** The Menus pull-down: submenus open in place; a choice works |
 
 ### 11. Implementation order (one commit per step; each passes its gates before the next)
@@ -1686,14 +1686,14 @@ Commit messages end with the session's attribution lines.
    - `--menu-selftest` in the CLI and the app.
    - The hook.
    - `Scripts/menufixture.swift`.
-   - `sillclient.py`'s flags.
+   - `skopryclient.py`'s flags.
 
    Gates: H1, H2, H3 (`menus`), H4–H13.
 3. **"iOS: the Mac's menus in the iPad's menu bar and behind a Menus button."**
    - `MacMenuState`, with `Tests/checks/menu-state` and its mutants.
-   - `MacMenuElements`, `MacMenuHub`, `SillAppDelegate` and `MacMenuButton`, with their pbxproj
+   - `MacMenuElements`, `MacMenuHub`, `SkopryAppDelegate` and `MacMenuButton`, with their pbxproj
      entries A040–A044/F040–F044.
-   - The adaptor in SillApp.
+   - The adaptor in SkopryApp.
    - StreamClient.
    - The two bars.
    - The window's session observer (the key-window observer, until the review).
@@ -1705,9 +1705,9 @@ Commit messages end with the session's attribution lines.
    - CLAUDE.md:
      - the Current step;
      - Layout (the new files);
-     - Build and run: `--menu-selftest`, the hook, the fixture, `sillclient.py`'s flags,
-       `-SillMacMenu`, `-SillMenusOpen`, `-SillMenuBarLayout`, `-SillMenuDump`,
-       `-SillMenuBuildTwice`, `-SillMenuNoView`;
+     - Build and run: `--menu-selftest`, the hook, the fixture, `skopryclient.py`'s flags,
+       `-SkopryMacMenu`, `-SkopryMenusOpen`, `-SkopryMenuBarLayout`, `-SkopryMenuDump`,
+       `-SkopryMenuBuildTwice`, `-SkopryMenuNoView`;
      - Untested, for Noah: P1–P13.
    - docs/DEVELOPMENT.md's test tools.
    - `Tests/checks/README.md`'s table.
@@ -1739,19 +1739,19 @@ encoder-two-in-flight (PR #20) is already in main at 150f781.
   unique per build; inserted at most once per build; every anchor looked up first (§7.3, §7.4).
 - **Only a leaf the device was shown is pressed:** two parts or more, no children, its title now
   the one shown, enabled (§4.2). Nothing else reaches `AXPress`.
-- **Accessibility for menus runs on `sill.menus`,** with a 1 s timeout set per element and 1.5 s a
+- **Accessibility for menus runs on `skopry.menus`,** with a 1 s timeout set per element and 1.5 s a
   menu. Never process-wide, and never a read on the main actor. The activation (the app made
   active, the streamed window made key) stays the coordinator's own code.
 - **Activation is a click's:** AX only, never Launch Services, never `NSRunningApplication.activate`.
   None for the Desktop, and never on a synthetic host.
-- **Never mirror Sill itself,** and never the Apple menu (Q4).
+- **Never mirror Skopry itself,** and never the Apple menu (Q4).
 - **Never `MainActor.assumeIsolated`** in core code.
 - **The CLI's stdout stays byte for byte on the default path,** idle and streaming, with and
   without `--direct-wireless`. New output only when a device uses the menus, under the hook, or
   from `--menu-selftest`.
 - **Kinds 0–23 and their payloads are untouched.** 26 stays the pointer's.
 - **Tests press only the fixture,** only through the host, only while no device is connected to
-  Sill.app. They never touch `/Applications/Sill.app`, `me.saffer.sill.mac` or Noah's iPad.
+  Skopry.app. They never touch `/Applications/Skopry.app`, `app.skopry.mac` or Noah's iPad.
 - **TEST ONLY hooks** are honoured only by synthetic hosts, which do not advertise.
 - **New iOS files** need their four pbxproj entries by hand. Swift 5 language mode. Only the bar's
   insertion needs `#available(iOS 26, *)`.
@@ -1762,12 +1762,12 @@ encoder-two-in-flight (PR #20) is already in main at 150f781.
 ## Open questions for Noah (the implementer uses the default unless Noah says otherwise)
 
 1. **Where the Mac's menus sit in the iPad's bar.** Default: **one menu per Mac menu, after the
-   iPad's View**, in the Mac's order, Sill's own menus kept. The Mac's app menu (named after the
+   iPad's View**, in the Mac's order, Skopry's own menus kept. The Mac's app menu (named after the
    app) marks where they begin. The bar then repeats File, Edit, View, Window and Help.
-   Alternatives, each one constant away (`MacMenuBar.layout`; DEBUG `-SillMenuBarLayout`):
-   - **`replace`:** Sill's File, Edit, Format and View go while the Mac's menus show. Fewer menus,
-     no second File, Edit or View; Sill's ⌘W Close and its Edit commands go with them while
-     streaming. Those commands carry ⌘C, ⌘V, ⌘Z and ⌘A, which Sill's own text fields may need with a
+   Alternatives, each one constant away (`MacMenuBar.layout`; DEBUG `-SkopryMenuBarLayout`):
+   - **`replace`:** Skopry's File, Edit, Format and View go while the Mac's menus show. Fewer menus,
+     no second File, Edit or View; Skopry's ⌘W Close and its Edit commands go with them while
+     streaming. Those commands carry ⌘C, ⌘V, ⌘Z and ⌘A, which Skopry's own text fields may need with a
      hardware keyboard (the pairing overlay's code field, over the stream).
    - **`one`:** one menu named after the app holds the Mac's menus. No repeats, one level deeper.
      Its title changes with the app, so it too waits for UIKit's lazy rebuild (§7.2 rule 11).
@@ -1800,7 +1800,7 @@ encoder-two-in-flight (PR #20) is already in main at 150f781.
    that are not alternates.
 7. **The Desktop.** Default: **the frontmost app's menus.** Alternative: none on the Desktop, where
    the Mac's own menu bar is in the picture.
-8. **⌘W on the iPad with nothing first responder** closes Sill's window (the probe's measurement of
+8. **⌘W on the iPad with nothing first responder** closes Skopry's window (the probe's measurement of
    the system's File › Close). Default: **unchanged in this step.** Alternative: remove the iPad's
    File › Close while a session streams (Q1's `replace` does).
 9. **A refused choice.** Default: **the warning haptic (iPhone) and a VoiceOver announcement,
@@ -1822,7 +1822,7 @@ encoder-two-in-flight (PR #20) is already in main at 150f781.
 Built on the branch `menu-bar-mirror` (its worktree `winstream-menubar`), from main at 150f781 with
 main merged in at cf05a78, 676b362, ed7f8c6 and 2b38179 (never rebased): 556f31a this plan, 42d3116
 the protocol, 4896088 the host as a first build agent left it (it built and the menus check passed,
-nothing else run), then the critique's fixes and the host's gates, the device, Sill.app and the
+nothing else run), then the critique's fixes and the host's gates, the device, Skopry.app and the
 docs, the review and its fixes. Work stopped once, in the middle of the host (Noah, 2026-09-26:
 "Stop trackpad gestures and menu bar mirror for now. Mark down next steps for agents that will pick
 up the task."), and resumed at 23:38 that day ("Continue working where you left off with Opus 5.5
@@ -1894,7 +1894,7 @@ On top of f5344e8, one commit each:
   takes the title now and `hasChildren` (title, then leaf, then enabled).
 - c6f75ec, the fixture. It ran `.accessory`, and an accessory app started from a shell took the
   front at launch: `lsappinfo front` named it for a whole 20 s run (00:47, with Claude back once it
-  exited, while a device was on Sill.app). It runs `.prohibited` now, as the probe's fixture did.
+  exited, while a device was on Skopry.app). It runs `.prohibited` now, as the probe's fixture did.
   SIGUSR1 and SIGUSR2 give Probe › Rebuilt a new NSMenu, since AppKit's item elements are
   positional (§"Pressing").
 - d238710, C3: `MenuReader.readBudget` 1.5 s, `Menu.unread`, the answer's `more`.
@@ -1945,10 +1945,10 @@ Checked, without the hardware encoder:
 - H9's first part: main's StreamMessage.swift at 150f781 and at cf05a78 reads kinds 24, 25 and 27 as
   `.unknown` (23 as `.hello`).
 - H13's greps: no system-wide timeout, no AX call in MenuMirror, no `assumeIsolated` in the new
-  files, `SILL_TEST_MENU_PID` taken only when synthetic, `kAXPressAction` only in MenuReader (after
+  files, `SKOPRY_TEST_MENU_PID` taken only when synthetic, `kAXPressAction` only in MenuReader (after
   `PressDecision`) and WindowSizer's close button.
 
-Through a synthetic host (2026-09-27, 03:33–03:41, once the device had left Sill.app; one host at
+Through a synthetic host (2026-09-27, 03:33–03:41, once the device had left Skopry.app; one host at
 a time, each after `no-device.sh` and again after it; `lsappinfo front` sampled every 0.2 s), before
 the merge (d392679, against main at 150f781) and after it (8ea4882, against cf05a78):
 - H2: the CLI's stdout, digits masked and lines sorted, identical to main's, idle 35 s and with a
@@ -1972,14 +1972,14 @@ the merge (d392679, against main at 150f781) and after it (8ea4882, against cf05
 - H7: 50 fetches, 20 served and 30 too many; ten presses, 4 and 6; one ignored line each.
 - H8: the fixture v2, none at 3 s (v3), the fixture at 4 s (v4), none after the kill at 6 s (v5,
   from the next poll), and the fetch at 7 s refused ("The menus changed…").
-- H9: main's StreamMessage.swift reads 24, 25 and 27 as `.unknown`; main's `sillclient.py` gets no
+- H9: main's StreamMessage.swift reads 24, 25 and 27 as `.unknown`; main's `skopryclient.py` gets no
   24; junk ids, a missing version or title, a bar item and 4.99 answered with the note; the
   1,000,000-byte title refused and never printed; a message over the cap closed with
   StreamServer's line; the host streams on; main's host with this branch's `--menus --fetch`: no 24,
   nothing printed about menus.
 - H10: Slow Action pressed in 4–11 ms; the fetch during it stale ("menufixture isn’t responding."),
   a stale top level, the not-answering line, then "answering again" and a fresh top level; the two
-  kind 16 answers 1–7 ms after their changes while `sill.menus` waited; a `[1s]` line each second.
+  kind 16 answers 1–7 ms after their changes while `skopry.menus` waited; a `[1s]` line each second.
 - H11: a subscribed client with nothing streaming, 35 s: no `menu.*` key, the host's CPU 0.0–0.6 %;
   streaming the Desktop 20 s with nothing asked: `menu.top 1` for the subscription, nothing else.
 - The front never changed in 33 of 34 host runs. In one (main's host with this branch's client,
@@ -1992,7 +1992,7 @@ the merge (d392679, against main at 150f781) and after it (8ea4882, against cf05
 
 Not run in this step:
 - H12: TextEdit was not running, and none is started.
-- H13's previews: the bare SillMenuBar is an accessory app, which takes the front when started from
+- H13's previews: the bare SkopryMenuBar is an accessory app, which takes the front when started from
   a shell, and Noah was at the Mac; the only app change is `--menu-selftest`'s branch in its main,
   before NSApplication.
 
@@ -2006,7 +2006,7 @@ Found, for the review:
 - `Tests/checks/README.md` on main repeated three paragraphs (a merge's leftovers; gone on main
   since).
 
-### The device, Sill.app and the docs (2026-09-27, 04:04–05:30)
+### The device, Skopry.app and the docs (2026-09-27, 04:04–05:30)
 
 On top of ad29791, one commit each:
 - 4c58246, `MacMenuState` (§7.2) and `Tests/checks/menu-state`: 118 cases and 5,000 random
@@ -2020,12 +2020,12 @@ On top of ad29791, one commit each:
   session no longer reads, and keeps the top level; the top level keeps at most 32 menus with
   unique one-part ids, since the bar makes an identifier of each.
 - 0f07340, the rest of §7: `MacMenuElements`, `MacMenuHub` with `KeyWindowObserver`,
-  `SillAppDelegate` with `MacMenuBar`, `MacMenuButton` with `MacMenuTrigger`, the adaptor in
-  `SillApp`, `StreamClient`'s part, the two bars, the harness (`-SillMacMenu`'s nine cases,
-  `-SillMenusOpen`, `-SillMenuDump`, `-SillMenuBarLayout`, `-SillMenuBuildTwice`,
-  `-SillMenuNoView`), and the five files' pbxproj entries (A040–A044, F040–F044). Beyond §7.8, for
-  a run that cannot tap: `-SillMenusOpen 'File/Open Recent'` opens the pull-down on that menu (each
-  level fetched on the way), `-SillMenuPress 'File/Save'` chooses an item, both in the mock and
+  `SkopryAppDelegate` with `MacMenuBar`, `MacMenuButton` with `MacMenuTrigger`, the adaptor in
+  `SkopryApp`, `StreamClient`'s part, the two bars, the harness (`-SkopryMacMenu`'s nine cases,
+  `-SkopryMenusOpen`, `-SkopryMenuDump`, `-SkopryMenuBarLayout`, `-SkopryMenuBuildTwice`,
+  `-SkopryMenuNoView`), and the five files' pbxproj entries (A040–A044, F040–F044). Beyond §7.8, for
+  a run that cannot tap: `-SkopryMenusOpen 'File/Open Recent'` opens the pull-down on that menu (each
+  level fetched on the way), `-SkopryMenuPress 'File/Save'` chooses an item, both in the mock and
   live; and the harness prints where a tap on the button's centre would land. In the bar, a
   disabled or stale Mac menu stays a menu (its deferred element then shows the note or the Mac's
   dimmed items), so the bar never changes shape; in the pull-down it is a dimmed row, as §7.2 rule 7
@@ -2049,10 +2049,10 @@ Checked:
   (156 s); `menus` 279 and 33 of 33 mutants, `menu-state` as above. H13's iOS greps: no
   `UIKeyCommand(` or `UICommand(` in the new files, every `insertElements` and `remove(menu:)`
   after a `menu(for:)`, no `assumeIsolated`.
-- In a private simulator set (an iPad Pro 13" named "Sill menubar", then an iPhone 15 Pro of the
+- In a private simulator set (an iPad Pro 13" named "Skopry menubar", then an iPhone 15 Pro of the
   same name; iOS 27.0, the only runtime installed), screenshots with `simctl io` only:
   - S1: the button between the strip and Aa at 1000x710, 710x1000, 500x710 and 710x500; faded under
-    the Aa ruler at 1000x710 and 500x710; `-SillMacMenu none` pixel for pixel main's own build
+    the Aa ruler at 1000x710 and 500x710; `-SkopryMacMenu none` pixel for pixel main's own build
     (cf05a78, built from `git archive`) at all four. Also the iPad mini (744x1133, 1133x744), the
     iPad Pro 13" (1032x1376, 1376x1032) and the iPhone 15 Pro (393x852, 852x393).
   - S2: the pull-down at the four sizes, in the Mac's order; File (subtitles, sections, ✓, a dimmed
@@ -2063,13 +2063,13 @@ Checked:
     whole, as a title and subtitle; `blender`; `long`: Window's 302 rows scroll, History 500 and
     "100 more on the Mac"; xxLarge text at 1000x710 and 500x710; a choice ("menus: chose Save
     (2.9)") and a refused one (the console's refusal; the announcement is VoiceOver's, P11).
-    `-SillMenuPress` against `stale` finds nothing to choose (a stale menu shows no rows), so the
+    `-SkopryMenuPress` against `stale` finds nothing to choose (a stale menu shows no rows), so the
     device's own refusal of a choice made before the app went stale is the pure check's (rule 8).
-  - S3, the main menu's root (`-SillMenuDump 1`), iPad: `code`, the ten after View as
-    `me.saffer.sill.macmenu.1`…`10`, each one deferred element, no key command or command in them;
+  - S3, the main menu's root (`-SkopryMenuDump 1`), iPad: `code`, the ten after View as
+    `app.skopry.macmenu.1`…`10`, each one deferred element, no key command or command in them;
     `replace`: File, Edit and View gone (the root has no Format), the ten before Window; `one`: one
-    "Code" menu holding the ten; `-SillMenuBuildTwice 1`: "nothing inserted (already in this build)"
-    the second time, the ten once, no exception; `-SillMenuNoView 1`: the ten before Window;
+    "Code" menu holding the ten; `-SkopryMenuBuildTwice 1`: "nothing inserted (already in this build)"
+    the second time, the ten once, no exception; `-SkopryMenuNoView 1`: the ten before Window;
     `stale`: the ten, each still one deferred element; `none` and `noaccess`: nothing inserted. The
     iPhone: "nothing inserted (not an iPad on iPadOS 26)" at every build. An iOS 17 or 18 runtime:
     none installed, not run.
@@ -2077,8 +2077,8 @@ Checked:
     before and after, `lsappinfo front` every 0.2 s, one host under 40 s), on the iPad at 1000x710:
     the pull-down with menufixture, File, Edit and Probe; Probe's 18 items through the host (Set
     Label A ⌥⌘A, Set Label B ⌃⇧B, ✓ Checked, – Mixed, Unavailable dimmed, F5, ⌘⌫, ⌃⌘↑, ⎋);
-    `-SillMenuPress 'Probe/Set Label A'`: "menus: chose Set Label A (4.0)", the host's "Menu from
-    Sill menubar (iPad17,4 simulator): menufixture › Probe › Set Label A", the fixture's label "A".
+    `-SkopryMenuPress 'Probe/Set Label A'`: "menus: chose Set Label A (4.0)", the host's "Menu from
+    Skopry menubar (iPad17,4 simulator): menufixture › Probe › Set Label A", the fixture's label "A".
     On the iPhone at 393x852: the same four, Probe, Probe › Deep (4.19) › Level 2 level by level,
     and Set Label B pressed ("B"). The front never changed in either run.
   - The dump, live: a top level that arrived after the window became key was not in the bar until a
@@ -2087,19 +2087,19 @@ Checked:
     rebuilds it stays P8's.
   - S5: the host stopped under an open pull-down: "127.0.0.1:P disconnected…", the button gone, and
     the next build "nothing inserted (the session has no menus)". `simctl openurl` with a
-    well-formed `sill://pair` link brought the system's "Open in “Sill”?" over the connect screen,
+    well-formed `skopry://pair` link brought the system's "Open in “Skopry”?" over the connect screen,
     as on main (the Build and run note); the app's own confirmation is past a tap, which a headless
     run cannot give.
   - The harness's hit test: "a tap on the Menus button's centre reaches the button" in every run
     that opened the pull-down (the Duo's four sizes, the iPad mini and iPad Pro upright, the iPhone
     upright; the harness turns a landscape iPad, and UIKit's menus are not turned with it).
-- Sill.app (§6): `.build/Sill.app/Contents/MacOS/Sill --menu-selftest=<the fixture's pid>
-  -SillLogFile <scratch>` read the fixture's four menus (the top level in 23 ms) and exited 0, the
+- Skopry.app (§6): `.build/Skopry.app/Contents/MacOS/Skopry --menu-selftest=<the fixture's pid>
+  -SkopryLogFile <scratch>` read the fixture's four menus (the top level in 23 ms) and exited 0, the
   front unchanged, and the lines reached the log file that Show Log… reads. The NSWorkspace
   observer runs only when an app is activated on the Mac, which no gate may do: P5.
 
 Not run in this step:
-- H13's previews: Sill.app's sources differ from main only in main.swift's `--menu-selftest`
+- H13's previews: Skopry.app's sources differ from main only in main.swift's `--menu-selftest`
   branch, before NSApplication, and nothing the previews draw changed; the bare app takes the front
   when started from a shell.
 - Taps (the rules allow only `simctl io` screenshots): a real tap on the button, the bar itself, a
@@ -2163,7 +2163,7 @@ The host, 992229f:
    move's hand-over counts on it).
 
 The device, 9dfa45a:
-5. **With two Sill windows the bar could act on the other window's session.** Every window is key in
+5. **With two Skopry windows the bar could act on the other window's session.** Every window is key in
    its own scene (UIWindow.h, apps built against the iOS 15 SDK or later), so the hub followed
    whichever window reported last (the reviewer's probe: both key at once, the hub on the background
    window's client). The bar now shows the menus of the app's one window while exactly one window
@@ -2181,26 +2181,26 @@ The device, 9dfa45a:
    Mac, and ⌘W went to the iPad's own File › Close). The keyboard the panel took down now comes back
    when the pull-down goes.
 9. **Rule 11 compared versions across sessions.** Versions start again at each host launch, so after
-   a reconnect to a relaunched Sill.app, or another Mac, a bar menu built from the old session's
+   a reconnect to a relaunched Skopry.app, or another Mac, a bar menu built from the old session's
    version 2 asked for its own id in the new version 2 (the reviewer's check: "Selection" opened
    Safari's View). A bar menu keeps its id only while the current top level's menu there has its
    title; the fetch's title check on the host backs it.
 10. **The pull-down's "not responding" note read as one more dimmed menu:** it is a section of its
     own.
-11. **`-SillMenuPress` and `-SillMenusOpen` with a path chose and opened menus on any Mac**, unlike
-    sillclient's guarded `--press`: they act only on the mock's menus or the test app's through a
+11. **`-SkopryMenuPress` and `-SkopryMenusOpen` with a path chose and opened menus on any Mac**, unlike
+    skopryclient's guarded `--press`: they act only on the mock's menus or the test app's through a
     test host (a loopback address, no host version, menufixture's top level), and print "refused"
     otherwise.
 Also: the harness opens its pull-down on whichever Menus button shows by then (a layout change made
 the bar anew and lost it: the keyboard turning the harness's fake screen upright), and
-`-SillMenusAt`, `-SillMenusCloseAfter` and `-SillSecondWindow` join the harness.
+`-SkopryMenusAt`, `-SkopryMenusCloseAfter` and `-SkoprySecondWindow` join the harness.
 
 Merged with main before the fixes: ed7f8c6 in aa11993 (PRs #30 the iPhone's portrait layout, #31 the
 Mac's pointer, #32 the 0.3.1 release) and 2b38179 in 4fd8131 (#33). Where they met: kind 26 sits
 between the menus' kinds; the checks that read the kind table follow (protocol's and menus' 26 is
 the pointer's, pointer-control's known kinds gain 24, 25 and 27), and three mutants that renumbered
 a kind onto one now taken, which could no longer compile, renumber onto 28 and 29; the portrait
-halves keep the button, and the phone's arrangement had none until finding 7; sillclient, the
+halves keep the button, and the phone's arrangement had none until finding 7; skopryclient, the
 harness contract, MockCatalog, StreamClient's first window list, the coordinator's `active`, ci.yml,
 the checks' README, DEVELOPMENT.md and CLAUDE.md keep both sides.
 
@@ -2218,7 +2218,7 @@ Checked (2026-09-27, 06:28–08:20):
   departed subscriber's fetch, the deadline behind a 4.2 s `prepare` and a 1.5 s round trip's
   longer wait, a sweep's one top-level read, the version after the last subscriber); the reviewers'
   queue harness again (above).
-- Through a synthetic host (loopback only, `SILL_TEST_LOOPBACK`; one host at a time, each after
+- Through a synthetic host (loopback only, `SKOPRY_TEST_LOOPBACK`; one host at a time, each after
   `no-device.sh` and again after it; `lsappinfo front` every 0.2 s, never changed): H2 against main
   at 2b38179 (the CLI's stdout, digits masked and lines sorted, identical idle and with a client,
   with and without `--direct-wireless`; the clients' kinds the same, no 24), H4–H11 as in the host's
@@ -2232,18 +2232,18 @@ Checked (2026-09-27, 06:28–08:20):
   from `git archive`, only the CaptureProbe warning; `Scripts/make-app.sh` without `--install`; the
   bundle's `--menu-selftest` against the fixture (its four menus, the top level in 23 ms; exit 0,
   the front unchanged).
-- In a private simulator ("Sill menubar", an iPad Pro 13", iOS 27), screenshots only: the Menus
+- In a private simulator ("Skopry menubar", an iPad Pro 13", iOS 27), screenshots only: the Menus
   button gone at 320x700 and 460x400 with the bars as main's, present at 500x710, 710x500, 1000x710
-  and 710x1000; the phone's arrangement (`-SillIdiom phone`) at 320x548, 375x647, 393x793, 440x894
+  and 710x1000; the phone's arrangement (`-SkopryIdiom phone`) at 320x548, 375x647, 393x793, 440x894
   and 500x710, the button ending the thumbnails' row with two whole thumbnails and more; the stale
-  note a section of its own; `-SillSecondWindow 1`: "nothing inserted (2 windows: …)", the root
+  note a section of its own; `-SkoprySecondWindow 1`: "nothing inserted (2 windows: …)", the root
   back to its six menus; the keyboard's two console lines (the panel over the keyboard, the
   pull-down over it, dismissed: "the keyboard back up"; without the keyboard, "was down before
-  it"); `-SillMacMenu none` against main's build, pixel for pixel at 1000x710, 710x1000, 500x710
+  it"); `-SkopryMacMenu none` against main's build, pixel for pixel at 1000x710, 710x1000, 500x710
   and 710x500 and the phone's 393x793. Live against a synthetic host with the fixture: its four
   menus, Probe fetched with its title, Set Label A chosen (the label "A"), the pull-down from the
-  phone's thumbnails' row; against a copy of the fixture named `notfixture`: `-SillMenuPress` and
-  `-SillMenusOpen 'Probe/Deep'` refused, its label "none". Live photos show the Mac's real window
+  phone's thumbnails' row; against a copy of the fixture named `notfixture`: `-SkopryMenuPress` and
+  `-SkopryMenusOpen 'Probe/Deep'` refused, its label "none". Live photos show the Mac's real window
   thumbnails and name: kept out of the pull request.
 
 Not run: H12 (TextEdit was not running, and none is started); taps (the rules allow only `simctl
@@ -2253,7 +2253,7 @@ second window's opening; the iPadOS 26 bar itself (headless, it is never shown).
 
 ### Untested, for Noah
 
-The plan's P1–P13 (§10), and from the review: two Sill windows side by side (the iPad's bar shows
+The plan's P1–P13 (§10), and from the review: two Skopry windows side by side (the iPad's bar shows
 none of the Mac's menus, each window's Menus button its own session's; with one window again, the
 bar has them after a key press or focus change); a Slide Over window (no Menus button; on iPadOS 26
 the bar has the menus); a phone held upright (the button at the end of the thumbnails' row); the

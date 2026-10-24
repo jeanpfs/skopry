@@ -1,5 +1,5 @@
 #!/bin/bash
-# PairingWindowAddress (Sources/SillMenuBar), compiled with AddressList, OriginPolicy and
+# PairingWindowAddress (Sources/SkopryMenuBar), compiled with AddressList, OriginPolicy and
 # StreamProtocol's sources as one module (build.sh): the address the pairing window gives to type,
 # Tailscale's name and IPv4 first, any other VPN's address under this network's, with random runs.
 #   Tests/checks/pairing-address/run.sh             compile and run the check

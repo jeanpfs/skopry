@@ -3,7 +3,7 @@ import CoreMedia
 import CoreVideo
 
 // Encoder-free check of EncoderProbe.throughput's send/wait loop (the real
-// Sources/SillHost/EncoderProbe.swift, compiled beside this file with Stats.swift) against a
+// Sources/SkopryHost/EncoderProbe.swift, compiled beside this file with Stats.swift) against a
 // stand-in HEVCEncoder whose frames come back after programmable delays in real time. It checks
 // that the test sends one frame at a time, as a stream does (a frame sent while one is inside
 // would wait in the mailbox, and the next would push it out, so the test would wait for a frame
@@ -12,9 +12,9 @@ import CoreVideo
 //
 //   Scripts/encoder-check/run.sh probe      (from the repository's root; also runs the hold case)
 // or by hand:
-//   swiftc -O -package-name sill Sources/SillHost/EncoderProbe.swift Sources/SillHost/Stats.swift \
+//   swiftc -O -package-name skopry Sources/SkopryHost/EncoderProbe.swift Sources/SkopryHost/Stats.swift \
 //     Scripts/encoder-check/probe/main.swift -o .build/probe-check && .build/probe-check
-//   SILL_TEST_PROBE_HOLD=0.08 .build/probe-check hold
+//   SKOPRY_TEST_PROBE_HOLD=0.08 .build/probe-check hold
 
 struct ParameterSets {}
 
@@ -114,7 +114,7 @@ final class HEVCEncoder {
 
 /// Runs `run` `delay` seconds from now, on time: a strict timer with no leeway. Dispatch's
 /// asyncAfter may fire a share of its delay late, which frames going in one at a time add up (the
-/// one-inside case read 24 to 29 fps against 33 with it, while Sill.app streamed beside).
+/// one-inside case read 24 to 29 fps against 33 with it, while Skopry.app streamed beside).
 let timerQueue = DispatchQueue(label: "standin.timers", qos: .userInteractive, attributes: .concurrent)
 func onTime(after delay: Double, _ run: @escaping () -> Void) {
     let timer = DispatchSource.makeTimerSource(flags: .strict, queue: timerQueue)
@@ -143,7 +143,7 @@ let backsLock = NSLock()
 EncoderProbe.onStalledProbeBack = { s in backsLock.lock(); backs.append(s); backsLock.unlock() }
 
 if CommandLine.arguments.dropFirst().first == "hold" {
-    // SILL_TEST_PROBE_HOLD=0.08: every frame waits 80 ms on the serial queue before it goes in.
+    // SKOPRY_TEST_PROBE_HOLD=0.08: every frame waits 80 ms on the serial queue before it goes in.
     reset(engine: .independent(0.009))
     let r = run("hold 0.08 s a frame, 9 ms each")
     // One hold after another, each with its frame's 9 ms: ~11.2 fps less the sleeps' overshoot

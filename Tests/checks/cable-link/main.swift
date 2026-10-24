@@ -73,7 +73,7 @@ check("no serial, an empty serial, or no product name are not", dev("fe80::5", "
 check("a malformed source is not", C.device(source: [], scope: "en14", ownAddresses: own, cables: cables) == nil
       && C.device(source: [0xFE, 0x80], scope: "en14", ownAddresses: own, cables: cables) == nil)
 
-// MARK: The stand-in (SILL_TEST_CABLE_INTERFACE)
+// MARK: The stand-in (SKOPRY_TEST_CABLE_INTERFACE)
 
 check("stand-in: this Mac's own fe80 on en0 counts as the cable to an iPad (rule 2 skipped)",
       dev("fe80::47b:5945:e0aa:d0ac", "en0", standIn: "en0") == C.testAncestry)
@@ -85,19 +85,19 @@ check("stand-in: another interface keeps the real rule (the iPad on anri0 is the
       dev("fe80::18fe:abff:febb:459f", "anri0", standIn: "en0") == iPad && dev("169.254.178.234", "en14", standIn: "en0") == nil
       && dev("fe80::1c8e:5aff:fe00:e14", "en14", standIn: "en0") == nil)
 check("without the stand-in this Mac's own fe80 on en0 is not", dev("fe80::47b:5945:e0aa:d0ac", "en0") == nil)
-let env = ["SILL_TEST_CABLE_INTERFACE": "en0"]
-check("SILL_TEST_CABLE_INTERFACE=en0 on a test host", C.testInterface(testHost: true, environment: env) == "en0")
-check("SILL_TEST_CABLE_INTERFACE ignored by a host that is not a test host (the bundle)", C.testInterface(testHost: false, environment: env) == nil)
-check("SILL_TEST_CABLE_INTERFACE: an interface name only",
-      ["", "0en", "en0;x", "en 0", "en0\n", "é1", "abcdefghijklmnop", "-en0"].allSatisfy { C.testInterface(testHost: true, environment: ["SILL_TEST_CABLE_INTERFACE": $0]) == nil }
-      && C.testInterface(testHost: true, environment: [:]) == nil && C.testInterface(testHost: true, environment: ["SILL_TEST_CABLE_INTERFACE": "abcdefghijklmno"]) == "abcdefghijklmno")
+let env = ["SKOPRY_TEST_CABLE_INTERFACE": "en0"]
+check("SKOPRY_TEST_CABLE_INTERFACE=en0 on a test host", C.testInterface(testHost: true, environment: env) == "en0")
+check("SKOPRY_TEST_CABLE_INTERFACE ignored by a host that is not a test host (the bundle)", C.testInterface(testHost: false, environment: env) == nil)
+check("SKOPRY_TEST_CABLE_INTERFACE: an interface name only",
+      ["", "0en", "en0;x", "en 0", "en0\n", "é1", "abcdefghijklmnop", "-en0"].allSatisfy { C.testInterface(testHost: true, environment: ["SKOPRY_TEST_CABLE_INTERFACE": $0]) == nil }
+      && C.testInterface(testHost: true, environment: [:]) == nil && C.testInterface(testHost: true, environment: ["SKOPRY_TEST_CABLE_INTERFACE": "abcdefghijklmno"]) == "abcdefghijklmno")
 
 // MARK: deviceID
 
 let id = C.deviceID(serial: serial)
-check("deviceID: Python's vector (base64url of SHA-256(\"sill-cable-v1\" ‖ serial)[0..<16])", id == "9thvTr8MQMHWVzL83q51yQ")
-check("deviceID: TEST's and another serial's vectors", C.deviceID(serial: "TEST") == "70kQI5Y9AuFqHO6z_HnZaw"
-      && C.deviceID(serial: "00008101000C11E2D3F4A5B6") == "66oGHS3VzNEVYNxKyrBBrg")
+check("deviceID: Python's vector (base64url of SHA-256(\"skopry-cable-v1\" ‖ serial)[0..<16])", id == "TRUdy8C3Em1I2JzzPoDnKQ")
+check("deviceID: TEST's and another serial's vectors", C.deviceID(serial: "TEST") == "hskaHkUDZbeQeMEx1RK9lA"
+      && C.deviceID(serial: "00008101000C11E2D3F4A5B6") == "cr72WAkn3Hq0Z3hfODO4ng")
 check("deviceID: stable", C.deviceID(serial: serial) == id)
 check("deviceID: 22 characters, base64url without padding", id.count == 22 && id.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") })
 check("deviceID: never the serial, nor any 6 characters of it", !id.contains(serial) && !(0...(serial.count - 6)).contains { i in

@@ -8,7 +8,7 @@
 # With more than one device, ANDROID_SERIAL picks one (for the tailnet one: 100.x.y.z:PORT).
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
-pkg=me.saffer.sill.android
+pkg=app.skopry.android
 cd "$here"
 
 if [ "${1:-}" = "--debug" ]; then

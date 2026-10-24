@@ -2,14 +2,14 @@
 
 2026-10-08. Branch `duo-layout` (worktree `/Users/noah/Downloads/winstream-duo`) from origin/main at
 e6b3265 (PR #46). Line numbers are at e6b3265. This document starts with the probe step's facts,
-measured on the iOS 27.1 simulator's iPhone Duo with a scratch probe app and with today's Sill; the
+measured on the iOS 27.1 simulator's iPhone Duo with a scratch probe app and with today's Skopry; the
 build, review and finish steps add their parts below it.
 
 **Noah's request and approvals (2026-10-08, as the main session relayed them):** research the iOS
 27.1 SDK for iPhone Duo, then "use Opus 5.5 Max agents to adapt the app to use this SDK, then use the
 simulator with iPhone Duo, make sure it works properly, then take screenshots of all poses", and
 "ideally, the merge conflicts from PR #39 don't cause hours of merge jobs". Approved from mockups
-(the "Sill on iPhone Duo" design artifact; the files are in the session's scratchpad,
+(the "Skopry on iPhone Duo" design artifact; the files are in the session's scratchpad,
 `duo-mock/project/*.dc.html`, one per pose at the Duo's point sizes):
 
 - **(a) Book pose** (the inner display sideways, half-folded, the fold down the middle): one stream
@@ -24,7 +24,7 @@ simulator with iPhone Duo, make sure it works properly, then take screenshots of
 - **(c1) Closed, upright** (the cover display, compact width): the phone arrangement as on an
   iPhone, narrower by the strip the status bar and the camera take (the safe areas).
 - **(c2) Closed, on its side:** the compact landscape layout.
-- Open flat, sideways: today's landscape layout. Nothing else about Sill changes, and nothing on the
+- Open flat, sideways: today's landscape layout. Nothing else about Skopry changes, and nothing on the
   wire (the compatibility floor in CLAUDE.md stays as it is).
 - **(d)** TestFlight 0.5.1 waits until the iPhone Duo is in the wild (Oct 23+); nothing is uploaded.
 
@@ -32,10 +32,10 @@ simulator with iPhone Duo, make sure it works properly, then take screenshots of
 
 Measured 2026-10-08 (04:10–05:05 and 11:00–11:10) on this Mac (macOS 27.0, Apple M2 Pro) with Xcode
 27.1 RC (27A9275), iOS Simulator SDK 27.1, the iOS 27.1 simulator runtime (24A94232), on a private
-simulator "Sill duo" (1265B8BD-F5C7-44CA-86D2-1FB06B84B487) made from
+simulator "Skopry duo" (1265B8BD-F5C7-44CA-86D2-1FB06B84B487) made from
 `com.apple.CoreSimulator.SimDeviceType.iPhone-Duo`. The probe app (`DuoProbe`, scratch: a SwiftUI app
-built with swiftc, deployment target 17.0, SDK 27.1, Info.plist keys as Sill's) printed what its
-window sees on every change; durable copy in `/Users/noah/Downloads/sill-handoff/duo/probe/`
+built with swiftc, deployment target 17.0, SDK 27.1, Info.plist keys as Skopry's) printed what its
+window sees on every change; durable copy in `/Users/noah/Downloads/skopry-handoff/duo/probe/`
 (DuoProbe.swift, build.sh, and the run logs quoted here).
 
 ### The device type
@@ -62,11 +62,11 @@ compact/regular upright, compact/compact on its side. Screen scale 3 everywhere;
 `maximumFramesPerSecond` 60 on both displays in the simulator. `UIDevice.userInterfaceIdiom` is
 `.phone`. The device's orientation maps onto the inner display a quarter turn round: device portrait
 → inner landscapeLeft (book), device landscapeLeft → inner portrait (laptop), device landscapeRight →
-inner **portraitUpsideDown** (Sill's Info.plist does not list it for iPhone: the inner display
+inner **portraitUpsideDown** (Skopry's Info.plist does not list it for iPhone: the inner display
 ignores UISupportedInterfaceOrientations), device upside down → inner landscapeRight. On the cover:
 device portrait → portrait, landscapeLeft → landscapeRight, landscapeRight → landscapeLeft.
 
-With the status bar showing (today's Sill, below), window coordinates:
+With the status bar showing (today's Skopry, below), window coordinates:
 
 | pose (duorig) | hinge (onHingeChange) | interface | window | safe area | fold (`.division`) | occlusions, active | inactive |
 |---|---|---|---|---|---|---|---|
@@ -116,7 +116,7 @@ and bottom 34, the camera (29.3, 29.3, 37×37) and a box (0, 0, 84×82).
 
 ### Rotation
 
-- `requestGeometryUpdate` (Sill's DEBUG `-SillOrientation`): **refused on the inner display**,
+- `requestGeometryUpdate` (Skopry's DEBUG `-SkopryOrientation`): **refused on the inner display**,
   UISceneErrorDomain 101, "The current windowing mode does not allow for programmatic changes to
   interface orientation."; **honoured on the cover** (portrait → landscapeRight in 0.3 s).
 - `xcrun devicectl device orientation set --device <UDID> landscapeLeft` answers "New Device
@@ -153,12 +153,12 @@ the whole display (951×669, 669×951, 466×678, 678×466) with the strips as sa
 - All of these are `if #available(iOS 27.1, *)`; the deployment target stays 17.0. With the 27.1 SDK
   the app builds (Debug, simulator) with only the known `StreamClient.swift:3067` capture warning.
 
-### What the facts touch in today's Sill (e6b3265)
+### What the facts touch in today's Skopry (e6b3265)
 
 - **The status bar shows.** `UIStatusBarHidden` is in Info.plist, but appearance is
   view-controller-based (no `UIViewControllerBasedStatusBarAppearance` key) and only the harness
   hides it (ContentView.swift:424). On the inner display it takes 84 pt at the right sideways and
-  82 pt at the top upright; hidden, the inner display is all Sill's but the 34 pt home indicator.
+  82 pt at the top upright; hidden, the inner display is all Skopry's but the 34 pt home indicator.
   The mockups drew a 44 pt strip sideways and none upright on the inner display, and 48 pt on the
   cover; the cover's real strip is 84 pt upright (right) and on its side (left or right), status bar
   or not.
@@ -198,40 +198,40 @@ the whole display (951×669, 669×951, 466×678, 678×466) with the strips as sa
   landscape-right, faceup or facedown. In the simulator the event becomes a HingeAngle event
   (IOHIDEvent type 44, from CoreMotion's DeviceStateRelay) and a MagicPose; `run.sh UDID watch`
   shows them.
-- **The simulator**: `xcrun simctl create "Sill duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo
+- **The simulator**: `xcrun simctl create "Skopry duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo
   com.apple.CoreSimulator.SimRuntime.iOS-27-1`, `xcrun simctl bootstatus <UDID> -b` (28 s). Photos:
   `xcrun simctl io <UDID> screenshot --display=primary` (the cover) or `--display=primary-1` (the
   inner); the PNG follows the interface orientation. Never `recordVideo`, never the Claude iOS
   Simulator panel.
-- **Sill**: `xcodebuild -project iOSClient/Sill.xcodeproj -scheme Sill -destination 'id=<UDID>'
+- **Skopry**: `xcodebuild -project iOSClient/Skopry.xcodeproj -scheme Skopry -destination 'id=<UDID>'
   -configuration Debug -derivedDataPath <scratch>/duo/DerivedData CODE_SIGN_IDENTITY=- ARCHS=arm64
-  build` (15 s warm), `xcrun simctl install <UDID> …/Debug-iphonesimulator/Sill.app`.
-- **A test host**: `swift build -c release --product SillHost`, then
-  `SILL_TEST_LOOPBACK=1 SILL_TEST_SOFTWARE_ENCODER=1 SILL_TEST_NO_ROUTER=1 .build/release/SillHost
+  build` (15 s warm), `xcrun simctl install <UDID> …/Debug-iphonesimulator/Skopry.app`.
+- **A test host**: `swift build -c release --product SkopryHost`, then
+  `SKOPRY_TEST_LOOPBACK=1 SKOPRY_TEST_SOFTWARE_ENCODER=1 SKOPRY_TEST_NO_ROUTER=1 .build/release/SkopryHost
   --synthetic` (127.0.0.1 alone, the software encoder; its port from `lsof -nP -iTCP -sTCP:LISTEN -a
   -p <pid>`; it stops at SIGTERM, not always at SIGINT). The app:
-  `xcrun simctl launch --console-pty <UDID> me.saffer.sill -SillConnect 127.0.0.1:<port>
-  -SillHomeDoor plain -SillServiceType _silltest._tcp` (`-SillServiceType` keeps real Macs off the
-  connect screen); `-SillSettings 1` and `-SillTourState fresh -SillTour touch` open the panel and the
-  tour. The synthetic host serves no menus: the Menus button needs `SILL_TEST_MENU_PID` and
+  `xcrun simctl launch --console-pty <UDID> app.skopry -SkopryConnect 127.0.0.1:<port>
+  -SkopryHomeDoor plain -SkopryServiceType _skoprytest._tcp` (`-SkopryServiceType` keeps real Macs off the
+  connect screen); `-SkoprySettings 1` and `-SkopryTourState fresh -SkopryTour touch` open the panel and the
+  tour. The synthetic host serves no menus: the Menus button needs `SKOPRY_TEST_MENU_PID` and
   `Scripts/menufixture.swift` (Build and run in CLAUDE.md).
 - **Privacy of live photos**: the synthetic host's catalogue is this Mac's real windows (thumbnails)
   and the Settings panel and the tour name this Mac ("Noah's MacBook Pro"). Keep live photos private;
-  App Store photos come from the harness's mock (`-SillLayout`), which needs the Duo's sizes and a
+  App Store photos come from the harness's mock (`-SkopryLayout`), which needs the Duo's sizes and a
   stand-in for the fold (the build step).
 - **Gotchas**: a process in the simulator cannot open a file under `~/Downloads` (the open blocks in
   dyld), so `run.sh` runs duorig from the simulator's own `data/tmp`; launchd_sim refuses an ad hoc
   signature that claims private entitlements ("Security policy issue"), so duorig's entitlements are
   only in its `__TEXT,__entitlements` section.
 
-The scripts that took the baseline are in `/Users/noah/Downloads/sill-handoff/duo/probe/`
+The scripts that took the baseline are in `/Users/noah/Downloads/skopry-handoff/duo/probe/`
 (`baseline.sh`, `baseline-extra.sh`).
 
-## Baseline: today's Sill on the Duo
+## Baseline: today's Skopry on the Duo
 
-Main at e6b3265, Debug, SDK 27.1, on "Sill duo" against the synthetic host on 127.0.0.1, the
-Desktop's test pattern at 55–60 fps ("client Sill duo (iPhone19,4 simulator): 57 fps, frame age
-0/1 ms, rtt 0/1 ms"). Photos in `/Users/noah/Downloads/sill-handoff/duo/baseline/`, named
+Main at e6b3265, Debug, SDK 27.1, on "Skopry duo" against the synthetic host on 127.0.0.1, the
+Desktop's test pattern at 55–60 fps ("client Skopry duo (iPhone19,4 simulator): 57 fps, frame age
+0/1 ms, rtt 0/1 ms"). Photos in `/Users/noah/Downloads/skopry-handoff/duo/baseline/`, named
 `<screen>-<pose>.png`: `connect-*` and `stream-*` in all six poses, `settings-*` (the Settings panel)
 in all six, `tour-*` (the tour's first card) in laptop, book and flat-portrait; 21 photos at the App
 Store sizes. Viewports the app sent: 851×567 (flat-landscape and book), 653×419 (flat-portrait and
@@ -320,11 +320,11 @@ Each one a default the approval left open, reversible in a line or two (where is
    on its side" for the keys and the trackpad, where an iPhone's say "Hold your iPhone upright".
 7. **(c1, c2) The cover** needed nothing: the phone's arrangement at 382×678 and the compact landscape
    bar at 594×466 already sit beside the camera's strip (its safe area).
-8. **The harness**: `-SillLayout 951x669`, `669x951`, `466x678`, `678x466` with the safe areas the
+8. **The harness**: `-SkopryLayout 951x669`, `669x951`, `466x678`, `678x466` with the safe areas the
    probe measured, the status bar's strip as this build shows it on that screen (revised at the
-   finish: hidden only on the stream screen upright with `-SillHinge half` or `flat`), and
-   `-SillHinge closed|half|flat`, a stand-in fold in the fake display's named space; without
-   `-SillHinge` the harness knows no hinge, even on the Duo's simulator (a stand-in of none, so the
+   finish: hidden only on the stream screen upright with `-SkopryHinge half` or `flat`), and
+   `-SkopryHinge closed|half|flat`, a stand-in fold in the fake display's named space; without
+   `-SkopryHinge` the harness knows no hinge, even on the Duo's simulator (a stand-in of none, so the
    simulator's own fold never reaches the fake screen). The first guesses (1000×710 …) work as
    before.
 9. **The fold before the hinge's first report** (the finish): `onHingeChange` calls back a frame or
@@ -340,7 +340,7 @@ New files: `iOSClient/DuoPosture.swift` (the pure model and rules), `iOSClient/D
 (the hinge, the region, the environment keys `\.duoEnvironment` and `\.duoFold`, `BarMetrics.clearing`,
 `PortraitMetrics.controlsHeight`, `StreamClient.duoPaneAspect`), `Tests/checks/duo` (run.sh,
 main.swift, mutants.py). Project file: AB01/FB01 and AB02/FB02. Hooks, a few lines each:
-`SillApp` (`.readsDuoPosture()`), `StreamScreen` (the posture read once and handed down;
+`SkopryApp` (`.readsDuoPosture()`), `StreamScreen` (the posture read once and handed down;
 `landscape(…fold:)`, TopBar's `stripWidth`; WindowLightsMenu; DuoLayout's notes), `PortraitStreamScreen`
 (`halves`), `AddMacCard` (`ConnectLayout`'s `fold`, `topRoom`, `leadingPage`), `ContentView` (the
 connect screen; the harness), `PairingOverlay`, `TourPolicy` and `TourOverlay`. CI and the App Store
@@ -351,7 +351,7 @@ folds), `phone-portrait` (the real cover). Nothing on the wire, nothing in the h
 
 ## The build: results
 
-Verified 2026-10-08 (11:20–13:00) on this Mac, Xcode 27.1 RC (27A9275), the "Sill duo" simulator:
+Verified 2026-10-08 (11:20–13:00) on this Mac, Xcode 27.1 RC (27A9275), the "Skopry duo" simulator:
 
 - **Checks**: `duo` 251,723 checks, 54 of 54 mutants caught; `tour` 49,614 checks, 68 of 68 (its
   crease mutant follows the call into DuoPosture, five new ones); `phone-portrait` 165, 31 of 31;
@@ -359,9 +359,9 @@ Verified 2026-10-08 (11:20–13:00) on this Mac, Xcode 27.1 RC (27A9275), the "S
 - **Builds**: iOS Debug for the Duo simulator, Release for the simulator (generic, arm64) and Debug for
   a generic device (CODE_SIGNING_ALLOWED=NO), each with only the known StreamClient capture warning;
   `swift build -c release`, only the CaptureProbe warning. The built app says DTPlatformVersion 27.1.
-- **Live, every pose** (the app against `SillHost --synthetic` on 127.0.0.1 with the software encoder,
-  `-SillConnect`, posed by duorig): photos at App Store sizes in
-  `/Users/noah/Downloads/sill-handoff/duo/after/` — `stream-*`, `connect-*` and `settings-*` in all
+- **Live, every pose** (the app against `SkopryHost --synthetic` on 127.0.0.1 with the software encoder,
+  `-SkopryConnect`, posed by duorig): photos at App Store sizes in
+  `/Users/noah/Downloads/skopry-handoff/duo/after/` — `stream-*`, `connect-*` and `settings-*` in all
   six poses, `tour-*` (book, laptop, flat-portrait) and `tourbar-*` (book, laptop, flat-portrait and
   the cover both ways). Private: they show this Mac's windows and its name. The console, pose by pose:
   "duo: stream screen: book, the fold x 455.5–495.5 in the way, 951×669" and viewports 935×567 (book
@@ -369,8 +369,8 @@ Verified 2026-10-08 (11:20–13:00) on this Mac, Xcode 27.1 RC (27A9275), the "S
   653×409 (flat upright: the picture's shape), 366×228 (the cover), 578×372 (the cover on its side).
   The bar in the book pose: the strip to 443.5, nothing from 455.5 to 551, Aa at 629; the tour's touch
   card at 95.5–455.5 and its bar card at 95.5, tail at 427.5; the Settings panel at 569–929.
-- **The harness at the Duo's sizes** (`-SillHinge`, the mock Mac with its menus): photos in
-  `/Users/noah/Downloads/sill-handoff/duo/mock/` — the stream, Settings and connect screens in all six
+- **The harness at the Duo's sizes** (`-SkopryHinge`, the mock Mac with its menus): photos in
+  `/Users/noah/Downloads/skopry-handoff/duo/mock/` — the stream, Settings and connect screens in all six
   poses, the tour (book, laptop, flat-portrait, the cover), the bar card, the drawer, the window
   lights (book: on the leading page; laptop: below the thumbnail) and the pairing overlay (book: the
   leading page; laptop: above the fold). With the Mac's menus the book pose's Menus button is at 551.
@@ -403,24 +403,24 @@ the rest by itself) and fixed on the merge, one commit per theme. Each finding, 
 | finding | verdict | what was done |
 |---|---|---|
 | Laptop pose: seven Macs or more run the connect list onto the fold | real (main the same, but against decision 6) | the column's scroll view is the room above a reported fold (`DuoPosture.roomAboveFold`; never the inferred crease); Add a Mac side by side there (7db22a3) |
-| The tour tells a Duo held like a book to hold it upright | real | "Turn your iPhone on its side for a trackpad and keys", and "On its side, Sill adds keys and a trackpad." on the inner display (`keysOnItsSide`); the cover and every other device as before (8906024) |
+| The tour tells a Duo held like a book to hold it upright | real | "Turn your iPhone on its side for a trackpad and keys", and "On its side, Skopry adds keys and a trackpad." on the inner display (`keysOnItsSide`); the cover and every other device as before (8906024) |
 | At 867 pt the tour's Settings card goes to the far page | real (the build's own keep-the-status-bar fallback, and every forced launch) | a card is never wider than the page its targets are on (`DuoPosture.pageWidth(for:)`), so it stays beside them: 495.5–851, tail at 813 (8906024) |
 | The status bar hidden on every inner-display screen, the connect screen's clock and Wi-Fi included; past the approved book board | real; Noah's call | decision 1 revised: hidden only on the stream screen held upright (as the b1 and b2 boards), kept sideways (as a0 and a1) and on every other screen; the one-line alternatives in decision 1 (5c2188a). Noah then chose option 1 of the three the canvas drew (2026-10-09): hidden on the stream screen in every pose of the inner display, every other screen unchanged |
-| Every launch lays out once with the hinge unknown, then jumps | real | decision 9: the fold before the hinge's first report; the connect column is on the leading page from the first frame (5c2188a). Left: with `-SillConnect` at launch (a DEBUG argument) the stream screen's very first layout can still precede both, so one viewport of the inferred split goes out (653×419) before the right one; a session started from the connect screen sends only the right one (653×439, three times, in the laptop pose) |
+| Every launch lays out once with the hinge unknown, then jumps | real | decision 9: the fold before the hinge's first report; the connect column is on the leading page from the first frame (5c2188a). Left: with `-SkopryConnect` at launch (a DEBUG argument) the stream screen's very first layout can still precede both, so one viewport of the inferred split goes out (653×419) before the right one; a session started from the connect screen sends only the right one (653×439, three times, in the laptop pose) |
 | An unlabeled button element on the phone row's Menus button (VoiceOver) | real, older than this branch (main the same), not the Duo's | not changed here: a task of its own (Left) |
-| Every build moves to the iOS 27.1 SDK, untested off the Duo; folding while Sill is in the background untested | the first for Noah's devices; the second tested here | P9 and P10 below; the background folds verified on the simulator (results) |
+| Every build moves to the iOS 27.1 SDK, untested off the Duo; folding while Skopry is in the background untested | the first for Noah's devices; the second tested here | P9 and P10 below; the background folds verified on the simulator (results) |
 | Hiding the status bar goes past the approved book board | the same as the fourth | the same |
 | docs/release-checklist.md still says Xcode 27.0 for release-ios.sh, CI and TestFlight | real | its three passages: release-ios.sh's 27.1 floor, CI's two selections, TestFlight from GitHub Actions waiting for a 27.1 that is not a beta |
-| The README says Sill is built with Xcode 27, but the iOS app needs 27.1 | real | the README says so (iOS 17 stays the deployment target) |
+| The README says Skopry is built with Xcode 27, but the iOS app needs 27.1 | real | the README says so (iOS 17 stays the deployment target) |
 | CI never ran on the branch, and its build job built the Mac side with a beta toolchain | real (no pull request yet) | CI selects Xcode 27 (not a beta) for the Mac side and 27.1 (beta allowed) only for the iOS build (9e4f36c); select-xcode tried under /bin/bash 3.2 against the xcode-27 image's own layout, then CI run by hand on the branch: green (below) |
 | PR #39's link line would cross the book pose's fold (this plan's Left) | done | centred on the leading page in the book pose (e75ea48) |
 
-Also: `SILL_TEST_PATTERN=picture:<path>` (TEST ONLY, c70a04c) makes a synthetic host's Desktop a
+Also: `SKOPRY_TEST_PATTERN=picture:<path>` (TEST ONLY, c70a04c) makes a synthetic host's Desktop a
 still picture, for the photos below (the approved mockups' Weather window).
 
 ### The finish: results
 
-Verified 2026-10-08 (14:30–16:10) on this Mac, Xcode 27.1 RC (27A9275), "Sill duo":
+Verified 2026-10-08 (14:30–16:10) on this Mac, Xcode 27.1 RC (27A9275), "Skopry duo":
 
 - **Checks**: `duo` 252,557 checks and 67 of 67 mutants, 68 of 68 since Noah's status-bar pick (the pose rule for the status bar, the
   fold before the hinge's report, the page per target, the room above the fold, the insets);
@@ -431,7 +431,7 @@ Verified 2026-10-08 (14:30–16:10) on this Mac, Xcode 27.1 RC (27A9275), "Sill 
   DTPlatformVersion 27.1, DTSDKName iphonesimulator27.1) and Debug for a generic device
   (CODE_SIGNING_ALLOWED=NO), each with only the known `StreamClient.swift:3430` capture warning;
   `swift build -c release`, no new warning.
-- **The six poses, live** (the app against `SillHost --synthetic` on 127.0.0.1, the software
+- **The six poses, live** (the app against `SkopryHost --synthetic` on 127.0.0.1, the software
   encoder, the Desktop a still Weather picture): the stream screen, the connect screen and the
   Settings panel in all six poses, the tour's Settings card sideways and its keys card upright,
   photographed at App Store Connect's iPhone Duo sizes. Console, pose by pose: viewports 851×567
@@ -444,8 +444,8 @@ Verified 2026-10-08 (14:30–16:10) on this Mac, Xcode 27.1 RC (27A9275), "Sill 
   console's first line "connect screen: book … 867×635", before the hinge's report); starting a
   session from the connect screen in the laptop pose sends one viewport size (653×439).
 - **Fold while away (P10)**: streaming, the Settings app in front, then book, laptop, closed-upright,
-  flat-portrait, closed-side and flat-landscape, each while Sill was in the background, then back to
-  Sill: each time the layout and the viewport were the new pose's (the hinge's report came for each
+  flat-portrait, closed-side and flat-landscape, each while Skopry was in the background, then back to
+  Skopry: each time the layout and the viewport were the new pose's (the hinge's report came for each
   change of the hinge, book to laptop needing none), and the session went on (one connection in the
   host's log).
 - **Fold slowly mid-stream**: duorig `sweep` 180→90 (5° every 0.3 s; partly open from 170.3°: the
@@ -472,7 +472,7 @@ Verified 2026-10-08 (14:30–16:10) on this Mac, Xcode 27.1 RC (27A9275), "Sill 
 - **The wire**: `git diff origin/main -- Sources/StreamProtocol` is empty; the host changes only
   `SyntheticCapture` (TEST ONLY, nothing without the variable). The branch contains main (05f2bb8):
   the pull request merges without a conflict.
-- **Photos**: `/Users/noah/Downloads/sill-handoff/duo/final/` with its INDEX.md: `live/` (private:
+- **Photos**: `/Users/noah/Downloads/skopry-handoff/duo/final/` with its INDEX.md: `live/` (private:
   this Mac's windows and name), `mock/` (shareable), `background/` and `sweep/` (private).
 
 ## For Noah, on an iPhone Duo (a build made with Xcode 27.1), from Oct 23
@@ -505,12 +505,12 @@ inner display in every pose, shown on every other screen; P1 and P4 below check 
   against TestFlight 0.5 (3) (Xcode 27.0): landscape and portrait, the keyboard, the Pencil,
   Settings and the tour look and behave as before (the harness found every earlier layout
   unchanged, but every build so far shipped with the 27.0 SDK).
-- P10 Fold and unfold while Sill is in the background (another app in front), then come back: the
+- P10 Fold and unfold while Skopry is in the background (another app in front), then come back: the
   layout matches the pose, and the status bar hides or shows to match (the simulator did, six times).
 - P11 The software keyboard on the cover, upright (Keyboard in row 1: up, typing, down) and on its
   side, and a hardware keyboard on the inner display.
 - P12 Split View on the inner display, if iOS offers it on the Duo (the simulator's Duo has
-  `DeviceSupportsEnhancedMultitasking` false): Sill beside another app in the book and laptop poses.
+  `DeviceSupportsEnhancedMultitasking` false): Skopry beside another app in the book and laptop poses.
 - P13 The connect screen in the laptop pose with five Macs or more: the list scrolls above the fold
   (with the status bar there, five rows show); Add a Mac… side by side above it.
 
@@ -527,8 +527,8 @@ inner display in every pose, shown on every other screen; P1 and P4 below check 
 ## Progress
 
 - 2026-10-08 Probe (this step): the worktree and the simulator made; the probe app and duorig built
-  and run through every pose; today's Sill photographed in every pose; this document. Nothing of the
-  app changed. The simulator "Sill duo" and the DerivedData in the session's scratchpad (`duo/`)
+  and run through every pose; today's Skopry photographed in every pose; this document. Nothing of the
+  app changed. The simulator "Skopry duo" and the DerivedData in the session's scratchpad (`duo/`)
   stay for the next steps; the finish step deletes both.
 - 2026-10-08 Build: the pure model and its check, the reader and the hooks, the tour's fold rules,
   the harness's Duo sizes and stand-in, CI and release-ios.sh on Xcode 27.1, this document's build
@@ -539,4 +539,4 @@ inner display in every pose, shown on every other screen; P1 and P4 below check 
 - 2026-10-08 Finish: main (PR #39) merged in; the findings fixed, one commit per theme (the status
   bar, the connect column, the tour, the link line, the test picture, CI), the docs; checks, builds,
   the earlier sizes against main, every pose live and in the harness, folds while away and slowly
-  mid-stream; the final photos. The simulator "Sill duo" and the scratch DerivedData deleted.
+  mid-stream; the final photos. The simulator "Skopry duo" and the scratch DerivedData deleted.

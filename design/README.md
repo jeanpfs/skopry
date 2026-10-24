@@ -20,9 +20,9 @@
   tile. The result is cached in `.build/icon`. A layered
   `Packaging/AppIcon.icon` made in Icon Composer from the SVG's four groups
   replaces the generated one as soon as it exists.
-- `DMGBackground.svg` — the window of Sill.dmg, the Mac download: 660 x 400
-  points of white, an arrow from where Sill.app sits (170, 180) to
-  Applications (490, 180) in the app icon's greys, and "To install Sill, drag
+- `DMGBackground.svg` — the window of Skopry.dmg, the Mac download: 660 x 400
+  points of white, an arrow from where Skopry.app sits (170, 180) to
+  Applications (490, 180) in the app icon's greys, and "To install Skopry, drag
   it to Applications." under them. `Scripts/make-dmg.sh` renders it with Quick
   Look at 1x and 2x into one TIFF and puts the icons on it with a `.DS_Store`;
   moving either icon means changing the SVG's arrow and the script's `--item`
@@ -30,8 +30,8 @@
   every edge white: the window is sized for macOS 27's title bar, so under
   macOS 14's and 15's shorter one it shows 4 points below the picture.
 - The menu bar glyph is drawn in code from the same geometry
-  (`Sources/SillMenuBar/StatusGlyph.swift`): the iMac outline with the tilted
-  iPad, as a template image. `SillMenuBar -SillRenderPreviews <dir>` writes
+  (`Sources/SkopryMenuBar/StatusGlyph.swift`): the iMac outline with the tilted
+  iPad, as a template image. `SkopryMenuBar -SkopryRenderPreviews <dir>` writes
   `glyphs.png` with every state on light and dark bars.
 - `screenshots/`: the App Store's iPad screenshots that the README shows, at
   half size (1032 × 1376, JPEG). Open-source app lists link these files, so

@@ -1,6 +1,6 @@
 // VirtualDisplayProbe: milestone 3 feasibility spike.
 //
-// Question: can Sill create a virtual display, move a real Mac window onto it, capture that
+// Question: can Skopry create a virtual display, move a real Mac window onto it, capture that
 // display with ScreenCaptureKit, and does the window keep repainting there?
 //
 //   swift build -c release
@@ -10,7 +10,7 @@
 // The full run needs Screen Recording and Accessibility for the app that launched it
 // (Terminal, iTerm, ...). --probe-only needs neither.
 //
-// VirtualDisplay.swift is a symlink to Sources/SillHost/VirtualDisplay.swift so the probe
+// VirtualDisplay.swift is a symlink to Sources/SkopryHost/VirtualDisplay.swift so the probe
 // exercises exactly the code the host will adopt.
 
 import AppKit
@@ -325,8 +325,8 @@ func createDisplay() async throws -> VirtualDisplay {
     }
     let before = Set(onlineDisplays())
     let t0 = Date()
-    // Probe identity: its own serial so it doesn't disturb what macOS remembers for Sill.
-    let vd = try VirtualDisplay(name: "Sill Probe", widthPt: options.widthPt, heightPt: options.heightPt,
+    // Probe identity: its own serial so it doesn't disturb what macOS remembers for Skopry.
+    let vd = try VirtualDisplay(name: "Skopry Probe", widthPt: options.widthPt, heightPt: options.heightPt,
                                 scale: options.scale, vendorID: 0x5111, productID: 0x0001, serialNum: 0xF00D)
     Cleanup.display = vd
     let created = Date().timeIntervalSince(t0)
@@ -352,7 +352,7 @@ func probeOnly() async -> Int32 {
     let vd: VirtualDisplay
     do { vd = try await createDisplay() } catch {
         bad("\(error)")
-        note("The private API is unavailable here: Sill must fall back to streaming real windows.")
+        note("The private API is unavailable here: Skopry must fall back to streaming real windows.")
         return 1
     }
     let id = vd.displayID
@@ -439,7 +439,7 @@ func fullRun(target: String) async -> Int32 {
     let vd: VirtualDisplay
     do { vd = try await createDisplay() } catch {
         bad("\(error)")
-        note("The private API is unavailable here: Sill must fall back to streaming real windows.")
+        note("The private API is unavailable here: Skopry must fall back to streaming real windows.")
         return 5
     }
     let vb = vd.bounds

@@ -55,7 +55,7 @@ enum MockCatalog {
     ///
     /// `active` is what the Mac would be streaming: the default is Code's window, as the boards
     /// draw it. `.none` is the state a fresh connection starts in — nothing picked yet, so the app
-    /// drawer opens by itself — which the harness asks for with `-SillActive none`.
+    /// drawer opens by itself — which the harness asks for with `-SkopryActive none`.
     static func client(active: StreamSource = .window(102), settings: SettingsCase = .default,
                        menus: MenuCase? = .code, pointer: String? = nil, pencilPointer: Bool = false) -> StreamClient {
         let client = StreamClient()
@@ -69,14 +69,14 @@ enum MockCatalog {
         client.active = active
         client.apps = mockApps
         client.videoSize = CGSize(width: 2800, height: 1800)
-        // `-SillVideoSize 848x844`: the mock's frame at another shape, so the harness draws a phone's
+        // `-SkopryVideoSize 848x844`: the mock's frame at another shape, so the harness draws a phone's
         // Larger Picture pane as a window the Mac fitted to its room would make it (or a taller one).
-        if let raw = UserDefaults.standard.string(forKey: "SillVideoSize") {
+        if let raw = UserDefaults.standard.string(forKey: "SkopryVideoSize") {
             let parts = raw.lowercased().split(separator: "x").compactMap { Double($0) }
             if parts.count == 2, parts[0] > 0, parts[1] > 0 {
                 client.videoSize = CGSize(width: parts[0], height: parts[1])
             } else {
-                print("-SillVideoSize \(raw): not WxH")
+                print("-SkopryVideoSize \(raw): not WxH")
             }
         }
 
@@ -93,10 +93,10 @@ enum MockCatalog {
         client.thumbnails = thumbnails
 
         seed(client, settings: settings)
-        // `-SillOverlayLine asking|shown|openonmac|locked|noanswer`: Pair This iPad…'s line over a
+        // `-SkopryOverlayLine asking|shown|openonmac|locked|noanswer`: Pair This iPad…'s line over a
         // session at home that speaks TLS, as the Mac's answer to its ask sets it (the mock never
         // asks: over it the overlay reads "…is showing a code now." as over a plain door).
-        if let line = UserDefaults.standard.string(forKey: "SillOverlayLine") {
+        if let line = UserDefaults.standard.string(forKey: "SkopryOverlayLine") {
             let device = StreamClient.deviceWord
             switch line {
             case "asking": client.overlayAskLine = DiscoveryPolicy.HomeCopy.overlayAsking(mac: "Mac mini")
@@ -107,12 +107,12 @@ enum MockCatalog {
             default: break
             }
         }
-        // The clipboard (docs/clipboard-plan.md): `-SillClipboardChip 1` offers the chip over the
-        // stream (as after a copy on this device), and `-SillClipboardNote sent|long|notsent` shows a Paste's
+        // The clipboard (docs/clipboard-plan.md): `-SkopryClipboardChip 1` offers the chip over the
+        // stream (as after a copy on this device), and `-SkopryClipboardNote sent|long|notsent` shows a Paste's
         // note in its place and under the Settings group's Paste; neither goes away by itself here.
         if ClipboardPolicy.hostTakes(client.hostClipboard) {
-            if UserDefaults.standard.bool(forKey: "SillClipboardChip") { client.clipboardChip = true }
-            switch UserDefaults.standard.string(forKey: "SillClipboardNote") {
+            if UserDefaults.standard.bool(forKey: "SkopryClipboardChip") { client.clipboardChip = true }
+            switch UserDefaults.standard.string(forKey: "SkopryClipboardNote") {
             case "sent":
                 client.clipboardNote = ClipboardNote(text: ClipboardPolicy.Copy.sent(mac: "Mac mini"), spoken: ClipboardPolicy.Copy.sentSpoken(mac: "Mac mini"),
                                                      warning: false, at: 0)
@@ -126,18 +126,18 @@ enum MockCatalog {
                 break
             }
         }
-        // nil under `-SillLive 1`: the mock is never shown then, and must say nothing on the console.
+        // nil under `-SkopryLive 1`: the mock is never shown then, and must say nothing on the console.
         if let menus { client.showMockMenus(macMenus(menus)) }
         if let pointer { seedPointer(client, pointer, pencilPointer: pencilPointer) }
         return client
     }
 
-    /// `-SillPointer <state>`: the mock's pointer in one of the plan's states (see the harness's
+    /// `-SkopryPointer <state>`: the mock's pointer in one of the plan's states (see the harness's
     /// contract in ContentView and `StreamClient.debugSeedPointer`), over the mock's frame, which the
     /// display view is told of since no parameter sets ever arrive; `pencilPointer` is Q2's flip.
     private static func seedPointer(_ client: StreamClient, _ state: String, pencilPointer: Bool) {
         guard client.debugSeedPointer(state, pencilShows: pencilPointer) else {
-            print("-SillPointer \(state): not a state (mac@X,Y, device@X,Y, hidden or pencil@X,Y)")
+            print("-SkopryPointer \(state): not a state (mac@X,Y, device@X,Y, hidden or pencil@X,Y)")
             return
         }
         client.displayView.debugFrameSize(client.videoSize)
@@ -145,7 +145,7 @@ enum MockCatalog {
 
     // MARK: - The Mac's menus
 
-    /// `-SillMacMenu`: the Mac's menus in the harness (docs/menu-bar-plan.md §7.8). The mock Mac
+    /// `-SkopryMacMenu`: the Mac's menus in the harness (docs/menu-bar-plan.md §7.8). The mock Mac
     /// answers a menu 0.2 s after it opens and a choice 0.2 s after it is made, unless a case says
     /// otherwise.
     enum MenuCase: String {
@@ -153,8 +153,8 @@ enum MockCatalog {
         case blender    // only Blender and Window, as Blender's menu bar reads over Accessibility
         case long       // a Window menu of 300 windows, and a History of 600 (500 sent, and "100 more on the Mac")
         case stale      // Code not answering on the Mac: every menu disabled under the note
-        case noaccess   // no Accessibility for Sill on the Mac: the note, no menus
-        case none       // no menus (nothing streams, Sill itself frontmost): no Menus button
+        case noaccess   // no Accessibility for Skopry on the Mac: the note, no menus
+        case none       // no menus (nothing streams, Skopry itself frontmost): no Menus button
         case slow       // code's menus, each answered after 1.5 s (UIKit's placeholder meanwhile)
         case timeout    // code's menus, never answered: "Mac mini didn’t answer. Open the menu again." after 4 s
         case refuse     // code's menus, every choice refused: "The menus changed. Open the menu again."
@@ -218,7 +218,7 @@ enum MockCatalog {
                             fetchDelay: 0.2, refusesChoices: false)
         case .noaccess:
             return MacMenus(topLevel: MacMenu(version: 3, app: "Code", bundleID: vscode, menus: [],
-                                              note: "Allow Accessibility for Sill on the Mac (System Settings › Privacy & Security › Accessibility)."),
+                                              note: "Allow Accessibility for Skopry on the Mac (System Settings › Privacy & Security › Accessibility)."),
                             tree: [:], fetchDelay: 0.2, refusesChoices: false)
         case .none:
             return MacMenus(topLevel: MacMenu(version: 3, menus: []), tree: [:], fetchDelay: 0.2, refusesChoices: false)
@@ -288,16 +288,16 @@ enum MockCatalog {
 
     // MARK: - The Mac's settings
 
-    /// `-SillSettingsCase`: the states the Settings panel has to look right in. The mock streams
+    /// `-SkoprySettingsCase`: the states the Settings panel has to look right in. The mock streams
     /// 2880×1800 · 60 fps · 15 Mbps over Wi-Fi unless a case says otherwise.
     enum SettingsCase: String {
-        case `default`   // Sill.app: saved, the virtual display available and off
-        case cli         // SillHost without --virtual-display: kept until it quits, the switch off and disabled
+        case `default`   // Skopry.app: saved, the virtual display available and off
+        case cli         // SkopryHost without --virtual-display: kept until it quits, the switch off and disabled
         case software    // the hardware encoder is down: the callout, a 1440×900 stream under Retina / 120 fps targets
         case custom      // a bitrate set by hand on the Mac: "Custom — 12 Mbps"
         case vdproblem   // the virtual display on, but off for this session after repeated losses
         case vdstream    // a window streaming from the virtual display, 120 fps at Extreme, 300 Mbps: the longest readout
-        case legacy      // an older Sill on the Mac: no state ever arrives (connected 10 s ago)
+        case legacy      // an older Skopry on the Mac: no state ever arrives (connected 10 s ago)
         case pending     // a Quality pick sent 1 s ago that is never answered and never expires: its spinner
         case timeout     // the Mac did not answer a pick: the inline problem
         case direct      // Direct Wireless Connection on (every other case has it off, so its row shows)
@@ -312,7 +312,7 @@ enum MockCatalog {
         case remoteoff       // at home over a plain door, Remote Access off: the footnote only
         case noremote        // at home, an older Mac without kind 18: no Away from home group
         // Pairing at home (docs/home-pairing-plan.md §7.6, §7.9): a session at home over TLS.
-        case paired          // a saved Mac, Remote Access on: Paired, and how Sill reaches it from afar
+        case paired          // a saved Mac, Remote Access on: Paired, and how Skopry reaches it from afar
         case pairedoff       // a saved Mac, Remote Access off: Paired, and how to turn it on
         case openpair        // not saved, on a Mac that lets any device in (Require pairing off), Remote Access off: Pair This iPad…
         // Away from home and the link (docs/remote-bundle-plan.md §5.8, §6.7), through Tailscale:
@@ -411,7 +411,7 @@ enum MockCatalog {
         case .cli:
             state.persistent = false
             state.virtualDisplayAvailable = false
-            state.virtualDisplayNote = "Start SillHost with --virtual-display to use it."
+            state.virtualDisplayNote = "Start SkopryHost with --virtual-display to use it."
         case .software:
             state.softwareEncoder = true
             state.stream = RunningStream(width: 1440, height: 900, fps: 60, mbps: 15, onVirtualDisplay: false)
@@ -459,11 +459,11 @@ enum MockCatalog {
         case .default, .legacy, .pending, .timeout, .wired, .noroute, .noremote:
             break
         }
-        // `-SillLinkLine behind`: the Mac reports the link behind on this connection, whatever the
+        // `-SkopryLinkLine behind`: the Mac reports the link behind on this connection, whatever the
         // case, so the stream screen shows its line (with the panel closed). Its suggestion is the
         // host's for a slow link (LinkJudge.suggestion): Low, with Standard from Retina; at Low, the
         // same bitrate at Standard from Retina, and nothing from Low · Standard.
-        if UserDefaults.standard.string(forKey: "SillLinkLine") == "behind", state.link == nil {
+        if UserDefaults.standard.string(forKey: "SkopryLinkLine") == "behind", state.link == nil {
             let bitrate = state.settings.bitrate, retina = state.settings.captureScale >= 1.5, low = QualityPreset.low.rawValue
             let suggestion: (bitrate: Int, captureScale: Double?)? = bitrate > low ? (low, retina ? 1 : nil) : (retina ? (bitrate, 1) : nil)
             state.link = LinkReport(state: LinkReport.behind, withheldPerSecond: 52, bitrate: bitrate, carriedKbps: 2_100,
@@ -482,7 +482,7 @@ enum MockCatalog {
 
     // MARK: - The connect screen
 
-    /// `-SillConnectCase`: the connect screen's discovery states. The mock is not connected and never
+    /// `-SkopryConnectCase`: the connect screen's discovery states. The mock is not connected and never
     /// browses (`mockDiscovery`): Search Nearby and a row's tap only change what it shows.
     enum ConnectCase: String {
         case looking   // the first seconds: nothing listed yet
@@ -490,7 +490,7 @@ enum MockCatalog {
         case nearby    // searching nearby: a Wi-Fi row, then Direct rows (one with a long name)
         case methods   // every word a row can end in: Wired, Wi-Fi, none, long names with Wired and Wi-Fi, Direct
         case denied    // Local Network access denied: the status says what to do, and no hint
-        case update    // a Mac refused this version: its words, a Wi‑Fi row, the App Store link (with -SillAppStoreURL)
+        case update    // a Mac refused this version: its words, a Wi‑Fi row, the App Store link (with -SkopryAppStoreURL)
         case notice    // a goodbye reason this build does not know: the Mac's two-line message, no link
         case remote        // a network row, a Direct row and two Remote rows (a long name, a "(2)")
         case addmac        // Add a Mac unfolded, scanning (a drawn viewfinder: the simulator has no camera)
@@ -498,20 +498,20 @@ enum MockCatalog {
         case addcodeerror  // the typed path after a wrong code: "That code didn’t work…"
         case pairing       // "Pairing with Mac mini…"
         case remotedial    // "Connecting to Mac mini remotely…"
-        case remotefail    // a remote dial's failure, -SillRemoteFailure vpnoff|timeout|timeoutip|refused|dns|wrongmac|revoked|notsill|gaveup|quit|removed|remoteoff
+        case remotefail    // a remote dial's failure, -SkopryRemoteFailure vpnoff|timeout|timeoutip|refused|dns|wrongmac|revoked|notskopry|gaveup|quit|removed|remoteoff
         case camera        // Add a Mac with the camera refused
-        case externalpair  // an outside sill://pair link waiting for its confirmation
+        case externalpair  // an outside skopry://pair link waiting for its confirmation
         // Pairing at home (docs/home-pairing-plan.md §7.3–7.9). Each row's word is DiscoveryPolicy.rowWord's.
-        case homerows        // a saved Wi-Fi row, Not paired, an unpaired Wired (the cable), a Wired row through a USB Ethernet adapter (Not paired), an open door's (Not paired), Update Sill, long names
+        case homerows        // a saved Wi-Fi row, Not paired, an unpaired Wired (the cable), a Wired row through a USB Ethernet adapter (Not paired), an open door's (Not paired), Update Skopry, long names
         case homeasking      // a tap on a Not paired row: "Pairing with Mac mini…", the row lit
         case homecard        // the Mac shows its code: the home card, scanning (a drawn viewfinder)
         case homecode        // the home card's typed path, empty
         case homecodeerror   // the typed path after a wrong code: "That code didn’t work… 4 tries left."
         case homelocked      // the Mac is locked (a Wired row over the cable): "Unlock Mac mini, then tap it again."
-        case homeopenonmac   // the Mac showed no code by itself: "…choose Pair iPhone or iPad… in the Sill menu…"
+        case homeopenonmac   // the Mac showed no code by itself: "…choose Pair iPhone or iPad… in the Skopry menu…"
         case homerevoked     // the Mac removed this device: its row reads Not paired
         case homecabledone   // paired over the cable, the session on its way: "Paired with Mac mini over the cable."
-        case homeolder       // a tap on an Update Sill row: "Mac mini runs an older Sill…"
+        case homeolder       // a tap on an Update Skopry row: "Mac mini runs an older Skopry…"
         case pairingrequired // Require pairing turned on while this device was connected without pairing
         case asleep          // the automatic reconnect's dials of a listed row not answered: "Mac mini isn’t answering. It may be asleep…" (issue #69)
     }
@@ -545,12 +545,12 @@ enum MockCatalog {
         /// A row as `recomputeMacs` makes it: Direct only for a Direct row. No wired interface: the
         /// mock never dials.
         func mac(_ name: String, _ method: DiscoveryPolicy.Method?) -> FoundMac {
-            FoundMac(name: name, endpoint: .service(name: name, type: "_sill._tcp", domain: "local.", interface: nil),
+            FoundMac(name: name, endpoint: .service(name: name, type: "_skopry._tcp", domain: "local.", interface: nil),
                      route: method == .direct ? .direct : .network, method: method)
         }
         func remote(_ name: String, _ id: String) -> FoundMac { FoundMac(name: name, endpoint: nil, route: .remote, macID: id) }
         let remoteRows = [mac("Studio", .wifi), mac("Mac mini", .direct),
-                          remote("Noah Saffer’s MacBook Pro in the Studio", "A3C5HR4RBV67YR21"), remote("Mac mini (2)", "0123456789ABCDEF")]
+                          remote("Jean Pierre’s MacBook Pro in the Studio", "A3C5HR4RBV67YR21"), remote("Mac mini (2)", "0123456789ABCDEF")]
         /// A row at home as `recomputeMacs` makes it: its door (`p`), what this device knows of its
         /// Mac, and the word DiscoveryPolicy.rowWord gives them. `cable`: a Wired row whose interface
         /// carries only link-local addresses (the USB cable to the Mac); false for a USB Ethernet
@@ -559,7 +559,7 @@ enum MockCatalog {
                   saved: Bool = false, revoked: Bool = false, homeTLS: Bool = false, cable: Bool = false) -> FoundMac {
             let word = DiscoveryPolicy.rowWord(door: door, saved: saved, revoked: revoked, homeTLS: homeTLS,
                                                debug: StreamClient.debugBuild, method: method, cable: cable)
-            return FoundMac(name: name, endpoint: .service(name: name, type: "_sill._tcp", domain: "local.", interface: nil),
+            return FoundMac(name: name, endpoint: .service(name: name, type: "_skopry._tcp", domain: "local.", interface: nil),
                             route: method == .direct ? .direct : .network, macID: saved ? "HOMEPAIRING\(name.count)" : nil,
                             method: method, door: door, homeWord: word)
         }
@@ -583,7 +583,7 @@ enum MockCatalog {
             client.status = StreamClient.lookingNearby
             // The long name checks that "Direct" never truncates: the title does.
             client.macs = [mac("Studio", .wifi), mac("Mac mini", .direct),
-                           mac("Noah Saffer’s MacBook Pro in the Studio (2)", .direct)]
+                           mac("Jean Pierre’s MacBook Pro in the Studio (2)", .direct)]
         case .methods:
             // Network rows first, then the Direct one, as DiscoveryPolicy.rows orders them. "Office
             // iMac" was seen only on interfaces the device cannot name (DiscoveryPolicy.method: no
@@ -592,8 +592,8 @@ enum MockCatalog {
             client.searchingNearby = true
             client.status = StreamClient.lookingNearby
             client.macs = [mac("Mac Studio", .wired), mac("Mac mini", .wifi), mac("Office iMac", nil),
-                           mac("Noah Saffer’s MacBook Pro in the Studio (2)", .wired),
-                           mac("Noah Saffer’s iMac on the Desk by the Window", .wifi),
+                           mac("Jean Pierre’s MacBook Pro in the Studio (2)", .wired),
+                           mac("Jean Pierre’s iMac on the Desk by the Window", .wifi),
                            mac("MacBook Air", .direct)]
         case .denied:
             client.status = StreamClient.allowLocalNetwork
@@ -602,7 +602,7 @@ enum MockCatalog {
             // the notice beside them. The message is the host's (DeviceGate's), for this device.
             client.macs = [mac("Mac mini", .wifi)]
             let goodbye = c == .update
-                ? Goodbye(reason: Goodbye.update, message: "Update Sill on your \(StreamClient.deviceWord) to keep using Mac mini. It needs version 1.2 or later.",
+                ? Goodbye(reason: Goodbye.update, message: "Update Skopry on your \(StreamClient.deviceWord) to keep using Mac mini. It needs version 1.2 or later.",
                           minimumVersion: "1.2", reconnect: false)
                 // A reason this build does not know ("pairingRequired" is pairing at home's own now).
                 : Goodbye(reason: "pairAgain",
@@ -625,11 +625,11 @@ enum MockCatalog {
             client.status = "Connecting to Mac mini remotely…"
         case .remotefail:
             client.macs = remoteRows
-            client.status = failureCopy(UserDefaults.standard.string(forKey: "SillRemoteFailure") ?? "timeout")
+            client.status = failureCopy(UserDefaults.standard.string(forKey: "SkopryRemoteFailure") ?? "timeout")
         case .externalpair:
             client.pendingLink = mockLink
         case .homerows:
-            // The long names check that "Not paired" and "Update Sill" never truncate or wrap: the
+            // The long names check that "Not paired" and "Update Skopry" never truncate or wrap: the
             // title does.
             client.macs = [home("Mac mini", .wifi, saved: true, homeTLS: true),
                            home("Studio", .wifi),
@@ -637,8 +637,8 @@ enum MockCatalog {
                            home("Office iMac", .wired, cable: false),
                            home("Living Room iMac", .wifi, door: .open),
                            home("Mac Studio", .wifi, door: .plain, saved: true, homeTLS: true),
-                           home("Noah Saffer’s MacBook Pro in the Studio (2)", .wifi),
-                           home("Noah Saffer’s iMac on the Desk by the Window", .wired, door: .plain, saved: true, homeTLS: true)]
+                           home("Jean Pierre’s MacBook Pro in the Studio (2)", .wifi),
+                           home("Jean Pierre’s iMac on the Desk by the Window", .wired, door: .plain, saved: true, homeTLS: true)]
         case .homeasking:
             let mini = home("Mac mini", .wifi)
             client.macs = [mini, studio]
@@ -664,7 +664,7 @@ enum MockCatalog {
             client.status = Copy.pairedOverCable(mac: "Mac mini")
         case .homeolder:
             client.macs = [home("Mac mini", .wifi, door: .plain, saved: true, homeTLS: true), studio]
-            client.status = DiscoveryPolicy.updateSillStatus(mac: "Mac mini")
+            client.status = DiscoveryPolicy.updateSkopryStatus(mac: "Mac mini")
         case .pairingrequired:
             client.macs = [home("Mac mini", .wifi), studio]
             client.status = Copy.pairingRequired(mac: "Mac mini", device: device)
@@ -692,7 +692,7 @@ enum MockCatalog {
         case "dns": return copy(.nameNotFound, name)
         case "wrongmac": return copy(.wrongMac, vpn)
         case "revoked": return copy(.revoked, vpn)
-        case "notsill": return copy(.notSill, router)
+        case "notskopry": return copy(.notSkopry, router)
         case "gaveup": return "Stopped trying to reach Mac mini. Tap it to try again."
         // A session's goodbyes, in the words GoodbyePolicy gives them.
         case "quit": return GoodbyePolicy.outcome(Goodbye(reason: Goodbye.quit), mac: "Mac mini", device: device, saved: true).text

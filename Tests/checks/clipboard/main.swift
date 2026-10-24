@@ -159,19 +159,19 @@ check(P.accessLine(was: .notAsked, now: .asks) == nil && P.accessLine(was: .asks
       "none for a change that keeps the words (asked and not yet asked read the same)")
 check(P.accessLine(was: .asks, now: .denied) == C.macAccessLine(.denied), "a line from asking to denied")
 check(C.macAccessWarning(.allowed) == nil && C.macAccessHint(.allowed) == nil, "Settings says nothing while every read is allowed")
-check(C.macAccessWarning(.notAsked) == "macOS asks before Sill reads the clipboard, so what you copy here stays on this Mac."
+check(C.macAccessWarning(.notAsked) == "macOS asks before Skopry reads the clipboard, so what you copy here stays on this Mac."
       && C.macAccessWarning(.asks) == C.macAccessWarning(.notAsked), "asked: the warning")
-check(C.macAccessWarning(.denied) == "macOS doesn’t let Sill read the clipboard, so what you copy here stays on this Mac.", "denied: the warning")
-check(C.macAccessHint(.notAsked)!.hasPrefix("Click Allow in System Settings: macOS asks about Sill once")
+check(C.macAccessWarning(.denied) == "macOS doesn’t let Skopry read the clipboard, so what you copy here stays on this Mac.", "denied: the warning")
+check(C.macAccessHint(.notAsked)!.hasPrefix("Click Allow in System Settings: macOS asks about Skopry once")
       && C.macAccessHint(.asks) == C.macAccessHint(.denied) && C.macAccessHint(.asks)!.contains("Paste from Other Apps"),
-      "the way to allow it: asked once first while macOS has not asked about Sill (it is not listed until then)")
+      "the way to allow it: asked once first while macOS has not asked about Skopry (it is not listed until then)")
 check(C.macAccessButton == "Allow in System Settings…", "the button")
 check(C.macFootnote == "Text you copy here can be pasted on a connected iPhone or iPad, and text sent from one with Paste becomes this Mac’s. Copies a password manager marks as concealed stay on this Mac.",
       "Settings › General's footnote: only what a password manager marks stays, and a device's text comes with Paste")
-check(C.macAccessLine(.allowed).hasPrefix("Clipboard: macOS lets Sill read the clipboard again")
-      && C.macAccessLine(.asks).hasPrefix("Clipboard: macOS asks before Sill reads the clipboard")
+check(C.macAccessLine(.allowed).hasPrefix("Clipboard: macOS lets Skopry read the clipboard again")
+      && C.macAccessLine(.asks).hasPrefix("Clipboard: macOS asks before Skopry reads the clipboard")
       && C.macAccessLine(.notAsked) == C.macAccessLine(.asks)
-      && C.macAccessLine(.denied).hasPrefix("Clipboard: macOS does not let Sill read the clipboard"), "the host's lines")
+      && C.macAccessLine(.denied).hasPrefix("Clipboard: macOS does not let Skopry read the clipboard"), "the host's lines")
 
 // MARK: - The host: a device's message
 
@@ -287,7 +287,7 @@ for connected in [false, true] {
         }
     }
 }
-// The chip's 20 s run only while it is on screen, Sill active and VoiceOver off (the review's finding:
+// The chip's 20 s run only while it is on screen, Skopry active and VoiceOver off (the review's finding:
 // it ran out unseen under the tour or the Settings panel, and for VoiceOver in 20 s, and the copy then
 // counted as dealt with).
 for onScreen in [false, true] {

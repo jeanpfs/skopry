@@ -1,6 +1,6 @@
 # iPad host settings: final plan
 
-A device (iPad, iPhone, the Duo) changes the Mac's streaming settings the way the Mac's Sill menu
+A device (iPad, iPhone, the Duo) changes the Mac's streaming settings the way the Mac's Skopry menu
 does: Quality (bitrate), Resolution (capture scale), Frame Rate limit, Prioritize Speed and
 Virtual Display. Judged 2026-09-23 against `menu-bar-app` at 59fc510, with the working tree read
 as well. Message kinds 16 and 17 are still free there. Nothing in the repo was changed by this
@@ -92,13 +92,13 @@ them most right with the least code:
 
 - **A pinned header and a pinned Disconnect foot**, with only the middle scrolling. At 500×710 the
   panel gets 259 pt. Disconnect replaces a one-tap bar button, so it must never fall below the fold.
-- **DEBUG `-SillConnect host:port`.** The synthetic hosts deliberately stay off Bonjour, so this is
-  the only way for the simulator to reach `SillHost --synthetic` and the bare
-  `SillMenuBar --synthetic`. With it, the whole feature can be tested end to end without any
+- **DEBUG `-SkopryConnect host:port`.** The synthetic hosts deliberately stay off Bonjour, so this is
+  the only way for the simulator to reach `SkopryHost --synthetic` and the bare
+  `SkopryMenuBar --synthetic`. With it, the whole feature can be tested end to end without any
   permission. It is also the seed of step 3's "add a Mac by address" (docs/BRIEF.md: "Manual 'add
   by address' as fallback").
 - **Timeout of max(4 s, 4 × RTT).** It changes nothing on the LAN and matters on a remote link.
-- **Test tooling and checks:** the `sillclient.py` flags `--stats` and `--raw17`, the idle-dedupe
+- **Test tooling and checks:** the `skopryclient.py` flags `--stats` and `--raw17`, the idle-dedupe
   check, and the step-3 security prerequisites (§9).
 - **The CLI stays session-only**, for d2's reason: it is the stateless measuring tool, and
   baselines must not depend on hidden state.
@@ -137,19 +137,19 @@ them most right with the least code:
   - Open the PR against `menu-bar-app`.
   - Per Noah, implementation and review agents run on Opus 5.5.
 - **Hard rules (repeat them in every review):**
-  1. Never `MainActor.assumeIsolated` in core (`Sources/SillHost`). Hop with `Task { @MainActor in … }`.
+  1. Never `MainActor.assumeIsolated` in core (`Sources/SkopryHost`). Hop with `Task { @MainActor in … }`.
   2. Never `SCStream.updateConfiguration`. A settings change restarts the pipeline through `select`
      (a new SCStream), which is the existing path.
   3. The CLI's stdout stays byte-for-byte identical on the default path. New lines appear only
      when a device sends kind 17. Nothing new prints on connect, on publish or on the state sent in
      `sendCatalog`. No new `Stats.bump` key runs unless kind 17 arrives.
   4. Swift and Apple frameworks only; no third-party code; zero operating cost.
-  5. Host code stays in `SillHostCore` with `package` access, never `public`.
+  5. Host code stays in `SkopryHostCore` with `package` access, never `public`.
   6. Errors show inline, never in alerts (Mac rule, and the device follows it).
 - **Test safety:**
-  - Never touch `/Applications/Sill.app` or the `me.saffer.sill.mac` defaults domain.
-  - Use the bare `.build/release/SillMenuBar --synthetic` (defaults domain `SillMenuBar`, deleted
-    afterwards) and `.build/release/SillHost --synthetic`. Neither advertises on Bonjour.
+  - Never touch `/Applications/Skopry.app` or the `app.skopry.mac` defaults domain.
+  - Use the bare `.build/release/SkopryMenuBar --synthetic` (defaults domain `SkopryMenuBar`, deleted
+    afterwards) and `.build/release/SkopryHost --synthetic`. Neither advertises on Bonjour.
   - Never run a non-synthetic host: it would raise Terminal's Screen Recording prompt. Those
     checks are Noah's.
 
@@ -195,8 +195,8 @@ public struct RunningStream: Codable, Hashable, Sendable {
 /// Host → device (.hostSettings).
 public struct HostSettingsState: Codable, Hashable, Sendable {
     public var settings: StreamSettings        // the TARGET: a change still waiting for its restart included
-    public var persistent: Bool                // Sill.app saves changes; SillHost keeps them until it quits
-    public var virtualDisplayAvailable: Bool   // false: this host cannot run it at all (SillHost without --virtual-display)
+    public var persistent: Bool                // Skopry.app saves changes; SkopryHost keeps them until it quits
+    public var virtualDisplayAvailable: Bool   // false: this host cannot run it at all (SkopryHost without --virtual-display)
     public var virtualDisplayNote: String?     // why it is unavailable or not working; nil when nothing is wrong
     public var softwareEncoder: Bool           // streams run at up to 60 fps at Standard until the Mac restarts
     public var stream: RunningStream?          // nil while nothing streams
@@ -224,7 +224,7 @@ public enum SettingsChoices {
     public static var bitrate: [Int] { QualityPreset.allCases.map(\.rawValue) }
 }
 
-/// Moved unchanged from Sources/SillMenuBar/HostSettings.swift:83-106 and made public, so the Mac
+/// Moved unchanged from Sources/SkopryMenuBar/HostSettings.swift:83-106 and made public, so the Mac
 /// and the device name the presets the same way.
 public enum QualityPreset: Int, CaseIterable, Identifiable, Sendable {
     case efficient = 8_000_000, balanced = 15_000_000, high = 25_000_000, maximum = 40_000_000
@@ -249,7 +249,7 @@ state    {"settings":{"maxFPS":120,"bitrate":15000000,"captureScale":2,"prioriti
           "stream":{"width":3024,"height":1898,"fps":60,"mbps":15,"onVirtualDisplay":false}}
 answer   the same state plus "answering":7
 CLI      … "persistent":false,"virtualDisplayAvailable":false,
-         "virtualDisplayNote":"Start SillHost with --virtual-display to use it." …
+         "virtualDisplayNote":"Start SkopryHost with --virtual-display to use it." …
 ```
 
 Field meanings:
@@ -285,7 +285,7 @@ Field meanings:
 
 | | Older device (b67f87d or later) | New device |
 |---|---|---|
-| **Older host** | As today. | No kind 16 ever arrives. The panel shows "Update Sill on ‹Mac› to change these from here", and nothing is sent. |
+| **Older host** | As today. | No kind 16 ever arrives. The panel shows "Update Skopry on ‹Mac› to change these from here", and nothing is sent. |
 | **New host** | Skips kind 16: `parseHeader` maps it to `.unknown` (StreamMessage.swift:61-70), then `default: break` (StreamClient.swift:465). Never sends 17. | Full feature. |
 
 Rules for every later change:
@@ -305,26 +305,26 @@ Rules for every later change:
 #### 2.1 Seam and threading
 
 - **Inbound.** `StreamServer` needs no change. Its receive loop hands every kind except ping and
-  clientStats to `onMessage` on the `sill.net` queue (StreamServer.swift:198-216). The coordinator
+  clientStats to `onMessage` on the `skopry.net` queue (StreamServer.swift:198-216). The coordinator
   hops each message to the main actor in its own Task (StreamCoordinator.swift:171-173). Those
   Tasks start in arrival order; the input path already relies on that.
 - **The new case.** It sits in `handle(_:from:)` (:404) beside `.windowCommand` (:411) and
   `.viewport` (:442), and **contains no `await`**. So its answer leaves in request order, per
   device and across devices, and before any restart.
 - **Outbound.** `server.broadcast` and `server.send(_:to:)` are thread-safe. They queue on
-  `sill.net` and keep per-connection order. Every settings message is composed on the main actor,
+  `skopry.net` and keep per-connection order. Every settings message is composed on the main actor,
   so each device receives states in the order the host composed them.
 - **Tasks.** The only new one is `Task { @MainActor in await self.applyPending() }` inside
   `setTarget`, which is safe under the CLI's `dispatchMain`.
 
-#### 2.2 `Sources/SillHost/HostStatus.swift`
+#### 2.2 `Sources/SkopryHost/HostStatus.swift`
 
 - Add `@ObservationIgnored var onChange: (@MainActor () -> Void)?` to `HostStatus`.
 - In `update`, call it only when the snapshot really changed:
   `if next != snapshot { snapshot = next; onChange?() }`.
 - `onChange` must never call `update` itself.
 
-#### 2.3 New `Sources/SillHost/DeviceSettings.swift`
+#### 2.3 New `Sources/SkopryHost/DeviceSettings.swift`
 
 ```swift
 import CoreGraphics
@@ -357,7 +357,7 @@ enum DeviceSettings {
         if let v = c.bitrate { if SettingsChoices.bitrate.contains(v) { ok.bitrate = v } else { refused.append("bitrate \(v)") } }
         if let v = c.captureScale { if SettingsChoices.captureScale.contains(v) { ok.captureScale = v } else { refused.append("capture scale \(v)") } }
         if let v = c.virtualDisplay {
-            if !v || virtualDisplayAvailable { ok.virtualDisplay = v } else { refused.append("virtual display (needs SillHost --virtual-display)") }
+            if !v || virtualDisplayAvailable { ok.virtualDisplay = v } else { refused.append("virtual display (needs SkopryHost --virtual-display)") }
         }
         return (ok, refused)
     }
@@ -368,7 +368,7 @@ extension HostStatusSnapshot.Stream {
 }
 ```
 
-#### 2.4 `Sources/SillHost/StreamCoordinator.swift` (line numbers at 59fc510; re-read first)
+#### 2.4 `Sources/SkopryHost/StreamCoordinator.swift` (line numbers at 59fc510; re-read first)
 
 1. **Replace `apply(_:) async` (:303-316) with a synchronous `setTarget`.** AppModel is its only
    caller (AppModel.swift:58). `applyPending` (:318), `restartNeeded` (:330), `adopt` (:343) and
@@ -383,7 +383,7 @@ extension HostStatusSnapshot.Stream {
    /// Mac's menu checks and what devices are told. (Private: the app merges over its own settings.)
    private var target: HostConfig { pendingConfig ?? config }
 
-   /// Who keeps the settings when a device changes one. Sill.app lays the change over its HostSettings
+   /// Who keeps the settings when a device changes one. Skopry.app lays the change over its HostSettings
    /// (saved, shown) and returns the result. Unset (the CLI): the change lands on `target` and lasts
    /// until the process ends.
    package var onDeviceSettingsChange: (@MainActor (HostSettingsChange) -> HostConfig)?
@@ -452,7 +452,7 @@ extension HostStatusSnapshot.Stream {
    /// lines: permissions are polled, not event-driven, and a missing one still reaches the device as
    /// the fallback reason on the next pick.
    private func virtualDisplayNote(target t: HostConfig, snapshot s: HostStatusSnapshot) -> String? {
-       if !appKitLoop { return "Start SillHost with --virtual-display to use it." }
+       if !appKitLoop { return "Start SkopryHost with --virtual-display to use it." }
        if s.virtualDisplayAPIMissing, let p = s.virtualDisplayProblem { return "Not available on this version of macOS: \(p)" }
        guard t.virtualDisplay else { return nil }
        if let p = s.virtualDisplayProblem { return "Off for this session: \(p). Turn it off and on to try again." }
@@ -516,7 +516,7 @@ whether the hook is set.
 
 ```
 Settings from iPad (iPad14,1): bitrate 15 → 25 Mbps per 60 fps      ← new: the request
-Settings from 127.0.0.1:52344 refused: virtual display (needs SillHost --virtual-display)   ← new
+Settings from 127.0.0.1:52344 refused: virtual display (needs SkopryHost --virtual-display)   ← new
 Settings: bitrate 15 → 25 Mbps per 60 fps                           ← existing, when the pipeline takes it
 Streaming a synthetic test pattern at 3024×1898, 60 fps, 25 Mbps     ← existing, after the restart
 ```
@@ -527,8 +527,8 @@ A no-op change prints nothing and still gets its answer.
 
 - **`HostConfig.swift`:** the doc comment's "See `StreamCoordinator.apply`" becomes `setTarget`.
   No code change.
-- **The CLI (`Sources/SillHostCLI/main.swift`): no change.**
-  - It sets no hook, so a device's patch lands on the target and lasts until SillHost quits.
+- **The CLI (`Sources/SkopryHostCLI/main.swift`): no change.**
+  - It sets no hook, so a device's patch lands on the target and lasts until SkopryHost quits.
     `persistent: false` tells the device so.
   - Without `--virtual-display` there is no AppKit loop. `virtualDisplayAvailable` is false,
     turning it on is refused and answered, and `setTarget` would force it off anyway.
@@ -536,9 +536,9 @@ A no-op change prints nothing and still gets its answer.
     flag is (main.swift:74-83), which is the only case where a display can exist, so the emergency
     restore still covers every staged window.
 
-### 3. Sill.app: persistence through `HostSettings.config`
+### 3. Skopry.app: persistence through `HostSettings.config`
 
-**`Sources/SillMenuBar/AppModel.swift`**, in `start()`, replacing the closure at :57-59 and adding
+**`Sources/SkopryMenuBar/AppModel.swift`**, in `start()`, replacing the closure at :57-59 and adding
 the hook before `await c.start`:
 
 ```swift
@@ -555,7 +555,7 @@ c.onDeviceSettingsChange = { [settings] change in
 }
 ```
 
-**`Sources/SillMenuBar/HostSettings.swift`:**
+**`Sources/SkopryMenuBar/HostSettings.swift`:**
 
 - Remove `QualityPreset` (now in StreamProtocol) and add `import StreamProtocol`.
 - Type `onChange` as `(@MainActor () -> Void)?`.
@@ -577,7 +577,7 @@ How a device's change behaves in the app:
   then finds an equal value and does nothing. The log shows "Settings from …" before the
   pipeline's "Settings: …".
 - **Every other writer** keeps working and now reaches the host synchronously: menu actions
-  (AppKit target/action), the pane bindings, and `-SillSetAfter` (a Timer in the app target, where
+  (AppKit target/action), the pane bindings, and `-SkoprySetAfter` (a Timer in the app target, where
   `assumeIsolated` is allowed).
 
 ### 4. The queued pick (its own commit)
@@ -636,12 +636,12 @@ lands mid-switch.
 |---|---|
 | `iOSClient/HostSettingsLedger.swift` | New. Pure logic, no UIKit, compiles with swiftc for tests (§5.2). |
 | `iOSClient/HostSettingsPanel.swift` | New. The panel (§5.5–5.7). |
-| `iOSClient/StreamClient.swift` | A `// MARK: Host settings` section (§5.3). It stays in this file so the DEBUG echo can reach the private `connection`. Also the `connect(to endpoint:name:)` refactor and `-SillConnect`. The oddities work is rewriting this file's measurement code (`fps`, `frameAgeMs` and `rttMs` become `linkStats`, and the pings move to dispatch timers), so re-read it on the branch. Nothing here depends on that code except the timeout's rtt. |
+| `iOSClient/StreamClient.swift` | A `// MARK: Host settings` section (§5.3). It stays in this file so the DEBUG echo can reach the private `connection`. Also the `connect(to endpoint:name:)` refactor and `-SkopryConnect`. The oddities work is rewriting this file's measurement code (`fps`, `frameAgeMs` and `rttMs` become `linkStats`, and the pings move to dispatch timers), so re-read it on the branch. Nothing here depends on that code except the timeout's rtt. |
 | `iOSClient/StreamScreen.swift` | `settingsOpen`, `setSettings`, the TopBar's last slot, the landscape placement, the DEBUG init parameter. |
 | `iOSClient/PortraitStreamScreen.swift` | The windowBar's last slot and the portrait placement. |
 | `iOSClient/InputOverlay.swift` | `InputOverlayProxy.setKeyboard(shown:)`. |
-| `iOSClient/ContentView.swift`, `MockCatalog.swift` | Harness arguments, mock cases, `-SillConnect`. |
-| `iOSClient/Sill.xcodeproj/project.pbxproj` | Each new file needs four hand-written entries (the project uses explicit file references). |
+| `iOSClient/ContentView.swift`, `MockCatalog.swift` | Harness arguments, mock cases, `-SkopryConnect`. |
+| `iOSClient/Skopry.xcodeproj/project.pbxproj` | Each new file needs four hand-written entries (the project uses explicit file references). |
 
 The pbxproj entries for each new file:
 
@@ -709,7 +709,7 @@ disconnects and slow hosts, plus mutation runs.
 @Published var settings = SettingsLedger()      // internal setter: MockCatalog seeds it
 @Published var settingsProblem: String?         // "Mac mini didn't answer. Try again."
 @Published var settingsRefusals = 0             // bumped per refusal: haptic + VoiceOver announcement
-@Published var connectedAt: Date?               // set on .ready, cleared in tearDown: "Loading…" vs "Update Sill…"
+@Published var connectedAt: Date?               // set on .ready, cleared in tearDown: "Loading…" vs "Update Skopry…"
 private var settingsToken = 1                   // never reset: strictly increasing for the process
 #if DEBUG
 var mockFrozen = false                          // harness `pending` case: no echo, no expiry
@@ -734,7 +734,7 @@ var mockFrozen = false                          // harness `pending` case: no ec
 - **`tearDown`** (:228-251): `settings.reset(); settingsProblem = nil; connectedAt = nil`.
 - **Refactor `connect(to result:)`** into `connect(to endpoint: NWEndpoint, name: String)`. The
   Bonjour path calls it with `result.endpoint` and `Self.serviceName(of:)`.
-- **DEBUG `connectFromLaunchArgument()`:** reads `-SillConnect host:port` and calls
+- **DEBUG `connectFromLaunchArgument()`:** reads `-SkopryConnect host:port` and calls
   `connect(to: .hostPort(host:port:), name: raw)`.
   - It is called after `startBrowsing()` in `ContentView.app.onAppear`, and in the harness's live
     branch (`LayoutHarness.onAppear` when `spec.live`).
@@ -775,7 +775,7 @@ A custom panel mirroring the Apps drawer on the trailing edge. It is not a `.she
 
 - The client has no system presentation anywhere.
 - Sheets and popovers adapt by size class, which is unknown for the Duo.
-- The `-SillLayout` harness draws a fake Duo screen inside an iPad window, and a system
+- The `-SkopryLayout` harness draws a fake Duo screen inside an iPad window, and a system
   presentation would escape it, so the photos would be wrong.
 - A tall sheet or a flipped popover can cross the half-folded crease, which the brief forbids.
 
@@ -866,7 +866,7 @@ Rate show before any scrolling. The virtual display, with its longer explanation
   Otherwise the device copy: "The window you pick moves onto an invisible display on ‹Mac› while
   it streams, so it keeps updating when covered."
 - **Closing footer:** "Applies to every device streaming from ‹Mac›. The stream restarts for a
-  moment." When `persistent == false`, add "SillHost keeps these until it quits."
+  moment." When `persistent == false`, add "SkopryHost keeps these until it quits."
 - **Foot**, pinned: "Disconnect from ‹Mac›" in accent text with `xmark.circle`, 44 pt, calling
   `client.disconnect()`.
 
@@ -875,14 +875,14 @@ Rate show before any scrolling. The virtual display, with its longer explanation
 | State | What the panel shows |
 |---|---|
 | No state yet, under 2 s since `connectedAt` | Spinner and "Loading settings…". Disconnect works. |
-| No state after 2 s (an older Mac) | "Update Sill on ‹Mac› to change these from here." No controls. Disconnect works. |
+| No state after 2 s (an older Mac) | "Update Skopry on ‹Mac› to change these from here." No controls. Disconnect works. |
 | Normal | The rows as above. |
 | Pending | The picked value at once; a spinner after 300 ms. |
 | Refused | The control snaps back, a `.sensoryFeedback(.warning, trigger: settingsRefusals)` haptic plays (a no-op on iPad), and an announcement is posted. The reason is already in the footer or note. |
 | Timeout | Back to the Mac's value, with the orange callout. The next answer clears it. |
 
 **Never shown on the device** (Mac only): Launch at Login, Permissions, Show Log…, Reveal Log File,
-Quit Sill, Running from, the network name, and the virtual display's Try Again (toggling off and on
+Quit Skopry, Running from, the network name, and the virtual display's Try Again (toggling off and on
 does the same).
 
 #### 5.7 Behaviour, keyboard, accessibility
@@ -923,15 +923,15 @@ does the same).
 
 #### 5.8 Harness (DEBUG; add to the contract comment at ContentView.swift:51-66 and to CLAUDE.md)
 
-- **`-SillSettings 1`:** start with the panel open. It goes through `LayoutHarness.Spec` to a new
+- **`-SkoprySettings 1`:** start with the panel open. It goes through `LayoutHarness.Spec` to a new
   `settingsOpen:` parameter on StreamScreen's DEBUG init (:89-100), the same route as
-  `-SillDrawer`.
-- **`-SillSettingsCase <case>`** seeds `MockCatalog.client(active:settings:)`. The default mock
+  `-SkopryDrawer`.
+- **`-SkoprySettingsCase <case>`** seeds `MockCatalog.client(active:settings:)`. The default mock
   stream is 2880×1800 · 60 fps · 15 Mbps.
 
   | Case | Mock |
   |---|---|
-  | `default` | Sill.app: persistent, virtual display available |
+  | `default` | Skopry.app: persistent, virtual display available |
   | `cli` | `persistent: false`, virtual display unavailable, with the CLI note |
   | `software` | `softwareEncoder: true`, stream 1440×900 |
   | `custom` | bitrate 12 Mbps ("Custom — 12 Mbps") |
@@ -940,14 +940,14 @@ does the same).
   | `pending` | a Quality pick in flight, sent 1 s ago; `mockFrozen` (never answers, never expires) |
   | `timeout` | `settingsProblem` set |
 
-- **Combinations.** Both arguments work with `-SillLayout WxH`, `-SillActive` and `-SillHUD 1`.
-  With `-SillLive 1`, the panel shows a real Mac's state.
-- **`-SillConnect 127.0.0.1:PORT`** connects by address, in the normal app and under `-SillLive 1`.
+- **Combinations.** Both arguments work with `-SkopryLayout WxH`, `-SkopryActive` and `-SkopryHUD 1`.
+  With `-SkopryLive 1`, the panel shows a real Mac's state.
+- **`-SkopryConnect 127.0.0.1:PORT`** connects by address, in the normal app and under `-SkopryLive 1`.
 - **Photograph:**
 
   ```
-  xcrun simctl terminate booted me.saffer.sill
-  xcrun simctl launch booted me.saffer.sill -SillLayout 500x710 -SillSettings 1 -SillSettingsCase software
+  xcrun simctl terminate booted app.skopry
+  xcrun simctl launch booted app.skopry -SkopryLayout 500x710 -SkoprySettings 1 -SkoprySettingsCase software
   xcrun simctl io booted screenshot "$SP/settings-500x710-software.png"
   ```
 
@@ -963,7 +963,7 @@ does the same).
 | A pick during a settings restart | Queued, and run after it (§4). A pick of the same source is dropped (no double restart). |
 | A pick during a switch to another source | Dropped, as today (the automatic Desktop request hazard). |
 | Disconnect with a change in flight | The host may or may not have taken it. The ledger resets; the state on reconnect shows the truth; the device never resends. |
-| Host restarts | Sill.app reloads its saved values; the CLI returns to `HostConfig.standard` (the device knows from `persistent`). |
+| Host restarts | Skopry.app reloads its saved values; the CLI returns to `HostConfig.standard` (the device knows from `persistent`). |
 | CLI without `--virtual-display` | The toggle is disabled with the note. A forced request is refused, logged and answered. |
 | Software encoder | 120 fps and Retina are accepted and saved as targets. `restartNeeded` skips the restart when the cap makes the change a no-op (:332-335). The readout shows what runs; the callout says why. |
 | A 60 Hz device alone | 120 changes nothing for it (`wantedFPS` is the highest device rate under the limit); the footer says so. It is still a real setting for a ProMotion device connected at the same time. |
@@ -978,26 +978,26 @@ does the same).
 | Mac permissions missing | Not in the state. A staging failure reaches the device as "The last window streamed where it is: …". |
 | The Mac's status menu is open during a device change | It keeps its old checkmarks until reopened (known, minor). |
 | Settings messages and delta frames | A settings message counts toward a client's inflight count, so a delta can be dropped and replaced by a keyframe. The stream restarts anyway. |
-| Security | Any peer that reaches the listener could already watch the Mac and drive its input. Now it can also change these five whitelisted settings, and Sill.app saves them. There is no generic defaults write. Step 3 must add pairing or authentication before the port is reachable beyond a VPN (§9). |
+| Security | Any peer that reaches the listener could already watch the Mac and drive its input. Now it can also change these five whitelisted settings, and Skopry.app saves them. There is no generic defaults write. Step 3 must add pairing or authentication before the port is reachable beyond a VPN (§9). |
 
 ### 7. Test plan
 
 `$SP` is the implementer's scratchpad.
 
 - **CLI host:**
-  `.build/release/SillHost --synthetic > "$SP/cli.log" 2>&1 & HOST=$!`, then
+  `.build/release/SkopryHost --synthetic > "$SP/cli.log" 2>&1 & HOST=$!`, then
   `PORT=$(lsof -nP -iTCP -sTCP:LISTEN -a -p $HOST | awk 'NR==2{n=split($9,a,":"); print a[n]}')`.
-- **App host:** `.build/release/SillMenuBar --synthetic -SillLogFile "$SP/app.log"`. Its port is
-  in the "Status: Test Pattern Mode — … port N." line. Its defaults domain is `SillMenuBar`; run
-  `defaults delete SillMenuBar` at the end.
+- **App host:** `.build/release/SkopryMenuBar --synthetic -SkopryLogFile "$SP/app.log"`. Its port is
+  in the "Status: Test Pattern Mode — … port N." line. Its defaults domain is `SkopryMenuBar`; run
+  `defaults delete SkopryMenuBar` at the end.
 
-#### 7.1 Extend `Scripts/sillclient.py` (with the host commit)
+#### 7.1 Extend `Scripts/skopryclient.py` (with the host commit)
 
 - `--set=K=V[,K=V]@T`: sends kind 17 with integer tokens 1, 2, 3… in send order. Booleans accept
   `1/0/true/false/on/off`.
 - `--raw17=<json>@T`: sends the literal payload (split on the last `@`).
 - `--pick=none|desktop|window:ID@T`: a timed `selectSource` (`none` is `{"none":{}}`).
-- `--stats`: sends `{"fps":0,"frameAgeMs":0,"rttMs":0,"device":"sillclient"}` as kind 12 once a
+- `--stats`: sends `{"fps":0,"frameAgeMs":0,"rttMs":0,"device":"skopryclient"}` as kind 12 once a
   second, so the host logs a name. It still decodes after the oddities work adds its optional
   `frameAgeMaxMs` and `rttMaxMs`.
 - `--expect=K=V[,…]`: at exit, compares the last kind 16's `settings` (and the top-level
@@ -1012,9 +1012,9 @@ does the same).
 | # | Check | Pass when |
 |---|---|---|
 | H0 | `swift build -c release` | Clean, apart from the known CaptureProbe warning. |
-| H1 | `xcodebuild -project iOSClient/Sill.xcodeproj -scheme Sill -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -derivedDataPath $SP/dd build`, in Debug and in `-configuration Release` | Both build, with only existing warnings. |
+| H1 | `xcodebuild -project iOSClient/Skopry.xcodeproj -scheme Skopry -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -derivedDataPath $SP/dd build`, in Debug and in `-configuration Release` | Both build, with only existing warnings. |
 | H2 | Ledger check: `swiftc Sources/StreamProtocol/HostSettings.swift iOSClient/HostSettingsLedger.swift $SP/ledger-check.swift`. Port the scenario and random-run parts of `scratchpad/ipad-settings/d0-protocol-check.swift` if it still exists; otherwise write these scenarios. | All pass: no state sends nothing; a pick moves at once and is cleared by its answer; picking the shown value sends nothing; 60→120→60 never shows 120; back to the host's value while pending sends; a refused toggle snaps back and is reported; a broadcast keeps a pending pick; expiry at the timeout; a newer host's extra keys are ignored; a state missing a required key fails to decode; 5,000 random two-device plus Mac-menu runs converge. |
-| H3 | CLI baseline. Take `base.log` at the branch point, before any edit, with `sillclient.py PORT 5 desktop`; repeat after. | `diff <(grep -v '^\[1s\]' base.log \| sed -E 's/[0-9]+/N/g' \| sort) <(… new.log …)` is empty. The client sees one kind 16 right after the first windowList (`persistent:false`, `virtualDisplayAvailable:false`, the CLI note, `stream` absent), then one when the Desktop pipeline starts. No others. |
+| H3 | CLI baseline. Take `base.log` at the branch point, before any edit, with `skopryclient.py PORT 5 desktop`; repeat after. | `diff <(grep -v '^\[1s\]' base.log \| sed -E 's/[0-9]+/N/g' \| sort) <(… new.log …)` is empty. The client sees one kind 16 right after the first windowList (`persistent:false`, `virtualDisplayAvailable:false`, the CLI note, `stream` absent), then one when the Desktop pipeline starts. No others. |
 | H4 | Accept: `--set=bitrate=25000000@3 --expect=bitrate=25000000` | "Settings from 127.0.0.1:…: bitrate 15 → 25 Mbps per 60 fps", one "Settings:", one "Streaming … 25 Mbps". The client sees a broadcast with the new target, then the answer (`answering 1`), then parameter sets and a broadcast with `stream.mbps 25` in either order. |
 | H5 | No-op: `--set=bitrate=15000000@3` | One answer; no broadcast, no "Settings" line, no new parameter sets. |
 | H6 | Refusals (CLI without the flag): `--set=virtualDisplay=1@3 --set=maxFPS=30@4 --set=bitrate=500000000@5` | Three "refused" lines, three answers, no restart, state unchanged. |
@@ -1025,13 +1025,13 @@ does the same).
 | H11 | Reconnect: A sets 25 Mbps and exits; B connects | B's first kind 16 shows 25 Mbps (the CLI keeps it for the session). |
 | H12 | Tolerance: `--junk`; `--raw17={@3`; `--raw17={"token":5,"bitrate":25000000,"future":1}@4`; `--raw17={"bitrate":8000000}@5` | The host keeps serving. The malformed one gets no answer. The extra key is ignored and the change applies. The tokenless change applies and its reply has no `answering`. |
 | H13 | Idle dedupe: 20 s streaming with `--stats` | Exactly two kind 16 in total, even though the snapshot changes every second. Host CPU as in the baseline. |
-| H14 | `SillHost --synthetic --virtual-display`: `--set=virtualDisplay=0@3 --set=virtualDisplay=1@5` | Both accepted: "Settings: virtual display on → off", then "off → on". No restart and no display created (the Desktop never uses one, :337). `virtualDisplayAvailable:true`. |
-| H15 | App: `--set=bitrate=25000000@3` | `defaults read SillMenuBar bitrate` = 25000000; app.log has both lines; `persistent:true`. |
-| H16 | App: `-SillSetAfter '4 maxFPS=60'` with a connected client | A broadcast (no `answering`) with maxFPS 60 at about 4 s. |
-| H17 | App races: `-SillSetAfter '4 bitrate=8000000'` plus `--set=maxFPS=60@4`; then `-SillSetAfter '3 bitrate=25000000'` plus `--set=bitrate=8000000@3.05` | First: both keys in the defaults and in the final state. Second: whichever app.log shows last wins in the defaults, the final state and the running stream. |
-| H18 | App relaunch after H15 | The first kind 16 shows 25 Mbps and `persistent:true`. Then `defaults delete SillMenuBar`. |
-| H19 | `-SillRenderPreviews <dir>` before and after | `menu.txt` and the pane renders are identical (the QualityPreset move is import-only). |
-| H20 | Mac-path regression after the synchronous `onChange` | Each `-SillSetAfter` change gives one "Settings:" line and at most one restart (virtual display on while the Desktop streams: none). Quit exits 0 through `releaseForQuit`. Idle CPU 0.0%. |
+| H14 | `SkopryHost --synthetic --virtual-display`: `--set=virtualDisplay=0@3 --set=virtualDisplay=1@5` | Both accepted: "Settings: virtual display on → off", then "off → on". No restart and no display created (the Desktop never uses one, :337). `virtualDisplayAvailable:true`. |
+| H15 | App: `--set=bitrate=25000000@3` | `defaults read SkopryMenuBar bitrate` = 25000000; app.log has both lines; `persistent:true`. |
+| H16 | App: `-SkoprySetAfter '4 maxFPS=60'` with a connected client | A broadcast (no `answering`) with maxFPS 60 at about 4 s. |
+| H17 | App races: `-SkoprySetAfter '4 bitrate=8000000'` plus `--set=maxFPS=60@4`; then `-SkoprySetAfter '3 bitrate=25000000'` plus `--set=bitrate=8000000@3.05` | First: both keys in the defaults and in the final state. Second: whichever app.log shows last wins in the defaults, the final state and the running stream. |
+| H18 | App relaunch after H15 | The first kind 16 shows 25 Mbps and `persistent:true`. Then `defaults delete SkopryMenuBar`. |
+| H19 | `-SkopryRenderPreviews <dir>` before and after | `menu.txt` and the pane renders are identical (the QualityPreset move is import-only). |
+| H20 | Mac-path regression after the synchronous `onChange` | Each `-SkoprySetAfter` change gives one "Settings:" line and at most one restart (virtual display on while the Desktop streams: none). Quit exits 0 through `releaseForQuit`. Idle CPU 0.0%. |
 | H21 | Queued pick: `--set=captureScale=1@3 --pick=none@3.02`, 10 times | The stream stops after the restart every time (the last windowList has `active` none). Without §4 the frames continue. Also `--set=bitrate=25000000@3 --pick=desktop@3.02`: one restart only (same source dropped). Then H3 again. |
 
 #### 7.3 Simulator
@@ -1041,21 +1041,21 @@ does the same).
 | S1 | The photo matrix: the four Duo sizes (1000x710, 710x500, 710x1000, 500x710) with all eight cases; `default` at 1133x744, 744x1133, 874x402 and 402x874; `default` and `software` at 500x710 under `xcrun simctl ui booted content_size accessibility-extra-large`. Check each photo for: the panel's trailing edge under the Settings button; it fits or scrolls; header and Disconnect pinned; nothing above the half-way line in portrait; the "Settings" label fits at 56 pt; nothing clipped. Send Noah the sheet. |
 | S2 | Harness taps through the DEBUG echo, with the simulator control tool (inspect, then tap): a pick moves at once and settles after 0.35 s; the Quality menu opens as a system menu; `pending` shows its spinner; `legacy` has no controls; Done, a tap outside, the Settings button and the Apps button all close the panel; rotating keeps it open. |
 | S3 | Accessibility Inspector: modal trait, labels, escape closes it, focus on the header when it opens; Reduce Motion gives a fade only. |
-| S4 | Hardware keyboard (I/O › Keyboard › Connect Hardware Keyboard), under `-SillKeyboard 1`: open the panel, and the overlay resigns. Esc closes it; after closing, the overlay is first responder again. |
-| S5 | Live against the CLI: `-SillLayout 710x1000 -SillLive 1 -SillConnect 127.0.0.1:$PORT -SillSettings 1` against `SillHost --synthetic`. The panel shows the CLI state. Change Quality: the host log shows both lines, and the readout moves to the new Mbps. Then a Mac-side `sillclient --set=captureScale=1@5`: the simulator panel follows (screenshot). Repeat against the bare `SillMenuBar --synthetic` and watch `defaults read SillMenuBar`. |
-| S6 | Older host: build the branch point in a `git worktree`, run its `--synthetic`, and connect the new client with `-SillConnect`. After 2 s: "Update Sill on …"; Disconnect works; nothing of kind 17 is sent. |
+| S4 | Hardware keyboard (I/O › Keyboard › Connect Hardware Keyboard), under `-SkopryKeyboard 1`: open the panel, and the overlay resigns. Esc closes it; after closing, the overlay is first responder again. |
+| S5 | Live against the CLI: `-SkopryLayout 710x1000 -SkopryLive 1 -SkopryConnect 127.0.0.1:$PORT -SkoprySettings 1` against `SkopryHost --synthetic`. The panel shows the CLI state. Change Quality: the host log shows both lines, and the readout moves to the new Mbps. Then a Mac-side `skopryclient --set=captureScale=1@5`: the simulator panel follows (screenshot). Repeat against the bare `SkopryMenuBar --synthetic` and watch `defaults read SkopryMenuBar`. |
+| S6 | Older host: build the branch point in a `git worktree`, run its `--synthetic`, and connect the new client with `-SkopryConnect`. After 2 s: "Update Skopry on …"; Disconnect works; nothing of kind 17 is sent. |
 
 #### 7.4 Noah's iPad mini and the Mac (handed over; 60 Hz device, so 120 fps changes nothing on it)
 
 | # | Check |
 |---|---|
-| D1 | Streaming a real window from Sill.app, open Settings: the values match the Mac menu, and the readout matches the status card. |
-| D2 | Change Quality, Resolution, Frame Rate and Speed from the iPad. Each gives one short restart. The Mac's open Settings window follows live, and the menu shows the change when reopened. `defaults read me.saffer.sill.mac` holds it, and it survives a relaunch. |
-| D3 | Virtual Display on from the iPad while a window streams: the window leaves the Mac's screen, and Displays shows "Sill". Off: it comes home and comes forward (Q3). Repeat with a full-screen window. |
+| D1 | Streaming a real window from Skopry.app, open Settings: the values match the Mac menu, and the readout matches the status card. |
+| D2 | Change Quality, Resolution, Frame Rate and Speed from the iPad. Each gives one short restart. The Mac's open Settings window follows live, and the menu shows the change when reopened. `defaults read app.skopry.mac` holds it, and it survives a relaunch. |
+| D3 | Virtual Display on from the iPad while a window streams: the window leaves the Mac's screen, and Displays shows "Skopry". Off: it comes home and comes forward (Q3). Repeat with a full-screen window. |
 | D4 | Change a setting from the Mac menu while the iPad panel is open: the panel follows within a second. |
-| D5 | Two devices (the iPad plus an iPhone, or a simulator with `-SillLive 1`): a change on one shows on the other; simultaneous changes to different settings both stick. |
-| D6 | `swift run -c release SillHost`: the virtual display switch is disabled with its reason, the footer says "SillHost keeps these until it quits", and changes last until it quits. With `--virtual-display` the switch works. |
-| D7 | Reconnect (iPad Wi-Fi off and on, or quit and reopen Sill.app): the panel shows the Mac's values, including a change made while the iPad was away. |
+| D5 | Two devices (the iPad plus an iPhone, or a simulator with `-SkopryLive 1`): a change on one shows on the other; simultaneous changes to different settings both stick. |
+| D6 | `swift run -c release SkopryHost`: the virtual display switch is disabled with its reason, the footer says "SkopryHost keeps these until it quits", and changes last until it quits. With `--virtual-display` the switch works. |
+| D7 | Reconnect (iPad Wi-Fi off and on, or quit and reopen Skopry.app): the panel shows the Mac's values, including a change made while the iPad was away. |
 | D8 | The 60 fps footnote on the iPad mini; toggle Low Power Mode. |
 | D9 | Magic Keyboard: Esc closes the panel and does not reach the Mac; afterwards, keys reach the Mac again. |
 | D10 | VoiceOver: open the panel, change Quality, close with the escape gesture. |
@@ -1080,18 +1080,18 @@ does the same).
    - In the coordinator: `target`, `setTarget` in place of `apply`, the hook property, the
      handler, state and publish, `deviceName`, the send in `sendCatalog`, the init wiring and the
      MARK comment.
-   - Extend `sillclient.py`.
+   - Extend `skopryclient.py`.
    - Keep the app compiling: the AppModel closure must call `setTarget` in this commit.
    - Gates: H3–H14.
 3. **App** (commit 3).
    - The synchronous `onChange` and the device hook in `AppModel.start()`.
    - The `HostSettings` doc comment and closure type, and the `HostConfig` doc comment.
-   - Gates: H15–H20. Delete the `SillMenuBar` domain afterwards.
+   - Gates: H15–H20. Delete the `SkopryMenuBar` domain afterwards.
 4. **Queued pick** (commit 4, on its own because it changes existing behaviour). Gates: H21, then
    H3 again.
 5. **iOS model** (commit 5).
    - `HostSettingsLedger.swift` with its pbxproj entries.
-   - The StreamClient section, the `connect(to:name:)` refactor and `-SillConnect`.
+   - The StreamClient section, the `connect(to:name:)` refactor and `-SkopryConnect`.
    - Gates: H1, H2.
 6. **iOS panel** (commit 6).
    - `HostSettingsPanel.swift` with its pbxproj entries.
@@ -1103,13 +1103,13 @@ does the same).
    - CLAUDE.md:
      - the current step;
      - the Layout entries for the new files;
-     - the harness line (`-SillSettings`, `-SillSettingsCase`, `-SillConnect`);
-     - the new `sillclient.py` flags;
-     - "a device's change lasts until SillHost quits";
+     - the harness line (`-SkoprySettings`, `-SkoprySettingsCase`, `-SkopryConnect`);
+     - the new `skopryclient.py` flags;
+     - "a device's change lasts until SkopryHost quits";
      - replace "`StreamCoordinator.apply`" with `setTarget`;
      - "Untested, for Noah" = D1–D11.
-   - README: a device can change the Mac's settings; Sill.app saves them and the CLI keeps them
-     for the session; reset with `defaults delete me.saffer.sill.mac <key>`.
+   - README: a device can change the Mac's settings; Skopry.app saves them and the CLI keeps them
+     for the session; reset with `defaults delete app.skopry.mac <key>`.
 8. **Review and hand over.**
    - Three review lenses, then adversarial verification of H0–H21 and S1–S6:
      - protocol compatibility;
@@ -1120,7 +1120,7 @@ does the same).
 
 ### 9. What step 3 (bring your own VPN or public IP) inherits
 
-- **Connect by address.** `StreamClient.connect(to endpoint:name:)` and DEBUG `-SillConnect`
+- **Connect by address.** `StreamClient.connect(to endpoint:name:)` and DEBUG `-SkopryConnect`
   already exist. Step 3 adds "Add a Mac by address" and a saved list on the connect screen, not in
   this panel. The panel is titled from `macName`, so it already works for such connections.
 - **Remote tuning.** This panel is how a remote user drops to Efficient, Standard or 60 fps on a
@@ -1154,7 +1154,7 @@ doesn't say otherwise.
    taps. This reverses the 2026-09-23 Leave button. The alternative keeps one-tap Leave and adds a
    "Settings for ‹Mac›" row at the bottom of the Apps drawer. A sixth bar button is not offered:
    it would cut the outer display's strip from about 2.1 thumbnails to 1.4.
-2. **Saving.** Default: **Sill.app saves a device's change like a menu click** (it survives a
+2. **Saving.** Default: **Skopry.app saves a device's change like a menu click** (it survives a
    relaunch, and the Mac's Settings window moves). The request says "same as the Mac app". The
    alternative is session-only on both hosts. The CLI is session-only either way.
 3. **The virtual display from a device.** Default: **a device may toggle it, with full menu

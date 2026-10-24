@@ -4,16 +4,16 @@ plugins {
 }
 
 android {
-    namespace = "me.saffer.sill.android"
+    namespace = "app.skopry.android"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "me.saffer.sill.android"
+        applicationId = "app.skopry.android"
         // Android 10: TLS 1.3 and ALPN on SSLSocket (Conscrypt), which the doors require.
         minSdk = 29
         targetSdk = 36
         versionCode = 1
-        // One version for every Sill app (docs/release-checklist.md): the Mac's floor reads it.
+        // One version for every Skopry app (docs/release-checklist.md): the Mac's floor reads it.
         versionName = "0.5.1"
     }
 

@@ -1,13 +1,13 @@
-// Sources/SillHost/ClientLink.swift on its own (no awdl0 or USB cable headless): PR #6's checks of
+// Sources/SkopryHost/ClientLink.swift on its own (no awdl0 or USB cable headless): PR #6's checks of
 // runsPeerToPeer, unchanged, then the route each device's row on the menu card ends in.
-//   swiftc -O -package-name sill Sources/SillHost/ClientLink.swift Tests/checks/clientlink/main.swift -o .build/checks/clientlink/check && .build/checks/clientlink/check
+//   swiftc -O -package-name skopry Sources/SkopryHost/ClientLink.swift Tests/checks/clientlink/main.swift -o .build/checks/clientlink/check && .build/checks/clientlink/check
 import Foundation
 typealias L = ClientLink
 typealias I = ClientLink.Interface
 var fails = 0, passes = 0
 func check(_ name: String, _ ok: Bool) { if ok { passes += 1; print("ok  ", name) } else { fails += 1; print("FAIL", name) } }
 
-// The endpoints Sill.log printed on 2026-09-24, verbatim, and the local probe's.
+// The endpoints Skopry.log printed on 2026-09-24, verbatim, and the local probe's.
 let awdl = "fe80::8425:bdff:fe62:8930%awdl0.63101"      // 15:37:25, the iPad over AWDL
 let wifi = "fe80::47b:5945:e0aa:d0ac%en0.55690"         // 15:34:05, the iPad over Wi-Fi
 let usb  = "fe80::18fe:abff:febb:459f%anri0.61390"      // 15:33:01, the iPad over the USB cable
