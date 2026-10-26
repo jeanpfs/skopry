@@ -1,14 +1,14 @@
 import AppKit
 
-/// The status item's image: design/AppIcon.svg reduced to a menu bar template. The iMac is an
-/// outline with its stand, the iPad sits tilted in its screen as in the icon, and the state shows
-/// on the iPad: empty (idle), a dot (a device is connected), a window (streaming), or a badge at
-/// the lower right (Skopry needs attention).
+/// The status item's image: design/AppIcon.svg reduced to a menu bar template. Two windows stacked
+/// at the left (the Mac's), and at the right the one that goes to the device, whose inside shows the
+/// state: empty (idle), a dot (a device is connected), the arrow (streaming), or a badge at the
+/// lower right (Skopry needs attention).
 ///
-/// Drawn in code from the SVG's own coordinates, so there is no asset to keep in sync, and marked
-/// as a template so the menu bar tints it for light and dark bars and highlights it when the menu
-/// is open. `symbolFallback` (SF Symbol macbook.and.ipad) is the stand-in if this drawing is ever
-/// dropped; the previews render both side by side.
+/// Drawn in code, so there is no asset to keep in sync, and marked as a template so the menu bar
+/// tints it for light and dark bars and highlights it when the menu is open. `symbolFallback`
+/// (SF Symbol macwindow.on.rectangle) is the stand-in if this drawing is ever dropped; the
+/// previews render both side by side.
 enum StatusGlyph {
     enum State: Equatable, CaseIterable { case idle, connected, streaming, attention }
 
@@ -16,7 +16,7 @@ enum StatusGlyph {
     static let size = NSSize(width: 21, height: 18)
 
     static let symbolFallback: NSImage? = {
-        let image = NSImage(systemSymbolName: "macbook.and.ipad", accessibilityDescription: "Skopry")
+        let image = NSImage(systemSymbolName: "macwindow.on.rectangle", accessibilityDescription: "Skopry")
         image?.isTemplate = true
         return image
     }()
@@ -32,58 +32,47 @@ enum StatusGlyph {
         return image
     }
 
-    // MARK: Geometry, in AppIcon.svg units (1024 grid; the iMac group's 56-unit shift applied)
+    // MARK: Geometry, in points (y down)
 
-    /// Units → points: the drawing spans the iMac's 536-unit height (body top to foot bottom) in
-    /// 16 pt, centred in the image.
-    private static let scale: CGFloat = 16 / 536
-    private static let origin = CGPoint(x: 176 - (size.width / scale - 672) / 2, y: 232 - 1 / scale)
+    private static let line: CGFloat = 1.3
 
-    private static func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> CGRect {
-        CGRect(x: (x - origin.x) * scale, y: (y - origin.y) * scale, width: w * scale, height: h * scale)
-    }
-
-    private static func rounded(_ r: CGRect, _ radius: CGFloat) -> CGPath {
-        CGPath(roundedRect: r, cornerWidth: radius * scale, cornerHeight: radius * scale, transform: nil)
+    private static func outline(_ r: CGRect, _ radius: CGFloat) -> CGPath {
+        CGPath(roundedRect: r.insetBy(dx: line / 2, dy: line / 2), cornerWidth: radius, cornerHeight: radius, transform: nil)
     }
 
     private static func draw(_ state: State, in ctx: CGContext) {
         ctx.setFillColor(NSColor.black.cgColor)
         ctx.setStrokeColor(NSColor.black.cgColor)
+        ctx.setLineWidth(line)
+        ctx.setLineCap(.round)
+        ctx.setLineJoin(.round)
 
-        // The iMac: body outline (stroked inside the SVG's 672×456 rectangle), neck and foot.
-        let stroke: CGFloat = 50                              // 1.5 pt
-        ctx.setLineWidth(stroke * scale)
-        ctx.addPath(rounded(rect(176 + stroke / 2, 232 + stroke / 2, 672 - stroke, 456 - stroke), 60 - stroke / 2))
-        ctx.strokePath()
-        ctx.fill(rect(480, 686, 64, 50))
-        ctx.addPath(rounded(rect(372, 728, 280, 40), 20))
+        // The Mac's two windows, stacked at the left.
+        let top = CGRect(x: 0.5, y: 1.5, width: 9, height: 6.5)
+        let bottom = CGRect(x: 0.5, y: 10, width: 9, height: 6.5)
+        ctx.addPath(outline(top, 1.8)); ctx.strokePath()
+        ctx.addPath(outline(bottom, 1.8)); ctx.strokePath()
+
+        // The window that goes to the device, in front: it clears what is behind it, then shows the state.
+        let front = CGRect(x: 7, y: 5, width: 13.5, height: 8.5)
+        ctx.setBlendMode(.clear)
+        ctx.addPath(CGPath(roundedRect: front.insetBy(dx: -1.4, dy: -1.4), cornerWidth: 3, cornerHeight: 3, transform: nil))
         ctx.fillPath()
+        ctx.setBlendMode(.normal)
+        ctx.addPath(outline(front, 2.2)); ctx.strokePath()
 
-        // The iPad, tilted -5° like the icon's, centred in the iMac's screen: an outline whose
-        // screen shows the state.
-        let center = rect(512, 460, 0, 0).origin
-        ctx.saveGState()
-        ctx.translateBy(x: center.x, y: center.y)
-        ctx.rotate(by: -5 * .pi / 180)
-        let pad = CGRect(x: -180 * scale, y: -125 * scale, width: 360 * scale, height: 250 * scale)
-        let border: CGFloat = 40                              // 1.2 pt
-        ctx.setLineWidth(border * scale)
-        ctx.addPath(CGPath(roundedRect: pad.insetBy(dx: border / 2 * scale, dy: border / 2 * scale),
-                           cornerWidth: 24 * scale, cornerHeight: 24 * scale, transform: nil))
-        ctx.strokePath()
+        let c = CGPoint(x: front.midX, y: front.midY + 0.6)
         switch state {
         case .connected:
-            let d: CGFloat = 70 * scale
-            ctx.fillEllipse(in: CGRect(x: -d / 2, y: -d / 2, width: d, height: d))
+            let d: CGFloat = 3.2
+            ctx.fillEllipse(in: CGRect(x: c.x - d / 2, y: c.y - d / 2, width: d, height: d))
         case .streaming:
-            let window = pad.insetBy(dx: (border + 30) * scale, dy: (border + 30) * scale)
-            ctx.addPath(CGPath(roundedRect: window, cornerWidth: 12 * scale, cornerHeight: 12 * scale, transform: nil))
-            ctx.fillPath()
+            ctx.move(to: CGPoint(x: c.x - 3.6, y: c.y)); ctx.addLine(to: CGPoint(x: c.x + 3.4, y: c.y))
+            ctx.move(to: CGPoint(x: c.x + 0.8, y: c.y - 2.6)); ctx.addLine(to: CGPoint(x: c.x + 3.6, y: c.y)); ctx.addLine(to: CGPoint(x: c.x + 0.8, y: c.y + 2.6))
+            ctx.strokePath()
         case .idle, .attention:
             break
         }
-        ctx.restoreGState()
 
         // Attention: a dot at the lower right, cut out of whatever it overlaps.
         if state == .attention {

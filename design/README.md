@@ -1,8 +1,10 @@
 # Design sources
 
 - `AppIcon.svg` — the app icon on the 1024 grid, full square (iOS applies the
-  squircle). Four groups map to Icon Composer layers: background, iMac, iPad,
-  window. Render the asset with:
+  squircle). Three flat colours (abyss #0B0F19, violet #4F46E5 / #6366F1, coral
+  #FF5733): two stacked windows and the one you stream, with an arrow. Android's
+  adaptive icon (`android/.../drawable/ic_launcher_*.xml`) uses the same shapes.
+  Render the asset with (Quick Look caches by path, so render a copy that has a new name after editing):
 
   ```
   qlmanage -t -s 1024 -o . design/AppIcon.svg   # then flatten alpha before adding to the catalog
@@ -29,10 +31,7 @@
   lines together (`Tests/checks/dmg-layout` holds the same numbers). Keep
   every edge white: the window is sized for macOS 27's title bar, so under
   macOS 14's and 15's shorter one it shows 4 points below the picture.
-- The menu bar glyph is drawn in code from the same geometry
-  (`Sources/SkopryMenuBar/StatusGlyph.swift`): the iMac outline with the tilted
-  iPad, as a template image. `SkopryMenuBar -SkopryRenderPreviews <dir>` writes
+- The menu bar glyph is drawn in code from the same shapes
+  (`Sources/SkopryMenuBar/StatusGlyph.swift`): the two stacked windows and the
+  front one, as a template image. `SkopryMenuBar -SkopryRenderPreviews <dir>` writes
   `glyphs.png` with every state on light and dark bars.
-- `screenshots/`: the App Store's iPad screenshots that the README shows, at
-  half size (1032 × 1376, JPEG). Open-source app lists link these files, so
-  keep their names.

@@ -112,8 +112,11 @@ if [ ! -f "$icon_out/compiled/Assets.car" ] || [ design/AppIcon.svg -nt "$icon_o
     else
         doc="$icon_out/AppIcon.icon"
         mkdir -p "$doc/Assets"
-        qlmanage -t -s 1024 -o "$icon_out" "$PWD/design/AppIcon.svg" >/dev/null 2>&1 || true
-        mv "$icon_out/AppIcon.svg.png" "$doc/Assets/Skopry.png" 2>/dev/null || true
+        # Quick Look caches thumbnails by path: render a copy named by the SVG's hash, so an edited icon is never served stale.
+        svg_copy="$icon_out/icon-$(shasum -a 256 design/AppIcon.svg | cut -c1-12).svg"
+        cp design/AppIcon.svg "$svg_copy"
+        qlmanage -t -s 1024 -o "$icon_out" "$svg_copy" >/dev/null 2>&1 || true
+        mv "$svg_copy.png" "$doc/Assets/Skopry.png" 2>/dev/null || true
         cat > "$doc/icon.json" <<'JSON'
 {
   "fill" : { "solid" : "srgb:0.00000,0.00000,0.00000,1.00000" },

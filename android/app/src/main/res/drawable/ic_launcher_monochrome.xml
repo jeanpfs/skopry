@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- design/AppIcon.svg's three windows and arrow, at the SVG's own coordinates shifted 8 units left
+     to centre them; 57 dp wide, inside the adaptive icon's 66 dp safe zone. The themed icon (one colour, from the shapes' alpha): the back windows at half strength, the front window solid with the arrow cut out. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="1024" android:viewportHeight="1024">
+    <group android:translateX="-8">
+        <path android:pathData="M280,300h240a30,30 0 0 1 30,30v130a30,30 0 0 1 -30,30h-240a30,30 0 0 1 -30,-30v-130a30,30 0 0 1 30,-30zM280,530h240a30,30 0 0 1 30,30v130a30,30 0 0 1 -30,30h-240a30,30 0 0 1 -30,-30v-130a30,30 0 0 1 30,-30z" android:fillColor="#FF000000" android:fillAlpha="0.55" />
+        <path android:pathData="M452,410h306a32,32 0 0 1 32,32v136a32,32 0 0 1 -32,32h-306a32,32 0 0 1 -32,-32v-136a32,32 0 0 1 32,-32zM590,518H676V486L732,530L676,574V542H590Z" android:fillType="evenOdd" android:fillColor="#FF000000" />
+    </group>
+</vector>
