@@ -84,7 +84,7 @@ import app.skopry.android.protocol.SettingsChange
 import app.skopry.android.protocol.StreamSource
 import app.skopry.android.protocol.WindowInfo
 
-private val DeckColor = Color(0xF0111214)
+private val DeckColor = SkopryColors.bar
 
 /**
  * The upright screen on a tablet or an open Fold (proposal C of the portrait redesign): the picture on
@@ -133,7 +133,7 @@ fun PortraitDeckScreen(
 
         Column(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(deckH.value.dp)
-                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(DeckColor),
+                .clip(SkopryShapes.sheetTop).background(DeckColor),
         ) {
             DeckTabRow(
                 client = client, tab = tab, size = shown, keyboardUp = keyboardUp, overlay = overlay,
@@ -389,10 +389,10 @@ private fun KeysPane(client: SkopryClient, latch: Latch, keyboardUp: Boolean, on
 @Composable
 private fun BigKey(label: String, glyph: String?, lit: Boolean, modifier: Modifier, onClick: () -> Unit) {
     Column(
-        modifier.clip(RoundedCornerShape(12.dp)).background(if (lit) SkopryColors.accent else SkopryColors.surfaceHigh).clickable(onClickLabel = label, onClick = onClick),
+        modifier.clip(RoundedCornerShape(12.dp)).background(if (lit) SkopryColors.primary else SkopryColors.surfaceHigh).clickable(onClickLabel = label, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
     ) {
-        val tint = if (lit) Color(0xFF0B1A3D) else Color.White
+        val tint = Color.White
         if (glyph != null) Text(glyph, fontSize = 18.sp, color = tint)
         Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = tint)
     }
@@ -500,7 +500,7 @@ private fun SettingsPane(client: SkopryClient, onDisconnect: () -> Unit) {
         }
         Button(
             onClick = onDisconnect, modifier = Modifier.fillMaxWidth().height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0x33FF6B5E), contentColor = SkopryColors.danger),
+            shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.live.copy(alpha = 0.15f), contentColor = SkopryColors.danger),
         ) { Text("Disconnect") }
     }
 }

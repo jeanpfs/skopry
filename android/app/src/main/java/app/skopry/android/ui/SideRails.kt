@@ -81,7 +81,7 @@ class RailsState {
     fun touch() { touches++ }
 }
 
-private val RailColor = Color(0xF0111214)
+private val RailColor = SkopryColors.bar
 
 /**
  * The stream's controls as two rails on the side edges (proposal B of the Fold redesign): the controls

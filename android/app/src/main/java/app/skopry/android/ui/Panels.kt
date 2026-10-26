@@ -2,6 +2,7 @@ package app.skopry.android.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,9 +69,10 @@ val LocalSheetPanels = compositionLocalOf { false }
 private fun PanelFrame(modifier: Modifier, title: String, onDone: () -> Unit, back: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
     val sheet = LocalSheetPanels.current
     Column(
-        (if (sheet) modifier.fillMaxWidth().heightIn(max = 560.dp).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-        else modifier.padding(8.dp).widthIn(max = 380.dp).fillMaxWidth().heightIn(max = 640.dp).clip(RoundedCornerShape(18.dp)))
-            .background(Color(0xFF1C1D20))
+        (if (sheet) modifier.fillMaxWidth().heightIn(max = 560.dp).clip(SkopryShapes.sheetTop)
+        else modifier.padding(8.dp).widthIn(max = 380.dp).fillMaxWidth().heightIn(max = 640.dp).clip(SkopryShapes.card))
+            .background(SkopryColors.surfaceHigh)
+            .border(1.dp, SkopryColors.outline, if (sheet) SkopryShapes.sheetTop else SkopryShapes.card)
             .clickable(interactionSource = null, indication = null) {},   // taps inside never reach the scrim
     ) {
         Row(Modifier.fillMaxWidth().padding(start = if (back != null) 4.dp else 18.dp, end = 6.dp, top = 6.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -152,7 +154,7 @@ internal fun SettingsStatus(client: SkopryClient) {
         )
     }
     state?.link?.takeIf { it.isBehind }?.let { link ->
-        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x33FFB020)).padding(12.dp)) {
+        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SkopryColors.warning.copy(alpha = 0.15f)).padding(12.dp)) {
             val cur = QualityPreset.name(link.bitrate)
             val sug = link.suggestedBitrate?.let { QualityPreset.shortTitle(it, link.suggestedCaptureScale ?: 1.0) }
             Text("The link can’t carry $cur." + (sug?.let { " $it is recommended." } ?: ""), fontSize = 14.sp)
@@ -223,7 +225,7 @@ fun SettingsPanel(client: SkopryClient, modifier: Modifier, onDone: () -> Unit, 
                 else "Needs Skopry on ${client.macName} with text-focus support (this fork’s Mac app).",
             )
             Spacer(Modifier.size(8.dp))
-            Button(onClick = onDisconnect, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0x33FF6B5E), contentColor = SkopryColors.danger)) {
+            Button(onClick = onDisconnect, modifier = Modifier.fillMaxWidth(), shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.live.copy(alpha = 0.15f), contentColor = SkopryColors.danger)) {
                 Text("Disconnect")
             }
         }

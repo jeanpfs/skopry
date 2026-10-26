@@ -242,7 +242,7 @@ fun StreamScreen(client: SkopryClient) {
                         )
                     }
                     if (imeVisible) Box(Modifier.fillMaxWidth().height(SIDEWAYS_KEY_ROW), contentAlignment = Alignment.Center) {
-                        Box(Modifier.widthIn(max = 620.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xE6111214))) {
+                        Box(Modifier.widthIn(max = 620.dp).clip(RoundedCornerShape(14.dp)).background(SkopryColors.toast)) {
                             KeyRow(client, latch, full = true, onKeyboard = { toggleKeyboard() }, keyboardUp = true)
                         }
                     }
@@ -282,7 +282,7 @@ fun StreamScreen(client: SkopryClient) {
         // The Mac's notices, the reconnect, the HUD.
         client.notice?.let { n ->
             Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 28.dp, start = 24.dp, end = 24.dp)
-                .clip(RoundedCornerShape(14.dp)).background(Color(0xE6202226)).padding(horizontal = 16.dp, vertical = 10.dp)) {
+                .clip(RoundedCornerShape(14.dp)).background(SkopryColors.toast).padding(horizontal = 16.dp, vertical = 10.dp)) {
                 Text(n, fontSize = 14.sp)
             }
         }
@@ -454,18 +454,18 @@ internal fun KeyRow(client: SkopryClient, latch: Latch, full: Boolean, onKeyboar
 internal fun RowScope.Cap(label: String, lit: Boolean = false, onClick: () -> Unit) {
     Box(
         Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(8.dp))
-            .background(if (lit) SkopryColors.accent else SkopryColors.surfaceHigh).clickable(onClick = onClick),
+            .background(if (lit) SkopryColors.primary else SkopryColors.surfaceHigh).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Text(label, fontSize = 14.sp, color = if (lit) Color(0xFF0B1A3D) else Color.White, fontWeight = FontWeight.Medium) }
+    ) { Text(label, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium) }
 }
 
 @Composable
 internal fun RowScope.CapIcon(icon: ImageVector, description: String, lit: Boolean = false, onClick: () -> Unit) {
     Box(
         Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(8.dp))
-            .background(if (lit) SkopryColors.accent else SkopryColors.surfaceHigh).clickable(onClick = onClick),
+            .background(if (lit) SkopryColors.primary else SkopryColors.surfaceHigh).clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, description, tint = if (lit) Color(0xFF0B1A3D) else Color.White) }
+    ) { Icon(icon, description, tint = Color.White) }
 }
 
 @Composable
@@ -478,6 +478,6 @@ internal fun Trackpad(client: SkopryClient, latch: Latch, modifier: Modifier, sp
             v.latched = { latch.mods }
             v.spendLatch = { latch.spend() }
         },
-        modifier = modifier.clip(RoundedCornerShape(18.dp)).background(Color(0xFF16171A)),
+        modifier = modifier.clip(RoundedCornerShape(18.dp)).background(SkopryColors.surface),
     )
 }

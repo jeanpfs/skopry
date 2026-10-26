@@ -7,3 +7,6 @@ Copyright 2026 Noah Saffer, licensed under the Apache License, Version 2.0.
 Changes from Sill include: the Android client (android/), the renaming of the
 project, its identifiers and its Mac and iOS apps to Skopry, the text sharpness
 work, and the other changes recorded in the commit history.
+
+The Android app bundles the font Plus Jakarta Sans (Copyright 2020 The Plus Jakarta Sans Project Authors),
+under the SIL Open Font License 1.1: licenses/PlusJakartaSans-OFL.txt.

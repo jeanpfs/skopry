@@ -85,7 +85,7 @@ fun ConnectScreen(client: SkopryClient) {
 
             if (client.savedMacs.isNotEmpty()) {
                 SectionTitle("Your Macs")
-                Column(Modifier.clip(RoundedCornerShape(16.dp)).background(SkopryColors.surface)) {
+                Column(Modifier.clip(SkopryShapes.card).background(SkopryColors.surface).border(1.dp, SkopryColors.outline, SkopryShapes.card)) {
                     client.savedMacs.forEachIndexed { i, mac ->
                         if (i > 0) HorizontalDivider(color = SkopryColors.outline, modifier = Modifier.padding(start = 56.dp))
                         MacRow(mac, connecting?.macName == mac.name && client.currentMac?.macID == mac.macID, home = client.homeOf(mac) != null,
@@ -98,7 +98,7 @@ fun ConnectScreen(client: SkopryClient) {
             val nearby = client.unpairedHomeMacs
             if (nearby.isNotEmpty()) {
                 SectionTitle("On this network")
-                Column(Modifier.clip(RoundedCornerShape(16.dp)).background(SkopryColors.surface)) {
+                Column(Modifier.clip(SkopryShapes.card).background(SkopryColors.surface).border(1.dp, SkopryColors.outline, SkopryShapes.card)) {
                     nearby.forEachIndexed { i, h ->
                         if (i > 0) HorizontalDivider(color = SkopryColors.outline, modifier = Modifier.padding(start = 56.dp))
                         Row(
@@ -196,7 +196,7 @@ private fun AddMacCard(client: SkopryClient, expandedAtStart: Boolean) {
     var address by rememberSaveable { mutableStateOf("") }
     var code by rememberSaveable { mutableStateOf("") }
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(SkopryColors.surface).padding(16.dp),
+        Modifier.fillMaxWidth().clip(SkopryShapes.card).background(SkopryColors.surface).border(1.dp, SkopryColors.outline, SkopryShapes.card).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }, verticalAlignment = Alignment.CenterVertically) {
@@ -209,7 +209,7 @@ private fun AddMacCard(client: SkopryClient, expandedAtStart: Boolean) {
             color = SkopryColors.secondaryText, fontSize = 14.sp, lineHeight = 19.sp,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            FilledTonalButton(enabled = !client.pairing, onClick = {
+            FilledTonalButton(enabled = !client.pairing, shape = SkopryShapes.control, onClick = {
                 val options = GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()
                 GmsBarcodeScanning.getClient(context, options).startScan()
                     .addOnSuccessListener { b -> b.rawValue?.let { client.pairWithLink(it, address.takeIf { a -> a.isNotBlank() }) } }
@@ -241,7 +241,7 @@ private fun AddMacCard(client: SkopryClient, expandedAtStart: Boolean) {
         )
         client.pairError?.let { Text(it, color = SkopryColors.danger, fontSize = 14.sp) }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(enabled = !client.pairing && address.isNotBlank() && code.length == 12, onClick = { client.pairWithCode(address, code) }) {
+            Button(enabled = !client.pairing && address.isNotBlank() && code.length == 12, shape = SkopryShapes.control, onClick = { client.pairWithCode(address, code) }) {
                 Text("Pair")
             }
             if (client.pairing) {
