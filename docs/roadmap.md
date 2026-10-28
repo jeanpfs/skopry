@@ -9,18 +9,7 @@ projeto original (Sill, de Noah Saffer) e entram aqui adaptadas ao Skopry e ao a
 O som do que está tocando no Mac passa a sair no celular ou tablet, junto com a imagem da janela.
 Quem escolhe é você: o Mac tem uma chave **Enviar Áudio**, e o dispositivo tem um botão **Mudo**.
 No original o som ainda é um recurso em teste ("beta").
-No Android é a maior das três: precisa de um tocador de áudio novo no app.
-
-### Inverter a rolagem (Reverse Scrolling)
-Uma chave nas configurações que vira ao contrário o sentido em que a rolagem acontece quando você
-arrasta o dedo no trackpad da tela. Serve a quem prefere a rolagem "clássica" em vez da "natural",
-e vale também para a rolagem com dois dedos do trackpad na tela.
-
-### Capturar na escala real do display
-O Mac passa a capturar a janela na resolução em que ela realmente aparece no seu monitor, nunca
-acima disso. O resultado é uma imagem mais fiel e sem esforço inútil, e janelas com tamanho ímpar
-não ficam mais com a borda cortada. Mexe na parte do Mac que mais pesa na nitidez, então entra
-depois de medir contra o que já temos.
+No Android é o item maior da lista: precisa de um tocador de áudio novo no app.
 
 ### Alcançar o Mac de qualquer lugar, sem depender do Tailscale
 Hoje, fora de casa, o Skopry precisa do Tailscale ligado no Mac e no celular. Esta ideia é uma
@@ -29,6 +18,16 @@ mais ambiciosa da lista e a que mais mexe na segurança, então vem por último 
 (Original, PR #195, ainda não aceito lá.)
 
 ## Já no Skopry
+
+### Feito agora
+- **Inverter a rolagem (Android).** Uma chave nas Configurações vira ao contrário o sentido da rolagem
+  feita com o dedo, na tela e no trackpad, e também a rolagem que continua depois que você solta. A
+  roda de um mouse não muda.
+- **Capturar na escala real do display.** O Mac captura a janela na resolução em que ela de fato
+  aparece no monitor, nunca acima disso. Com um monitor comum (não Retina), uma janela não fica mais
+  num canto pequeno da imagem, a mesa de trabalho não é capturada com o quádruplo de pixels, e
+  janelas com tamanho ímpar não ficam borradas. O ponteiro também passa a chegar até o último pixel
+  da borda (a Dock escondida aparece). Numa tela Retina a imagem fica como antes.
 
 ### Trazido do projeto original
 - **Pedir um novo quadro-chave ao Mac.** Se a imagem do celular trava ou é refeita, o app pede ao

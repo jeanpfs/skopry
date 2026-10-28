@@ -94,7 +94,7 @@ class DirectTouchView(context: Context, private val client: SkopryClient) : View
     private fun sendScroll(dxPx: Float, dyPx: Float) {
         val r = videoRect
         if (r.width() <= 0f) return
-        client.scroll(scrollAt.first, scrollAt.second, (dxPx / r.width()).toDouble(), (dyPx / r.height()).toDouble())
+        client.fingerScroll(scrollAt.first, scrollAt.second, (dxPx / r.width()).toDouble(), (dyPx / r.height()).toDouble())
     }
 
     @SuppressLint("ClickableViewAccessibility")

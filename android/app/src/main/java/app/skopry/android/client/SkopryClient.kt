@@ -139,6 +139,10 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     var showHud by mutableStateOf(prefs.getBoolean("hud", false)); private set
     fun setGestures(on: Boolean) { gesturesEnabled = on; prefs.edit().putBoolean("trackpadGestures", on).apply() }
 
+    /** Reverse Scrolling: a finger's drag scrolls the content the other way. This device's own, never sent. */
+    var reverseScroll by mutableStateOf(prefs.getBoolean("reverseScroll", false)); private set
+    fun useReverseScroll(on: Boolean) { reverseScroll = on; prefs.edit().putBoolean("reverseScroll", on).apply() }
+
     /** How far a finger drag moves the Mac's pointer on the trackpad (TrackpadSpeed). This device's own, never sent. */
     var trackpadSpeed by mutableStateOf(TrackpadSpeed.parse(prefs.getString("trackpadSpeed", null))); private set
     @JvmName("chooseTrackpadSpeed")
@@ -934,6 +938,12 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     fun scroll(x: Double, y: Double, dx: Double, dy: Double) {
         session?.sendInput(Input.scroll(x, y, dx, dy))
         tookPointer(x, y, false)
+    }
+
+    /** A finger's scroll (touch or trackpad, and its coast): turned around while Reverse Scrolling is on. A mouse wheel uses `scroll` as it is. */
+    fun fingerScroll(x: Double, y: Double, dx: Double, dy: Double) {
+        val f = ScrollDirection.factor(reverseScroll)
+        scroll(x, y, dx * f, dy * f)
     }
 
     fun scrollPhase(phase: ScrollPhase, x: Double, y: Double) {

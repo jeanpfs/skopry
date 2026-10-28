@@ -222,13 +222,15 @@ fun SettingsPanel(client: SkopryClient, modifier: Modifier, onDone: () -> Unit, 
             Toggle("Three-Finger Gestures", client.gesturesEnabled) { client.setGestures(it) }
             if (client.hostGestures < 1) Note("Update Skopry on ${client.macName} for Mission Control, Spaces and more with three fingers.")
             else Note("Swipe up: Mission Control. Down: App Exposé. Left and right: Spaces. Pinch: Apps. Spread: Desktop.")
+            Toggle("Reverse Scrolling", client.reverseScroll) { client.useReverseScroll(it) }
+            Note("A finger’s drag scrolls the content the other way. A mouse wheel is not changed.")
             Toggle("Show Stream Stats", client.showHud) { client.setHud(it) }
             Toggle("Open Keyboard Automatically", client.autoKeyboard, enabled = client.hostTextFocus >= 1) { client.useAutoKeyboard(it) }
             Toggle("Sharper Enlargement (experimental)", client.sharpUpscale) { client.useSharpUpscale(it) }
             Note("Draws the picture through a bicubic filter where the screen enlarges it (Text Size 1×). Text edges are tighter; it adds about a frame of delay.")
             Note(
                 if (client.hostTextFocus >= 1) "The keyboard opens when a text field takes focus on ${client.macName}, and closes when it loses it."
-                else "Needs Skopry on ${client.macName} with text-focus support (this fork’s Mac app).",
+                else "Needs the Skopry Mac app with text-focus support.",
             )
             Spacer(Modifier.size(8.dp))
             Button(onClick = onDisconnect, modifier = Modifier.fillMaxWidth(), shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.live.copy(alpha = 0.15f), contentColor = SkopryColors.danger)) {

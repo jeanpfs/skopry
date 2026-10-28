@@ -497,6 +497,7 @@ private fun SettingsPane(client: SkopryClient, onDisconnect: () -> Unit) {
                     s.directWireless?.let { dw -> add { Toggle("Direct Wireless Connection", dw, enabled = client.route == null) { client.changeSettings(SettingsChange(directWireless = it)) } } }
                 }
                 add { Toggle("Three-Finger Gestures", client.gesturesEnabled) { client.setGestures(it) } }
+                add { Toggle("Reverse Scrolling", client.reverseScroll) { client.useReverseScroll(it) } }
                 add { Toggle("Show Stream Stats", client.showHud) { client.setHud(it) } }
                 add { Toggle("Open Keyboard Automatically", client.autoKeyboard, enabled = client.hostTextFocus >= 1) { client.useAutoKeyboard(it) } }
                 add { Toggle("Sharper Enlargement (experimental)", client.sharpUpscale) { client.useSharpUpscale(it) } }

@@ -1198,7 +1198,8 @@ AirDrop, Sidecar and Universal Control can hold AWDL on too.
   repainting (covered on the Mac, or the app is idle).
 - The Mac has one hardware video encoder, shared by every app. When it keeps
   a frame for 1.5 s the log says "switching to the software encoder" and the
-  stream restarts at half resolution on the CPU, up to 60 fps (a launch probe
+  stream restarts on the CPU at 1x (Standard: half the resolution each way on
+  a Retina display, the same on a 1x one), up to 60 fps (a launch probe
   with no answer, "Hardware encoder probe: no answer", starts there). Almost
   always the encoder is busy, not broken: the iOS Simulator's screen recorder
   (`xcrun simctl io … recordVideo`) runs at a higher priority in the encoder

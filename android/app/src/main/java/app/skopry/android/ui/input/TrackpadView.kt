@@ -57,7 +57,7 @@ class TrackpadView(context: Context, private val client: SkopryClient) : View(co
 
     private val momentum = ScrollMomentum(density,
         onBegin = { client.scrollPhase(ScrollPhase.MOMENTUM_BEGAN, coastX, coastY) },
-        onStep = { dx, dy -> client.scroll(coastX, coastY, (dx / width).toDouble(), (dy / ySpan()).toDouble()) },
+        onStep = { dx, dy -> client.fingerScroll(coastX, coastY, (dx / width).toDouble(), (dy / ySpan()).toDouble()) },
         onEnd = { client.scrollPhase(ScrollPhase.MOMENTUM_ENDED, coastX, coastY) },
     )
 
@@ -146,7 +146,7 @@ class TrackpadView(context: Context, private val client: SkopryClient) : View(co
                         twoFingerScroll = true
                         client.scrollPhase(ScrollPhase.BEGAN, cx, cy)
                     }
-                    client.scroll(cx, cy, ((mx - lastX) / width).toDouble(), ((my - lastY) / ySpan()).toDouble())
+                    client.fingerScroll(cx, cy, ((mx - lastX) / width).toDouble(), ((my - lastY) / ySpan()).toDouble())
                     lastX = mx; lastY = my
                 } else {
                     val idx = e.findPointerIndex(trackingId).takeIf { it >= 0 } ?: 0
