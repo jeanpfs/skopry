@@ -80,6 +80,14 @@ public enum StreamMessageKind: UInt8 {
                              // text focus (an empty one is fine) and `{"stop":true}` ends it; only to a host whose window
                              // list says `textFocus` 1 or more. Host → device: whether a text field has focus on the Mac,
                              // once at subscription and then on every change, only to a connection that subscribed
+    // The picture's recovery, after the numbers the original project's open pull requests hold (29 to 31 and
+    // 34 to 43). Older hosts map it to `.unknown` and skip it: the device's picture then waits for the window's
+    // next keyframe, as it always did. (Kind 44 is the same number and shape the original project gave it.)
+    case keyframeRequest = 44 // device → host, empty payload: this device's picture was interrupted (its decoder
+                             // fell behind or was made again with nothing to replay) and waits for a keyframe,
+                             // which a still window never sends by itself. The host asks its encoder for one
+                             // (every device gets it, as when a device joins); never a pick of the source again.
+                             // At most one a second per connection on the host
     case unknown = 255       // never sent: what parseHeader yields for a kind this build does not know
 }
 

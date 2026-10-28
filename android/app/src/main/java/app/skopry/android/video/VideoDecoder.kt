@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
 import app.skopry.android.protocol.ParameterSets
@@ -30,6 +31,8 @@ class VideoDecoder(private val events: Events) {
         /** The codec cannot take this size; the client asks the Mac for Standard resolution. */
         fun onUnsupportedSize(width: Int, height: Int)
         fun onFrameRendered() {}
+        /** Waiting for a keyframe in the middle of a stream (it dropped its backlog, or was made again with nothing to replay): ask the Mac for one. */
+        fun onNeedsKeyframe() {}
     }
 
     private val thread = HandlerThread("skopry-decoder", android.os.Process.THREAD_PRIORITY_DISPLAY).apply { start() }
@@ -49,6 +52,23 @@ class VideoDecoder(private val events: Events) {
     private var replaying = false
     private var replayUntilPts = 0L
     private var needKeyframe = true
+    /** Some frame of this stream has arrived: a wait for a keyframe from here on is a wait in the middle of it, not the start of it, where the Mac sends one on its own. */
+    private var streamSeen = false
+    private val ask = KeyframeAsk()
+    private val askTick = Runnable { if (needKeyframe) { if (ask.poll(SystemClock.elapsedRealtime())) events.onNeedsKeyframe(); scheduleAsk() } }
+
+    /** The decoder can take nothing until the next keyframe. In the middle of a stream, ask the Mac for one (`KeyframeAsk` says when). */
+    private fun waitForKeyframe() {
+        needKeyframe = true
+        if (!streamSeen) return
+        if (ask.begin(SystemClock.elapsedRealtime())) events.onNeedsKeyframe()
+        scheduleAsk()
+    }
+
+    private fun scheduleAsk() {
+        handler.removeCallbacks(askTick)
+        ask.nextDelay(SystemClock.elapsedRealtime())?.let { handler.postDelayed(askTick, it) }
+    }
     private var configuredSize: Pair<Int, Int>? = null
 
     private class Pending(val data: ByteArray, val ptsUs: Long, val key: Boolean)
@@ -118,16 +138,17 @@ class VideoDecoder(private val events: Events) {
         val frame = Pending(annexB, nextPts(hostTimestamp), keyframe)
         // Every frame of the stream is kept, whatever the codec is doing: a run with a hole would not decode.
         gop.add(GopCache.Frame(annexB, frame.ptsUs, keyframe))
+        streamSeen = true
         if (codec == null) return@post
         if (needKeyframe && !keyframe) return@post
         needKeyframe = false
+        ask.end(); handler.removeCallbacks(askTick)
         // A codec that stopped taking input for half a second has fallen behind for good: start
         // again from the next keyframe rather than show a picture that keeps lagging. (While it is
         // still allocating, frames wait: dropping them then costs a keyframe interval of black.)
         if (pending.size >= 30 && !replaying) {
             pending.clear()
-            needKeyframe = !keyframe
-            if (needKeyframe) return@post
+            if (!keyframe) { waitForKeyframe(); return@post }
         }
         pending.add(frame)
         feed()
@@ -169,6 +190,8 @@ class VideoDecoder(private val events: Events) {
         gop.clear()
         sets = null
         configuredSize = null
+        streamSeen = false
+        ask.end(); handler.removeCallbacks(askTick)
     }
 
     private fun parkSurface(): Surface {
@@ -263,6 +286,7 @@ class VideoDecoder(private val events: Events) {
                 Log.i(TAG, "replaying ${run.size} frames since the last keyframe")
                 feed()
             }
+            if (needKeyframe) waitForKeyframe()
         } catch (e: Exception) {
             Log.w(TAG, "configure $name ${w}x$h: ${e.message}")
             runCatching { c.release() }
@@ -313,7 +337,7 @@ class VideoDecoder(private val events: Events) {
                 if (f.data.size > buf.capacity()) {
                     Log.w(TAG, "frame of ${f.data.size} bytes over the input buffer's ${buf.capacity()}")
                     c.queueInputBuffer(index, 0, 0, f.ptsUs, 0)
-                    needKeyframe = true
+                    waitForKeyframe()
                     continue
                 }
                 buf.put(f.data)

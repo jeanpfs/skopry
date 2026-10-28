@@ -779,6 +779,11 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
         main.post { handleUnsupported(width, height) }
     }
 
+    /** The decoder waits for a keyframe in the middle of a stream: ask the Mac for one (kind 44; an older Mac skips it). */
+    override fun onNeedsKeyframe() {
+        main.post { if (sessionReady) session?.send(Kind.KEYFRAME_REQUEST) }
+    }
+
     /** This device's decoder cannot take the stream (a Retina capture): ask the Mac for Standard. */
     private fun handleUnsupported(width: Int, height: Int) {
         val shown = ledger.shown

@@ -49,6 +49,8 @@ object Kind {
     const val GESTURE = 28
     // Text focus (TextFocus.swift): the Mac says when a text field has focus, to a device that subscribed
     const val TEXT_FOCUS = 33
+    // The picture's recovery: this device's decoder waits for a keyframe; empty payload, device → host
+    const val KEYFRAME_REQUEST = 44
 }
 
 class Message(val kind: Int, val timestamp: Double, val isKeyframe: Boolean, val payload: ByteArray)

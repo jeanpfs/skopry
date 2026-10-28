@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: build.sh reader|mirror OUT [BUDGET]
+# usage: build.sh reader|mirror|close OUT [BUDGET]
 # Compiles Scripts/menu-check/<harness>.swift with Sources/StreamProtocol and the host's menu files
 # as one module (-package-name skopry): MenuReader, MenuFormat and MenuPolicy, and for the mirror
 # MenuMirror, each without its `import StreamProtocol` and `import Network` (the mirror's
@@ -12,6 +12,7 @@ trap 'rm -rf "$T"' EXIT
 cp "$ROOT"/Sources/StreamProtocol/*.swift "$T"/
 files=(MenuReader MenuFormat MenuPolicy)
 [ "$HARNESS" = mirror ] && files+=(MenuMirror)
+[ "$HARNESS" = close ] && files=(WindowSizer WindowRestore)
 for f in "${files[@]}"; do
   sed -e '/^import StreamProtocol$/d' -e '/^import Network$/d' -e 's/NWConnection/FakeConnection/g' \
       "$ROOT/Sources/SkopryHost/$f.swift" > "$T/$f.swift"

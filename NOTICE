@@ -10,3 +10,7 @@ work, and the other changes recorded in the commit history.
 
 The Android app bundles the font Plus Jakarta Sans (Copyright 2020 The Plus Jakarta Sans Project Authors),
 under the SIL Open Font License 1.1: licenses/PlusJakartaSans-OFL.txt.
+
+Taken from later work in the original project (Apache License 2.0, by Noah Saffer and its contributors),
+renamed to Skopry: the device's keyframe request (kind 44, host side), the display wake for a device
+(DisplayWake, DisplayActivity and their check), and the window Close's 1 second timeout.
