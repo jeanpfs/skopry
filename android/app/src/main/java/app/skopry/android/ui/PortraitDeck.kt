@@ -1,4 +1,5 @@
 package app.skopry.android.ui
+import app.skopry.android.client.TrackpadSpeed
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -475,6 +476,15 @@ private fun SettingsPane(client: SkopryClient, onDisconnect: () -> Unit) {
             if (client.hasSettings) "" else "Update Skopry on ${client.macName} to change its settings from here.",
             fontSize = 14.sp, color = SkopryColors.secondaryText,
         )
+        SettingGroup("Trackpad") {
+            Seg(TrackpadSpeed.entries.map { Triple(it, it.title, null) }, client.trackpadSpeed) { client.setTrackpadSpeed(it) }
+        }
+        SettingGroup("Picture") {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { client.savePicture() }, modifier = Modifier.weight(1f).height(48.dp), shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.surface)) { Text("Save Picture") }
+                Button(onClick = { client.sharePicture() }, modifier = Modifier.weight(1f).height(48.dp), shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.surface)) { Text("Share…") }
+            }
+        }
         SettingGroup("Transmissão e entrada") {
             val toggles = buildList<@Composable () -> Unit> {
                 if (s != null) {

@@ -99,8 +99,8 @@ class TrackpadView(context: Context, private val client: SkopryClient) : View(co
 
     private fun moveBy(dx: Float, dy: Float) {
         catchUp()
-        cx = (cx + dx / width * 1.25).coerceIn(0.0, 1.0)
-        cy = (cy + dy / ySpan() * 1.25).coerceIn(0.0, 1.0)
+        cx = (cx + dx / width * 1.25 * client.trackpadSpeed.multiplier).coerceIn(0.0, 1.0)
+        cy = (cy + dy / ySpan() * 1.25 * client.trackpadSpeed.multiplier).coerceIn(0.0, 1.0)
         client.pointer(PointerAction.MOVE, cx, cy, trackpad = true)
         seenReseeds = client.pointerReseeds
     }

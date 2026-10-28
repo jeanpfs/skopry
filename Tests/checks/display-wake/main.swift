@@ -370,6 +370,38 @@ do {
     check(userActive("remote", testHost: true) == (false, "SKOPRY_TEST_USER_ACTIVE ignored: a test host declares no user activity (it counts disp.wakeDry)."),
           "remote on a test host: ignored, with one line")
     check(W.userActive(environment: ["SKOPRY_TEST_USERACTIVE": "remote"], testHost: false) == (false, nil), "another variable: nothing")
+    check(!W.declaresRemote(awayRunning: false, stagedOnVirtualDisplay: false),
+          "declaresRemote: at home on a real display declares local (lights the panel)")
+    check(W.declaresRemote(awayRunning: true, stagedOnVirtualDisplay: false),
+          "declaresRemote: away from home declares remote (keeps the physical panel dark)")
+    check(W.declaresRemote(awayRunning: false, stagedOnVirtualDisplay: true),
+          "declaresRemote: staged on Skopry's virtual display declares remote (need not light the physical panel)")
+    check(W.declaresRemote(awayRunning: true, stagedOnVirtualDisplay: true),
+          "declaresRemote: away and staged declares remote")
+}
+
+// MARK: - Swallowing the waking click on a sleeping display
+
+do {
+    var w = W(testHost: false)
+    let downL = InputEvent.pointer(.leftDown, x: 0.25, y: 0.75)
+    let upL = InputEvent.pointer(.leftUp, x: 0.25, y: 0.75)
+    let downR = InputEvent.pointer(.rightDown, x: 0.4, y: 0.6)
+    let upR = InputEvent.pointer(.rightUp, x: 0.4, y: 0.6)
+    eq(w.filterWakeInput(downL, displayAsleep: true), .pointer(.move, x: 0.25, y: 0.75),
+       "a left press while the display is asleep moves the pointer without clicking")
+    eq(w.filterWakeInput(upL, displayAsleep: false), nil,
+       "its matching left release is swallowed even after the display wakes")
+    eq(w.filterWakeInput(downL, displayAsleep: false), downL,
+       "the next left press once the display is on clicks as usual")
+    eq(w.filterWakeInput(upL, displayAsleep: false), upL,
+       "and its left release goes through")
+    eq(w.filterWakeInput(downR, displayAsleep: true), .pointer(.move, x: 0.4, y: 0.6),
+       "a right press while the display is asleep moves the pointer without clicking")
+    eq(w.filterWakeInput(upR, displayAsleep: true), nil,
+       "its matching right release is swallowed")
+    eq(w.filterWakeInput(shift, displayAsleep: true), shift,
+       "a key press while the display is asleep is untouched")
 }
 
 // MARK: - 20,000 random sessions: the rule

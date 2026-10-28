@@ -46,5 +46,13 @@
                 <data android:scheme="skopry" android:host="pair" />
             </intent-filter>
         </activity>
+        <!-- Pictures of the stream shared through the share sheet (Still.share): read-only, from the cache. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.shots"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/shot_paths" />
+        </provider>
     </application>
 </manifest>

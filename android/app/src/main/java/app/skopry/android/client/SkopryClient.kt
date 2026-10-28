@@ -1,6 +1,11 @@
 package app.skopry.android.client
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.view.SurfaceView
+import app.skopry.android.video.Still
+import java.time.Instant
+import java.time.ZoneId
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Handler
@@ -133,6 +138,41 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     var gesturesEnabled by mutableStateOf(prefs.getBoolean("trackpadGestures", true)); private set
     var showHud by mutableStateOf(prefs.getBoolean("hud", false)); private set
     fun setGestures(on: Boolean) { gesturesEnabled = on; prefs.edit().putBoolean("trackpadGestures", on).apply() }
+
+    /** How far a finger drag moves the Mac's pointer on the trackpad (TrackpadSpeed). This device's own, never sent. */
+    var trackpadSpeed by mutableStateOf(TrackpadSpeed.parse(prefs.getString("trackpadSpeed", null))); private set
+    @JvmName("chooseTrackpadSpeed")
+    fun setTrackpadSpeed(speed: TrackpadSpeed) { trackpadSpeed = speed; prefs.edit().putString("trackpadSpeed", speed.name).apply() }
+
+    /** The surface the picture is drawn on, while the stream panel shows one (VideoPanel); a still is taken from it. */
+    var pictureView: SurfaceView? = null
+
+    /** A still of the picture as drawn now, handed to `then` on the main thread; a notice says why there is none. */
+    private fun takeStill(then: (Bitmap) -> Unit) {
+        val view = pictureView
+        if (view == null || videoSize == null) {
+            notice("No picture to save yet.")
+            return
+        }
+        Still.capture(view) { bitmap -> if (bitmap == null) notice("Could not take a picture.") else then(bitmap) }
+    }
+
+    /** Save Picture: the stream's picture as a PNG in Pictures/Skopry. */
+    fun savePicture() = takeStill { bitmap ->
+        val name = shotFileName(Instant.now(), ZoneId.systemDefault())
+        Thread {
+            val saved = Still.save(appContext, bitmap, name)
+            main.post { notice(if (saved) "Picture saved." else "Could not save the picture.") }
+        }.start()
+    }
+
+    /** Share…: the same still through the system share sheet. */
+    fun sharePicture() = takeStill { bitmap ->
+        val name = shotFileName(Instant.now(), ZoneId.systemDefault())
+        Thread {
+            if (!Still.share(appContext, bitmap, name)) main.post { notice("Could not share the picture.") }
+        }.start()
+    }
 
     /**
      * The app a session opens on, by bundle id, when it has a window open on the Mac; else the Desktop

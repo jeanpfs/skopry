@@ -97,7 +97,7 @@ fun VideoPanel(
             androidx.compose.runtime.key(client.sharpUpscale) {
             AndroidView(
                 factory = { ctx ->
-                    if (client.sharpUpscale) SharpVideoView(ctx, client).apply { pivotX = 0f; pivotY = 0f }
+                    val picture: SurfaceView = if (client.sharpUpscale) SharpVideoView(ctx, client).apply { pivotX = 0f; pivotY = 0f }
                     else SurfaceView(ctx).apply {
                         pivotX = 0f; pivotY = 0f
                         holder.addCallback(object : SurfaceHolder.Callback {
@@ -106,7 +106,10 @@ fun VideoPanel(
                             override fun surfaceDestroyed(holder: SurfaceHolder) = client.decoder.detachSurfaceNow()
                         })
                     }
+                    client.pictureView = picture
+                    picture
                 },
+                onRelease = { v -> if (client.pictureView === v) client.pictureView = null },
                 update = { v ->
                     v.scaleX = k; v.scaleY = k
                     v.translationX = rect.left - fit.left; v.translationY = rect.top - fit.top

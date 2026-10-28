@@ -30,9 +30,6 @@ package final class StreamCoordinator {
     private var wantedFPS: Int { min(maxFPS, max(24, clientFPS.values.max() ?? 60)) }
     /// What the next pipeline will run at: the software encoder is not asked for more than 60.
     private var effectiveFPS: Int { useSoftwareEncoder ? min(wantedFPS, 60) : wantedFPS }
-    /// The bitrate knob is per 60 fps; a faster stream gets proportionally more so each frame
-    /// keeps its share of bits.
-    private var streamBitrate: Int { bitrate * fps / 60 }
     /// The quality the pipeline runs: the away pair while it runs the away quality (`awayRunning`),
     /// else the home pair (HostConfig.effective).
     private var scale: CGFloat { config.effective(away: awayRunning).captureScale }
@@ -48,6 +45,9 @@ package final class StreamCoordinator {
     /// only counts `disp.wakeDry`.
     private var displayWake: DisplayWake
     private let displayActivity: DisplayActivity
+    /// Follows a newly opened window of the streamed app after recent device input, and returns
+    /// to the parent window when the child window closes (`WindowFollowPolicy`).
+    private var windowFollow = WindowFollowPolicy()
     /// The parameter sets that last went out, forgotten as each stream starts: a stream's first, and any
     /// that differ, are a new frame size for the devices (`parameterSetsSent`).
     private var lastParameterSets: Data?
@@ -899,6 +899,7 @@ package final class StreamCoordinator {
                 $0.devices[i].link = shown
             }
             guard previous?.state != report.state else { return }
+            windowFollow.reset()
             print(behind ? LinkJudge.behindLine(device: who, bitrate: bitrate, withheld: v.withheld, offered: v.offered,
                                                 carriedKbps: v.carriedKbps, suggestion: suggestion)
                          : LinkJudge.stalledLine(device: who, waiting: v.waiting))
@@ -915,6 +916,7 @@ package final class StreamCoordinator {
         switch message.kind {
         case .selectSource:
             guard let source = Wire.decode(StreamSource.self, from: message.payload) else { return }
+            windowFollow.reset()
             // A window picked comes forward on the Mac, which closes a view a gesture opened; the
             // Desktop picked (as a device does before a gesture made over a window) leaves it.
             if case .window = source { gestureChords.forget() }
@@ -950,7 +952,9 @@ package final class StreamCoordinator {
                 if let error { print("Launch failed: \(error.localizedDescription)") }
             }
         case .input:
-            guard let event = input else { return }
+            guard let rawEvent = input else { return }
+            let sleepingPhysical = !synthetic && !(virtualDisplay && stage.isStaged) && CGDisplayIsAsleep(CGMainDisplayID()) != 0
+            guard let event = displayWake.filterWakeInput(rawEvent, displayAsleep: sleepingPhysical) else { return }
             let device = ObjectIdentifier(connection)
             guard let rect = currentSourceRect() else {
                 // Nothing streams (between sources, or the stream stopped: the window closed under a
@@ -1552,7 +1556,13 @@ package final class StreamCoordinator {
     /// `title` and `kind` describe the stream in the app's menu.
     private func startPipeline(source: StreamSource, filter: SCContentFilter?, sourceRect: CGRect?, width: Int, height: Int, describe: String,
                                title: String, kind: HostStatusSnapshot.Stream.Kind) async throws {
-        let enc = try HEVCEncoder(width: width, height: height, fps: fps, bitrate: streamBitrate, prioritizeSpeed: prioritizeSpeed,
+        // What the encoder can keep up with at this size (StreamRate): `fps` stays the devices' rate,
+        // which every restart rule compares against, and only this pipeline runs slower.
+        let rate = StreamRate.capped(fps, pixels: width * height, software: useSoftwareEncoder)
+        // The bitrate knob is per 60 fps: a faster stream gets proportionally more, so each frame
+        // keeps its share of bits.
+        let rateBitrate = bitrate * rate / 60
+        let enc = try HEVCEncoder(width: width, height: height, fps: rate, bitrate: rateBitrate, prioritizeSpeed: prioritizeSpeed,
                                   software: useSoftwareEncoder)
         enc.onHung = { [weak self, weak enc] in
             Task { @MainActor in
@@ -1574,17 +1584,17 @@ package final class StreamCoordinator {
         }
         if let filter {
             capture.onFrame = { pixelBuffer, pts in enc.encode(pixelBuffer, pts: pts) }
-            try await capture.start(filter: filter, width: width, height: height, fps: fps, showsCursor: false, sourceRect: sourceRect)
+            try await capture.start(filter: filter, width: width, height: height, fps: rate, showsCursor: false, sourceRect: sourceRect)
         } else {
             syntheticCapture.onFrame = { pixelBuffer, pts in enc.encode(pixelBuffer, pts: pts) }
-            syntheticCapture.start(width: width, height: height, fps: fps)
+            syntheticCapture.start(width: width, height: height, fps: rate)
         }
         encoder = enc
         active = source
-        print("Streaming \(describe) at \(width)×\(height), \(fps) fps, \(streamBitrate / 1_000_000) Mbps")
+        print("Streaming \(describe) at \(width)×\(height), \(rate) fps\(rate < fps ? " (of \(fps): what the encoder keeps up with at this size)" : ""), \(rateBitrate / 1_000_000) Mbps")
         status.update {
-            $0.stream = HostStatusSnapshot.Stream(kind: kind, title: title, width: width, height: height, fps: fps,
-                                                  mbps: streamBitrate / 1_000_000, onVirtualDisplay: sourceRect != nil,
+            $0.stream = HostStatusSnapshot.Stream(kind: kind, title: title, width: width, height: height, fps: rate,
+                                                  mbps: rateBitrate / 1_000_000, onVirtualDisplay: sourceRect != nil,
                                                   softwareEncoder: useSoftwareEncoder)
         }
         // Frames can reach the encoder while `capture.start` is still awaiting, so its watchdog
@@ -2313,18 +2323,29 @@ package final class StreamCoordinator {
         defer { pointer.setGeometry(pointerGeometry(), fps: fps) }
         if let pending = pendingLaunch, let w = infos.first(where: { $0.bundleID == pending }) {
             pendingLaunch = nil
+            windowFollow.reset()
             await select(.window(w.id), bringForward: true)   // launched from the device to use it: a pick
             return
         }
+        let activeID: UInt32? = { if case .window(let id) = active { return id }; return nil }()
+        let entries = infos.map { (id: $0.id, bundleID: $0.bundleID) }
         if case .window(let id) = active {
             guard let w = infos.first(where: { $0.id == id }) else {
                 // Alive on the virtual display even if the on-screen list dropped it.
-                if virtualDisplay, stage.isStaged, Self.liveBounds(of: id) != nil { broadcastList(); return }
+                if virtualDisplay, stage.isStaged, Self.liveBounds(of: id) != nil {
+                    _ = windowFollow.poll(windows: entries, activeWindowID: id, now: CFAbsoluteTimeGetCurrent(),
+                                          lastActivityAt: displayWake.lastDeclared, keepMissingActive: true)
+                    broadcastList(); return
+                }
                 // Leaving full screen, a window is off every list for a second or two. Give it
                 // three polls before calling it closed, then restart so the stage re-places it.
                 if virtualDisplay, stage.isStaged, stage.fullScreen {
                     missingPolls += 1
-                    if missingPolls <= 3 { broadcastList(); return }
+                    if missingPolls <= 3 {
+                        _ = windowFollow.poll(windows: entries, activeWindowID: id, now: CFAbsoluteTimeGetCurrent(),
+                                              lastActivityAt: displayWake.lastDeclared, keepMissingActive: true)
+                        broadcastList(); return
+                    }
                     missingPolls = 0
                 } else if !(virtualDisplay && stage.isStaged) {
                     // In regular mode too: one that was full screen when last listed, or that Skopry fitted
@@ -2333,13 +2354,26 @@ package final class StreamCoordinator {
                     missingPolls += 1
                     var windows = WindowSizer.AXWindows(sizer: sizer)
                     if WindowRestore.keepsStreaming(fits.entries[id]?.handle, looks: missingPolls, wasFullScreen: listedFullScreen == id, on: &windows) {
+                        _ = windowFollow.poll(windows: entries, activeWindowID: id, now: CFAbsoluteTimeGetCurrent(),
+                                              lastActivityAt: displayWake.lastDeclared, keepMissingActive: true)
                         broadcastList(); return
                     }
                     missingPolls = 0
                 }
+                if let parent = windowFollow.poll(windows: entries, activeWindowID: id,
+                                                  now: CFAbsoluteTimeGetCurrent(),
+                                                  lastActivityAt: displayWake.lastDeclared) {
+                    await select(.window(parent), bringForward: true); return
+                }
                 await select(.none); return
             }
             missingPolls = 0
+            if let followed = windowFollow.poll(windows: entries, activeWindowID: id,
+                                                now: CFAbsoluteTimeGetCurrent(),
+                                                lastActivityAt: displayWake.lastDeclared) {
+                await select(.window(followed), bringForward: true)
+                return
+            }
             if !(virtualDisplay && stage.isStaged), let scw = catalog.window(id: id) {
                 listedFullScreen = WindowRestore.coversDisplay(scw.frame, WindowSizer.displayFrames()) ? id : nil
             }
@@ -2366,6 +2400,10 @@ package final class StreamCoordinator {
                 await select(active)
                 return
             }
+        } else {
+            _ = windowFollow.poll(windows: entries, activeWindowID: activeID,
+                                  now: CFAbsoluteTimeGetCurrent(),
+                                  lastActivityAt: displayWake.lastDeclared)
         }
         broadcastList()
     }
@@ -2573,7 +2611,10 @@ package final class StreamCoordinator {
         switch displayWake.decide(event, at: CFAbsoluteTimeGetCurrent()) {
         case .nothing: break
         case .count: Stats.shared.bump(DisplayWake.dryKey)
-        case .declare(let activity): displayActivity.declare(for: deviceName(connection), activity)
+        case .declare(let activity):
+            let remote = DisplayWake.declaresRemote(awayRunning: awayWanted,
+                                                    stagedOnVirtualDisplay: virtualDisplay && stage.isStaged)
+            displayActivity.declare(for: deviceName(connection), activity, remote: remote)
         }
     }
 

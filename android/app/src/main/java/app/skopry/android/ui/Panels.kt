@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.skopry.android.client.MenuState
 import app.skopry.android.client.SkopryClient
+import app.skopry.android.client.TrackpadSpeed
 import app.skopry.android.protocol.MacMenuItem
 import app.skopry.android.protocol.QualityPreset
 import app.skopry.android.protocol.SettingsChange
@@ -208,6 +209,11 @@ fun SettingsPanel(client: SkopryClient, modifier: Modifier, onDone: () -> Unit, 
                 }
                 if (state?.persistent == false) Note("Changes last until SkopryHost quits.")
             }
+            Group("Picture")
+            ActionRow("Save Picture") { client.savePicture() }
+            ActionRow("Share…") { client.sharePicture() }
+            Group("Trackpad")
+            TrackpadSpeed.entries.forEach { v -> Choice(v.title, client.trackpadSpeed == v) { client.setTrackpadSpeed(v) } }
             Group("This ${deviceWord(androidx.compose.ui.platform.LocalContext.current)}")
             Text("Controls Under", fontSize = 13.sp, color = SkopryColors.secondaryText)
             Choice("Right Thumb", client.rightHanded) { client.useRightHand(true) }
@@ -242,6 +248,11 @@ private fun Choice(label: String, selected: Boolean, pending: Boolean = false, o
         Text(label, fontSize = 15.sp, modifier = Modifier.weight(1f))
         if (pending) CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
     }
+}
+
+@Composable
+private fun ActionRow(label: String, onClick: () -> Unit) {
+    Text(label, fontSize = 15.sp, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(vertical = 10.dp))
 }
 
 @Composable

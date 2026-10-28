@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pictures of the stream shared through the share sheet: written to the cache, read by the receiving app. -->
+<paths>
+    <cache-path name="shots" path="shots/" />
+</paths>
