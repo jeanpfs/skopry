@@ -85,50 +85,6 @@ private fun PanelFrame(modifier: Modifier, title: String, onDone: () -> Unit, ba
     }
 }
 
-/**
- * The Apps drawer: every installed app on the Mac (an app that is open goes to its window, a closed one is
- * launched and streams its first window). The Desktop and the windows already open are on the windows rail, so they are
- * not listed here again.
- */
-@Composable
-fun AppsPanel(client: SkopryClient, modifier: Modifier, onDone: () -> Unit) {
-    var query by remember { mutableStateOf("") }
-    val launchable = client.apps
-    PanelFrame(modifier, "Apps", onDone) {
-        LazyColumn(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
-            item {
-                OutlinedTextField(query, { query = it }, placeholder = { Text("Search") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp))
-            }
-            val shown = launchable.filter { query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) }
-            if (shown.isEmpty()) item {
-                Text(if (launchable.isEmpty()) "No apps yet." else "No app matches.", fontSize = 14.sp, color = SkopryColors.secondaryText,
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp))
-            }
-            items(shown, key = { "a${it.bundleID}" }) { a ->
-                Row(Modifier.fillMaxWidth().clickable {
-                    // An app that is open goes to its window (the Mac only streams a window an app has just opened); a closed one is launched.
-                    val open = client.listedWindows.firstOrNull { it.bundleID == a.bundleID }
-                    if (open != null) client.select(StreamSource.Window(open.id)) else client.launch(a)
-                    onDone()
-                }.padding(horizontal = 18.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    AppIcon(client, a.bundleID)
-                    Spacer(Modifier.size(14.dp))
-                    Text(a.name, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppIcon(client: SkopryClient, bundleID: String) {
-    val icon = client.icons[bundleID]
-    if (icon != null) Image(icon, null, Modifier.size(30.dp))
-    else Box(Modifier.size(30.dp).clip(RoundedCornerShape(7.dp)).background(SkopryColors.surfaceHigh))
-}
-
 @Composable
 private fun Header(text: String) {
     Text(text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = SkopryColors.secondaryText, modifier = Modifier.padding(start = 18.dp, top = 14.dp, bottom = 4.dp))

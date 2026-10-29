@@ -311,7 +311,7 @@ final class WindowCatalog {
         guard !id.isEmpty, !announcedIcons.contains(id) else { return }
         let image = NSRunningApplication(processIdentifier: app.processID)?.icon
             ?? NSWorkspace.shared.icon(forFile: NSWorkspace.shared.urlForApplication(withBundleIdentifier: id)?.path ?? "")
-        guard let png = Self.png(image, size: 64) else { return }
+        guard let png = Self.png(image, size: 128) else { return }
         announce(bundleID: id, png: png)
     }
 
@@ -333,7 +333,7 @@ final class WindowCatalog {
             let found = WindowCatalog.findInstalledApps()
             let t1 = Date()
             let rendered: [(bundleID: String, png: Data)] = found.compactMap { app in
-                WindowCatalog.png(NSWorkspace.shared.icon(forFile: app.path), size: 64).map { (app.bundleID, $0) }
+                WindowCatalog.png(NSWorkspace.shared.icon(forFile: app.path), size: 128).map { (app.bundleID, $0) }
             }
             let t2 = Date()
             print("installed apps: \(found.count) in \(Int(t1.timeIntervalSince(t0) * 1000)) ms"
