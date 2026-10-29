@@ -298,7 +298,8 @@ fun StreamScreen(client: SkopryClient) {
         }
         if (client.showHud) client.stats?.let { s ->
             Text(
-                "${s.fps} fps · age ${s.frameAgeMs} ms · dec ${client.decoder.decodeLatencyMs} ms · rtt ${s.rttMs}/${s.rttMaxMs} ms · ${client.videoSize?.let { "${it.first}×${it.second}" } ?: "–"}",
+                "${s.fps} fps · age ${s.frameAgeMs} ms · dec ${client.decoder.decodeLatencyMs} ms · rtt ${s.rttMs}/${s.rttMaxMs} ms · ${client.videoSize?.let { "${it.first}×${it.second}" } ?: "–"}" +
+                    (client.audio.statsLine()?.let { "\n$it" } ?: ""),
                 fontSize = 11.sp, color = Color(0xFFB6FFB0),
                 modifier = Modifier.align(Alignment.BottomStart).padding(8.dp).background(Color(0x99000000)).padding(4.dp),
             )

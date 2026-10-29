@@ -5,12 +5,6 @@ projeto original (Sill, de Noah Saffer) e entram aqui adaptadas ao Skopry e ao a
 
 ## Planejado
 
-### Som do Mac no dispositivo
-O som do que está tocando no Mac passa a sair no celular ou tablet, junto com a imagem da janela.
-Quem escolhe é você: o Mac tem uma chave **Enviar Áudio**, e o dispositivo tem um botão **Mudo**.
-No original o som ainda é um recurso em teste ("beta").
-No Android é o item maior da lista: precisa de um tocador de áudio novo no app.
-
 ### Alcançar o Mac de qualquer lugar, sem depender do Tailscale
 Hoje, fora de casa, o Skopry precisa do Tailscale ligado no Mac e no celular. Esta ideia é uma
 conexão direta entre os dois, com chaves que só você tem, e sem servidor de ninguém no meio. É a
@@ -20,6 +14,11 @@ mais ambiciosa da lista e a que mais mexe na segurança, então vem por último 
 ## Já no Skopry
 
 ### Feito agora
+- **Som do Mac no Android (beta).** O som do que está tocando no Mac (o do app da janela que você vê,
+  ou o de todo o Mac na mesa de trabalho) sai no celular junto com a imagem. O som não é gravado: é
+  captado pelo macOS e enviado direto. O Mac segue tocando também. Nas Configurações do Mac ("Send
+  Audio (Beta)") e nas do Android ("Sound › Send Audio") há a chave, desligada de fábrica, e o Android
+  tem o botão **Mute**, só dele. O iPhone e o iPad ainda não tocam o som.
 - **Inverter a rolagem (Android).** Uma chave nas Configurações vira ao contrário o sentido da rolagem
   feita com o dedo, na tela e no trackpad, e também a rolagem que continua depois que você solta. A
   roda de um mouse não muda.

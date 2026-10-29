@@ -80,6 +80,11 @@ public enum StreamMessageKind: UInt8 {
                              // text focus (an empty one is fine) and `{"stop":true}` ends it; only to a host whose window
                              // list says `textFocus` 1 or more. Host → device: whether a text field has focus on the Mac,
                              // once at subscription and then on every change, only to a connection that subscribed
+    // The Mac's sound (Audio.swift), the number the original project gave it. Older readers map it to
+    // `.unknown` and skip it.
+    case audio = 43          // host → device: AudioMessage — the sound of what streams: a format (JSON AudioFormat),
+                             // then packets (binary AudioPackets). Only to a device whose hello lists the codec
+                             // (Hello.audio), and only while Send Audio is on
     // The picture's recovery, after the numbers the original project's open pull requests hold (29 to 31 and
     // 34 to 43). Older hosts map it to `.unknown` and skip it: the device's picture then waits for the window's
     // next keyframe, as it always did. (Kind 44 is the same number and shape the original project gave it.)

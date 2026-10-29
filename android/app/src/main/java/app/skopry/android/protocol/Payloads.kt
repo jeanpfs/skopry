@@ -92,7 +92,8 @@ object Payloads {
 
     /** Kind 23, the first message of every session connection. */
     fun hello(appVersion: String, build: String, device: String): String =
-        JSONObject().put("appVersion", appVersion).put("build", build).put("protocol", 1).put("device", device).toString()
+        JSONObject().put("appVersion", appVersion).put("build", build).put("protocol", 1).put("device", device)
+            .put("audio", JSONArray(AudioCodec.PLAYS)).toString()
 
     /** Kind 17: only the fields one control changed, and a token. */
     fun changeSettings(token: Int, change: SettingsChange): String {
@@ -103,6 +104,7 @@ object Payloads {
         change.prioritizeSpeed?.let { o.put("prioritizeSpeed", it) }
         change.virtualDisplay?.let { o.put("virtualDisplay", it) }
         change.directWireless?.let { o.put("directWireless", it) }
+        change.sendAudio?.let { o.put("sendAudio", it) }
         return o.toString()
     }
 
@@ -183,6 +185,8 @@ data class StreamSettings(
     val prioritizeSpeed: Boolean,
     val virtualDisplay: Boolean,
     val directWireless: Boolean?,
+    /** Whether the Mac sends its sound to the devices; null for a Mac without sound. */
+    val sendAudio: Boolean? = null,
 )
 
 data class SettingsChange(
@@ -192,8 +196,9 @@ data class SettingsChange(
     val prioritizeSpeed: Boolean? = null,
     val virtualDisplay: Boolean? = null,
     val directWireless: Boolean? = null,
+    val sendAudio: Boolean? = null,
 ) {
-    val isEmpty get() = maxFPS == null && bitrate == null && captureScale == null && prioritizeSpeed == null && virtualDisplay == null && directWireless == null
+    val isEmpty get() = maxFPS == null && bitrate == null && captureScale == null && prioritizeSpeed == null && virtualDisplay == null && directWireless == null && sendAudio == null
 
     fun applied(s: StreamSettings) = s.copy(
         maxFPS = maxFPS ?: s.maxFPS,
@@ -202,6 +207,7 @@ data class SettingsChange(
         prioritizeSpeed = prioritizeSpeed ?: s.prioritizeSpeed,
         virtualDisplay = virtualDisplay ?: s.virtualDisplay,
         directWireless = directWireless ?: s.directWireless,
+        sendAudio = sendAudio ?: s.sendAudio,
     )
 }
 
@@ -229,6 +235,8 @@ data class HostSettingsState(
     val answering: Int?,
     val away: AwayQuality?,
     val link: LinkReport?,
+    /** Why no sound comes although Send Audio is on, as the Mac words it. */
+    val audioNote: String? = null,
 ) {
     companion object {
         fun parse(bytes: ByteArray): HostSettingsState? = runCatching {
@@ -241,6 +249,7 @@ data class HostSettingsState(
                 prioritizeSpeed = s.getBoolean("prioritizeSpeed"),
                 virtualDisplay = s.getBoolean("virtualDisplay"),
                 directWireless = if (s.has("directWireless") && !s.isNull("directWireless")) s.getBoolean("directWireless") else null,
+                sendAudio = if (s.has("sendAudio") && !s.isNull("sendAudio")) s.getBoolean("sendAudio") else null,
             )
             val stream = o.optJSONObject("stream")?.let {
                 RunningStream(it.optInt("width"), it.optInt("height"), it.optInt("fps"), it.optInt("mbps"), it.optBoolean("onVirtualDisplay"))
@@ -267,6 +276,7 @@ data class HostSettingsState(
                 answering = o.optIntOrNull("answering"),
                 away = away,
                 link = link,
+                audioNote = o.optStringOrNull("audioNote"),
             )
         }.getOrNull()
     }

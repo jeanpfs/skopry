@@ -60,6 +60,7 @@ import app.skopry.android.protocol.WindowInfo
 import app.skopry.android.protocol.WindowList
 import app.skopry.android.protocol.parseAppList
 import app.skopry.android.video.VideoDecoder
+import app.skopry.android.audio.AudioPlayer
 
 /** The Mac's cursor, drawn under this device's pointer sprite (kind 14). Sizes in Mac points. */
 class CursorSprite(val image: ImageBitmap, val hotX: Float, val hotY: Float, val width: Float, val height: Float)
@@ -73,6 +74,8 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     private val main = Handler(Looper.getMainLooper())
     private val store = SavedMacs(appContext)
     val decoder = VideoDecoder(this)
+    /** The Mac's sound: decoded and played here; every callback lands on the main thread. */
+    val audio = AudioPlayer(appContext) { text -> main.post { audioStatus = text } }
 
     sealed class Phase {
         data object Idle : Phase()
@@ -125,6 +128,7 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     // The settings panel (kinds 16, 17).
     val ledger = SettingsLedger()
     var shownSettings by mutableStateOf<StreamSettings?>(null); private set
+    var audioStatus by mutableStateOf<String?>(null); private set
     var hostState by mutableStateOf<HostSettingsState?>(null); private set
     var settingsRevision by mutableIntStateOf(0); private set
 
@@ -138,6 +142,10 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     var gesturesEnabled by mutableStateOf(prefs.getBoolean("trackpadGestures", true)); private set
     var showHud by mutableStateOf(prefs.getBoolean("hud", false)); private set
     fun setGestures(on: Boolean) { gesturesEnabled = on; prefs.edit().putBoolean("trackpadGestures", on).apply() }
+    // The Mac's sound: this device's own mute, never sent. Muting stops the audio and skips decoding until it is off.
+    var audioMuted by mutableStateOf(prefs.getBoolean("audioMuted", false)); private set
+    fun useAudioMuted(on: Boolean) { audioMuted = on; prefs.edit().putBoolean("audioMuted", on).apply(); audio.setMuted(on) }
+    init { audio.setMuted(audioMuted) }
 
     /** Reverse Scrolling: a finger's drag scrolls the content the other way. This device's own, never sent. */
     var reverseScroll by mutableStateOf(prefs.getBoolean("reverseScroll", false)); private set
@@ -539,6 +547,7 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
     private fun endSessionState() {
         if (sessionReady) resumeKey = sourceKey()
         decoder.reset()
+        audio.stop()
         params = null
         sessionReady = false
         windows = emptyList(); active = StreamSource.None; previousActive = StreamSource.None
@@ -559,6 +568,7 @@ class SkopryClient(private val appContext: Context) : Session.Listener, VideoDec
 
     override fun onMessage(session: Session, msg: Message) {
         when (msg.kind) {
+            Kind.AUDIO -> audio.receive(msg.payload)
             Kind.FRAME -> {
                 session.noteFrame(msg.timestamp)
                 decoder.onFrame(msg.payload, msg.isKeyframe, msg.timestamp)

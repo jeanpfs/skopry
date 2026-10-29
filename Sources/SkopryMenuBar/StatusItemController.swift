@@ -16,6 +16,7 @@ struct MenuEntry: Equatable {
         /// the item shows.
         case setVirtualDisplay(Bool)
         case setDirectWireless(Bool)
+        case setSendAudio(Bool)
         case setMaxFPS(Int), setBitrate(Int), setCaptureScale(CGFloat)
         case toggleLaunchAtLogin
         case showLog, showSettings, quit
@@ -106,6 +107,11 @@ enum MenuBuilder {
             MenuEntry(kind: .item, title: "Standard", subtitle: "On a Retina display, a quarter of the pixels to encode",
                       checked: config.captureScale < 1.5, action: .setCaptureScale(1)),
         ]))
+        // The last of what streams: the sound of it (docs/audio-plan.md §6), a beta, which its title
+        // says (in the title, so menu.txt and VoiceOver have it too). Absolute, like Virtual Display:
+        // it sets the value it showed.
+        menu.append(MenuEntry(kind: .item, title: "Send Audio (Beta)", subtitle: "The Mac keeps playing it too",
+                              checked: config.sendAudio, action: .setSendAudio(!config.sendAudio)))
         menu.append(.separator)
 
         // How Skopry runs on this Mac, not the picture: devices reach it over peer-to-peer Wi-Fi too.
@@ -292,6 +298,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         case .openPrivacy: model.permissions.openPrivacyPane()
         case .setVirtualDisplay(let on): model.settings.config.virtualDisplay = on
         case .setDirectWireless(let on): model.settings.config.directWireless = on
+        case .setSendAudio(let on): model.settings.config.sendAudio = on
         case .setMaxFPS(let fps): model.settings.config.maxFPS = fps
         case .setBitrate(let bitrate): model.settings.config.bitrate = bitrate
         case .setCaptureScale(let scale): model.settings.config.captureScale = scale

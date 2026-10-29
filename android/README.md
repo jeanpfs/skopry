@@ -39,6 +39,7 @@ its own. Two things fix it, and neither raises the bitrate:
 - The device asks for **Retina** once per session (a person's own Standard in Settings is kept),
   since the pixel size now keeps Retina as cheap as the panel allows. The picture is drawn exactly
   1:1 when it fits within half a percent, so it is not resampled on the way to the screen.
+- **Sound.** The Mac's sound plays on the device (AAC-ELD, decoded by MediaCodec, played on an AudioTrack with a small jitter buffer), with a Mute that is this device's own. "Send Audio" in Settings turns it on or off on the Mac; the device lowers other apps' volume while it plays and never pauses them.
 
 Measured on a Z Fold8 against a text window (Mac side 740 × 460 points): the stream went from
 740 × 460 to 1 480 × 920 and the 99th-percentile gradient of the text's edges from 45 to 111. Latency

@@ -12,7 +12,7 @@ import app.skopry.android.protocol.StreamSettings
  * sent before the connection's first kind 16. Pure: no clock or socket of its own.
  */
 class SettingsLedger {
-    enum class Field { MAX_FPS, BITRATE, CAPTURE_SCALE, PRIORITIZE_SPEED, VIRTUAL_DISPLAY, DIRECT_WIRELESS }
+    enum class Field { MAX_FPS, BITRATE, CAPTURE_SCALE, PRIORITIZE_SPEED, VIRTUAL_DISPLAY, DIRECT_WIRELESS, SEND_AUDIO }
 
     private data class Pick(val token: Int, val value: Any, val at: Long)
 
@@ -47,6 +47,10 @@ class SettingsLedger {
         // A field the Mac reported as nil (an older Mac) is never sent.
         if (s.directWireless != null && wanted.directWireless != s.directWireless) {
             out = out.copy(directWireless = wanted.directWireless); fields += Field.DIRECT_WIRELESS to wanted.directWireless!!
+        }
+        // Same as Direct Wireless: a field the Mac reported as nil (an older Mac) is never sent.
+        if (s.sendAudio != null && wanted.sendAudio != s.sendAudio) {
+            out = out.copy(sendAudio = wanted.sendAudio); fields += Field.SEND_AUDIO to wanted.sendAudio!!
         }
         if (out.isEmpty) return null
         val token = nextToken++
@@ -87,6 +91,7 @@ class SettingsLedger {
         Field.PRIORITIZE_SPEED -> s.prioritizeSpeed
         Field.VIRTUAL_DISPLAY -> s.virtualDisplay
         Field.DIRECT_WIRELESS -> s.directWireless
+        Field.SEND_AUDIO -> s.sendAudio
     }
 
     private fun with(f: Field, v: Any, s: StreamSettings): StreamSettings = when (f) {
@@ -96,5 +101,6 @@ class SettingsLedger {
         Field.PRIORITIZE_SPEED -> s.copy(prioritizeSpeed = v as Boolean)
         Field.VIRTUAL_DISPLAY -> s.copy(virtualDisplay = v as Boolean)
         Field.DIRECT_WIRELESS -> s.copy(directWireless = v as Boolean)
+        Field.SEND_AUDIO -> s.copy(sendAudio = v as Boolean)
     }
 }

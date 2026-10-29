@@ -209,6 +209,13 @@ fun SettingsPanel(client: SkopryClient, modifier: Modifier, onDone: () -> Unit, 
                 }
                 if (state?.persistent == false) Note("Changes last until SkopryHost quits.")
             }
+            Group("Sound")
+            val sendAudio = client.shownSettings?.sendAudio
+            Toggle("Send Audio", sendAudio == true, enabled = sendAudio != null) { client.changeSettings(SettingsChange(sendAudio = it)) }
+            if (sendAudio == null) Note("Update Skopry on ${client.macName} for sound.")
+            state?.audioNote?.let { Note(it) }
+            Toggle("Mute", client.audioMuted) { client.useAudioMuted(it) }
+            client.audioStatus?.let { Note(it) }
             Group("Picture")
             ActionRow("Save Picture") { client.savePicture() }
             ActionRow("Share…") { client.sharePicture() }

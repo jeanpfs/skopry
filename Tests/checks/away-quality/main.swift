@@ -9,7 +9,8 @@
 // per 60 fps", "away points → Retina"); `effective(away:)`; a device's state shows the pair its
 // connection controls, and a change from away lands on the away pair and never on the home one, the
 // rest as at home; the whitelist is the same from both routes; who counts as away; when the away
-// quality is the target (and that the flag stays with nobody connected); and the two lines.
+// quality is the target (and that the flag stays with nobody connected); and the two lines. Also
+// HostConfig's other defaults: Share clipboard and Send Audio.
 import CoreGraphics
 import Foundation
 
@@ -91,13 +92,24 @@ do {
     check(!off.validated().shareClipboard && standard.validated().shareClipboard, "validated keeps it either way")
     let made = HostConfig(maxFPS: 60, captureScale: 1, bitrate: 8_000_000, awayBitrate: 4_000_000, awayCaptureScale: 1, prioritizeSpeed: false,
                           virtualDisplay: false, directWireless: false, remoteAccess: false, remotePort: 7455, internetAccess: false,
-                          requirePairing: true, shareClipboard: false)
+                          requirePairing: true, shareClipboard: false, sendAudio: false)
     check(!made.shareClipboard, "a HostConfig made with it off has it off (as Skopry.app's settings make one)")
     let all = HostSettingsChange(token: 1, maxFPS: 60, bitrate: 25_000_000, captureScale: 1, prioritizeSpeed: true, virtualDisplay: true,
                                  directWireless: true)
     check(!off.applying(all).shareClipboard && !off.applyingAway(all).shareClipboard
           && standard.applying(all).shareClipboard && standard.applyingAway(all).shareClipboard,
           "a device's change never moves it, at home or away")
+}
+
+// The defaults: virtual display and Send Audio are both off in `standard`, which the CLI and Skopry.app start
+// from (the CLI turns them on with --virtual-display and --audio), and a change to either is named.
+do {
+    check(!standard.virtualDisplay, "standard: the virtual display off")
+    check(!standard.sendAudio, "standard: Send Audio off")
+    var withSound = standard
+    withSound.sendAudio = true
+    check(withSound.validated() == withSound, "Send Audio on is valid as it is")
+    eq(standard.changes(to: withSound), "send audio off → on", "changes: Send Audio is named")
 }
 
 // MARK: DeviceSettings
@@ -158,6 +170,41 @@ do {
     eq(refused.count, 3, "accepted: three refusals named")
     let (fine, none) = DeviceSettings.accepted(HostSettingsChange(bitrate: 150_000_000, captureScale: 1), virtualDisplayAvailable: false, fromRemote: true)
     check(fine.bitrate == 150_000_000 && fine.captureScale == 1 && none.isEmpty, "accepted: every preset and both scales from afar")
+}
+
+do {
+    // Send Audio is a device's to set too, as Quality is (Noah, 2026-10-27: docs/audio-plan.md, Q8 as
+    // revised; the beta's hosts refused it): a device's change of it is applied on or off, at home and
+    // away, with the rest of the same change and nothing refused; it lands on the one shared value from
+    // either route (`applying`, `applyingAway`), never on a quality pair; the log names it both ways;
+    // and a device sees it, whichever pair its connection controls.
+    for remote in [false, true] {
+        for on in [false, true] {
+            let change = HostSettingsChange(token: 4, maxFPS: 60, prioritizeSpeed: true, sendAudio: on)
+            let (ok, refused) = DeviceSettings.accepted(change, virtualDisplayAvailable: true, fromRemote: remote)
+            check(ok.sendAudio == on && ok.maxFPS == 60 && ok.prioritizeSpeed == true,
+                  "accepted: Send Audio \(on ? "on" : "off") from \(remote ? "afar" : "home") applied, with the rest of the change")
+            check(refused.isEmpty, "accepted: …and nothing refused (\(refused))")
+            var from = standard
+            from.sendAudio = !on
+            let landed = remote ? from.applyingAway(ok) : from.applying(ok)
+            check(landed.sendAudio == on && landed.bitrate == from.bitrate && landed.captureScale == from.captureScale
+                  && landed.awayBitrate == from.awayBitrate && landed.awayCaptureScale == from.awayCaptureScale,
+                  "\(remote ? "applyingAway" : "applying"): Send Audio \(on ? "on" : "off") lands on the shared value, neither quality pair")
+        }
+    }
+    let (alone, none) = DeviceSettings.accepted(HostSettingsChange(token: 5, sendAudio: true), virtualDisplayAvailable: false, fromRemote: true)
+    check(alone == HostSettingsChange(sendAudio: true) && none.isEmpty, "accepted: a change of Send Audio alone is that change, without the token, from afar too")
+    var on = standard
+    on.sendAudio = true
+    check(!standard.sendAudio, "standard: Send Audio off")
+    eq(standard.changes(to: on), "send audio off → on", "changes: Send Audio's switch, as the log names it")
+    eq(on.changes(to: standard), "send audio on → off", "changes: …and off again")
+    check(standard.applying(HostSettingsChange(sendAudio: true)) == on && on.applyingAway(HostSettingsChange(sendAudio: false)) == standard,
+          "a device's Send Audio alone moves nothing else, at home or away")
+    check(on.streamSettings(away: true).sendAudio == true && on.streamSettings(away: false).sendAudio == true
+          && standard.streamSettings(away: true).sendAudio == false && standard.streamSettings(away: false).sendAudio == false,
+          "a device sees the Mac's Send Audio, at home and away")
 }
 
 // MARK: AwayPolicy

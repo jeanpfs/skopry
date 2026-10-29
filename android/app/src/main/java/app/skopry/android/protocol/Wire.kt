@@ -51,6 +51,8 @@ object Kind {
     const val TEXT_FOCUS = 33
     // The picture's recovery: this device's decoder waits for a keyframe; empty payload, device → host
     const val KEYFRAME_REQUEST = 44
+    // The Mac's sound (Audio.swift): host → device only; first payload byte 1 = format (JSON), 2 = packets
+    const val AUDIO = 43
 }
 
 class Message(val kind: Int, val timestamp: Double, val isKeyframe: Boolean, val payload: ByteArray)

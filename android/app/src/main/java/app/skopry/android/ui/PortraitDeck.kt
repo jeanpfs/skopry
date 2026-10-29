@@ -479,6 +479,14 @@ private fun SettingsPane(client: SkopryClient, onDisconnect: () -> Unit) {
         SettingGroup("Trackpad") {
             Seg(TrackpadSpeed.entries.map { Triple(it, it.title, null) }, client.trackpadSpeed) { client.setTrackpadSpeed(it) }
         }
+        SettingGroup("Sound") {
+            val sendAudio = client.shownSettings?.sendAudio
+            Toggle("Send Audio", sendAudio == true, enabled = sendAudio != null) { client.changeSettings(SettingsChange(sendAudio = it)) }
+            if (sendAudio == null) Text("Update Skopry on ${client.macName} for sound.", fontSize = 13.sp, color = SkopryColors.secondaryText)
+            state?.audioNote?.let { Text(it, fontSize = 13.sp, color = SkopryColors.secondaryText) }
+            Toggle("Mute", client.audioMuted) { client.useAudioMuted(it) }
+            client.audioStatus?.let { Text(it, fontSize = 13.sp, color = SkopryColors.secondaryText) }
+        }
         SettingGroup("Picture") {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { client.savePicture() }, modifier = Modifier.weight(1f).height(48.dp), shape = SkopryShapes.control, colors = ButtonDefaults.buttonColors(containerColor = SkopryColors.surface)) { Text("Save Picture") }
