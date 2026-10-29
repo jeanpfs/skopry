@@ -22,7 +22,7 @@ import StreamProtocol
 ///                                              SKOPRY_TEST_REMOTE_DIR)
 ///     -requirePairing YES|NO                   Require pairing at launch, saved in the identity
 ///                                              store as the Devices pane saves it
-///     -SkopryPairAfter <s>                       open a pairing window (Pair iPhone or iPad…) s
+///     -SkopryPairAfter <s>                       open a pairing window (Pair a Device…) s
 ///                                              seconds after launch. With --synthetic and
 ///                                              SKOPRY_TEST_REMOTE_DIR the link and the code are
 ///                                              also left there as pairing.url and pairing.code

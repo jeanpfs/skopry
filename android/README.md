@@ -10,7 +10,7 @@ needs no change to serve it**: any Skopry for Mac from 0.4.0 on (TLS doors with 
 1. On the Mac: Skopry for Mac with **Remote Access** on (Skopry › Settings › Remote Access), and
    Tailscale running.
 2. On the Android device: the Tailscale app, signed in to the same tailnet.
-3. On the Mac, choose **Pair iPhone or iPad…** in Skopry's menu. Its window shows a QR code, a
+3. On the Mac, choose **Pair a Device…** in Skopry's menu. Its window shows a QR code, a
    12-digit code and the address to type (the Mac's MagicDNS name, `mac.tailXXXX.ts.net`, with
    its `100.x` address under it).
 4. In Skopry on Android, **Add a Mac**: tap **Scan Code**, or type the address and the code, then

@@ -23,7 +23,7 @@ struct MenuEntry: Equatable {
         /// Settings on one tab (Remote Access…); the plain `showSettings` stays for ⌘,. (Swift
         /// allows no second case named `showSettings`.)
         case showSettingsTab(SettingsTab)
-        /// Pair iPhone or iPad…: a pairing window, or the open one brought forward.
+        /// Pair a Device…: a pairing window, or the open one brought forward.
         case showPairing
         /// "‹device› Wants to Pair": the window that shows its code brought forward, else one
         /// opened on the Mac, asked by that device.
@@ -107,10 +107,9 @@ enum MenuBuilder {
             MenuEntry(kind: .item, title: "Standard", subtitle: "On a Retina display, a quarter of the pixels to encode",
                       checked: config.captureScale < 1.5, action: .setCaptureScale(1)),
         ]))
-        // The last of what streams: the sound of it (docs/audio-plan.md §6), a beta, which its title
-        // says (in the title, so menu.txt and VoiceOver have it too). Absolute, like Virtual Display:
-        // it sets the value it showed.
-        menu.append(MenuEntry(kind: .item, title: "Send Audio (Beta)", subtitle: "The Mac keeps playing it too",
+        // The last of what streams: the sound of it (docs/audio-plan.md §6). Absolute, like Virtual
+        // Display: it sets the value it showed.
+        menu.append(MenuEntry(kind: .item, title: "Send Audio", subtitle: "The Mac keeps playing it too",
                               checked: config.sendAudio, action: .setSendAudio(!config.sendAudio)))
         menu.append(.separator)
 
@@ -143,7 +142,7 @@ enum MenuBuilder {
         menu.append(.separator)
 
         if p.remoteAccessNote != nil {
-            menu.append(MenuEntry(kind: .item, title: "Pair iPhone or iPad…", enabled: p.canPair, action: .showPairing))
+            menu.append(MenuEntry(kind: .item, title: "Pair a Device…", enabled: p.canPair, action: .showPairing))
         }
         menu.append(MenuEntry(kind: .item, title: "Show Log…", action: .showLog))
         menu.append(MenuEntry(kind: .item, title: "Settings…", key: ",", action: .showSettings))

@@ -72,7 +72,7 @@ public struct StreamSettings: Codable, Hashable, Sendable {
     public var directWireless: Bool?
     /// Send Audio: every connected device whose hello lists a codec it plays gets the sound of what
     /// streams (kind 43, Audio.swift): the streamed window's app, or every app for the Desktop. The Mac
-    /// keeps playing it too. Off by default, a beta. A device shows it as its Settings panel's Send
+    /// keeps playing it too. Off by default. A device shows it as its Settings panel's Send
     /// Audio switch and sets it for every device (`HostSettingsChange.sendAudio`), as the Mac's menu
     /// does; each device's Mute is its own and never sent. Optional because it came seventh: nil is a
     /// host without sound (the device's switch shows off and disabled, says to update the Mac, and
@@ -236,8 +236,8 @@ public struct HostSettingsChange: Codable, Hashable, Sendable {
     public var directWireless: Bool?
     /// Send Audio from a device's Settings panel: a host applies it for every device, on or off, from
     /// either door, and Skopry.app saves it as a menu click (the original's docs/audio-plan.md, Q8 as
-    /// revised). The beta's hosts (2026-10-20 to 27) refused it, on or off, and named it in their log
-    /// ("send audio (set on this Mac only)"), so a device's switch went back to the Mac's value.
+    /// revised). A host that refuses it (a device's switch then goes back to the Mac's value) is not one
+    /// of Skopry's, but a device must cope with one (the settings ledger).
     public var sendAudio: Bool?
 
     public init(token: Int? = nil, maxFPS: Int? = nil, bitrate: Int? = nil, captureScale: Double? = nil,

@@ -41,7 +41,7 @@ config.directWireless = CommandLine.arguments.contains("--direct-wireless")
 // A --synthetic host shares a pasteboard of its own, never this Mac's clipboard.
 config.shareClipboard = !CommandLine.arguments.contains("--no-clipboard")
 
-// `SkopryHost --audio`: Send Audio for this run, a beta (docs/audio-plan.md): every connected device that
+// `SkopryHost --audio`: Send Audio for this run (docs/audio-plan.md): every connected device that
 // plays the Mac's sound (its hello lists a codec) gets the streamed app's sound, or every app's for the
 // Desktop, or with --synthetic a test tone. Off by default, as in Skopry.app: the Mac keeps playing its
 // own sound. A device can turn it on or off from its Settings panel, as in Skopry.app (DeviceSettings);
@@ -147,8 +147,8 @@ func startHost() {
             print("\(c.windowCount) windows on screen. Advertising _skopry._tcp on the local network.")
             if c.active == .none { print("Nothing is streaming yet: pick a window from the iOS app. Ctrl-C to stop.") }
             if audioFlag {
-                print(synthetic ? "Audio on for this run (beta): devices that play sound get a test tone with the test pattern."
-                                : "Audio on for this run (beta): devices that play sound get the streamed app's sound, or the whole Mac's for the Desktop.")
+                print(synthetic ? "Audio on for this run: devices that play sound get a test tone with the test pattern."
+                                : "Audio on for this run: devices that play sound get the streamed app's sound, or the whole Mac's for the Desktop.")
             }
             Stats.shared.startPrinting()
         } catch {

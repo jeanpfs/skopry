@@ -41,7 +41,7 @@ streams), **Skopry for Android** (`android/`) and **Skopry for iPhone and iPad**
   HEVC with VideoToolbox, on the hardware video encoder in your Mac (or, while
   that is busy, in software). It captures nothing while no device is connected.
 - **The picture** goes over an encrypted connection (TLS 1.3) straight to the
-  Skopry app on your iPhone or iPad, which decodes and shows it. When the
+  Skopry app on your phone or tablet, which decodes and shows it. When the
   encoder or the link falls behind, Skopry drops frames rather than queue them,
   so the picture stays current.
 - **Your input** goes back the same way: taps and clicks, scrolls with
@@ -76,7 +76,7 @@ streams), **Skopry for Android** (`android/`) and **Skopry for iPhone and iPad**
   Over a USB cable, your Mac shows as Wired and the connection uses the cable.
   With no shared network, Direct Wireless Connection (off by default) connects
   over peer-to-peer Wi-Fi, the way AirDrop does.
-- **Pairing**: you pair each iPhone or iPad with your Mac once. Tap your Mac on
+- **Pairing**: you pair each device with your Mac once. Tap your Mac on
   the device, and your Mac shows a code: scan it, or type its 12 digits. Over
   a USB cable the device pairs by itself. From then on each end knows the
   other's key, and every connection, nearby or away, is pinned to those keys.

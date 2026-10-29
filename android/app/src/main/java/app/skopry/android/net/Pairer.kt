@@ -73,7 +73,7 @@ object Pairer {
             val r = PairResult.parse(msg.payload) ?: return AskOutcome.Refused("${found.serviceName}’s answer couldn’t be read.")
             return when (r.reason) {
                 "shown" -> AskOutcome.Shown(conn.macFingerprint)
-                "openOnMac" -> AskOutcome.Refused("In Skopry on ${found.serviceName}, choose Pair iPhone or iPad…, then tap it again.")
+                "openOnMac" -> AskOutcome.Refused("In Skopry on ${found.serviceName}, choose Pair a Device…, then tap it again.")
                 "locked" -> AskOutcome.Refused("Unlock ${found.serviceName}, then tap it again.")
                 "busy" -> AskOutcome.Refused("${found.serviceName} is pairing another device. Try again in a minute.")
                 "closed" -> AskOutcome.Refused(if (cancel) "Cancelled." else "${found.serviceName} isn’t taking pairing requests right now.")
@@ -154,12 +154,12 @@ object Pairer {
     /** Kind 20's refusals in this device's words (PairResult.knownReasons), else the Mac's own. */
     private fun refusal(r: PairResult): String = when (r.reason) {
         "code" -> "That code didn’t match." + (r.triesLeft?.let { " $it ${if (it == 1) "try" else "tries"} left." } ?: "")
-        "closed" -> "The Mac isn’t showing a pairing code. In Skopry on the Mac, choose Pair iPhone or iPad…"
+        "closed" -> "The Mac isn’t showing a pairing code. In Skopry on the Mac, choose Pair a Device…"
         "expired" -> "That code expired. Choose New Code on the Mac."
         "stopped" -> "The Mac stopped pairing after too many wrong codes. Open its pairing window again."
         "busy" -> "The Mac is busy." + (r.retryAfter?.let { " Try again in ${it.toInt().coerceAtLeast(1)} s." } ?: " Try again shortly.")
         "locked" -> "Unlock the Mac, then try again."
-        "shown", "openOnMac" -> "Choose Pair iPhone or iPad… in Skopry on the Mac, then enter its code."
+        "shown", "openOnMac" -> "Choose Pair a Device… in Skopry on the Mac, then enter its code."
         else -> r.message?.let { SafeText.label(it, 300) }?.takeIf { it.isNotEmpty() } ?: "The Mac refused (${r.reason ?: "no reason"})."
     }
 }

@@ -14,10 +14,10 @@ mais ambiciosa da lista e a que mais mexe na segurança, então vem por último 
 ## Já no Skopry
 
 ### Feito agora
-- **Som do Mac no Android (beta).** O som do que está tocando no Mac (o do app da janela que você vê,
+- **Som do Mac no Android.** O som do que está tocando no Mac (o do app da janela que você vê,
   ou o de todo o Mac na mesa de trabalho) sai no celular junto com a imagem. O som não é gravado: é
   captado pelo macOS e enviado direto. O Mac segue tocando também. Nas Configurações do Mac ("Send
-  Audio (Beta)") e nas do Android ("Sound › Send Audio") há a chave, desligada de fábrica, e o Android
+  Audio") e nas do Android ("Sound › Send Audio") há a chave, desligada de fábrica, e o Android
   tem o botão **Mute**, só dele. O iPhone e o iPad ainda não tocam o som.
 - **Inverter a rolagem (Android).** Uma chave nas Configurações vira ao contrário o sentido da rolagem
   feita com o dedo, na tela e no trackpad, e também a rolagem que continua depois que você solta. A

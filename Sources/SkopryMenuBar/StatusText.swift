@@ -44,7 +44,7 @@ struct StatusPresentation: Equatable {
     /// Under the menu's Remote Access… item: "Off", "On · Tailscale"… Nil on a host without
     /// remote access (no item then).
     var remoteAccessNote: String?
-    /// Pair iPhone or iPad… can open a pairing window (the Mac has an identity).
+    /// Pair a Device… can open a pairing window (the Mac has an identity).
     var canPair = false
     /// Every connected device is away from home, so the away quality is the target: the menu's
     /// Quality subtitle says so (docs/remote-bundle-plan.md §5.7).
@@ -96,7 +96,7 @@ enum StatusText {
         let request = pairingRequest(s.remote, now: now)
         if let request { attention.append(request) }
         if let at = s.remote?.olderDeviceAt, now.timeIntervalSince(at) < olderDeviceShownFor {
-            attention.append(.init(title: "An iPhone or iPad Needs Skopry Updated", subtitle: "It tried to connect with an older Skopry.",
+            attention.append(.init(title: "A Device Needs Skopry Updated", subtitle: "It tried to connect with an older Skopry.",
                                    action: .none))
         }
         let homeDoorClosed = homeDoorUnavailable(s.remote)
@@ -213,7 +213,7 @@ enum StatusText {
             return ("\(connected) Connected", "Pick a window on the device to start streaming.")
         }
         if case .advertising(let name) = s.network {
-            return ("Waiting for a Device", "Open Skopry on your iPhone or iPad. This Mac appears as “\(name)”.")
+            return ("Waiting for a Device", "Open Skopry on your phone or tablet. This Mac appears as “\(name)”.")
         }
         return ("Waiting for a Device", "Registering on the local network…")
     }

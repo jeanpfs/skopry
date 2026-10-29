@@ -174,7 +174,7 @@ do {
 
 do {
     // Send Audio is a device's to set too, as Quality is (Noah, 2026-10-27: docs/audio-plan.md, Q8 as
-    // revised; the beta's hosts refused it): a device's change of it is applied on or off, at home and
+    // revised): a device's change of it is applied on or off, at home and
     // away, with the rest of the same change and nothing refused; it lands on the one shared value from
     // either route (`applying`, `applyingAway`), never on a quality pair; the log names it both ways;
     // and a device sees it, whichever pair its connection controls.

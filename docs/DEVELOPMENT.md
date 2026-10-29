@@ -83,7 +83,7 @@ rate, frame age, round trip and how it is connected ("Wired", "Wi-Fi" or
 "Direct"; from away, "through Tailscale" or "over the internet"), and what is
 streaming; it holds the
 virtual display, frame rate, quality and resolution controls, Direct Wireless
-Connection, Remote Access… and Pair iPhone or iPad… (see Pairing at home and
+Connection, Remote Access… and Pair a Device… (see Pairing at home and
 Remote access below), Launch at Login, Permissions, Show Log… and Settings…
 (⌘,). Settings › Devices lists the paired devices, with Require pairing.
 Changes apply at once; a change to a streaming setting restarts the current
@@ -695,7 +695,7 @@ connect (TLS 1.3, each end pinned to the other's key).
    device will use: your Tailscale address and its MagicDNS name, another VPN,
    this network's address.
 2. Pair each device once, at home or away (a device already paired at home is
-   paired for this too): Pair iPhone or iPad… in the Skopry menu shows a QR code
+   paired for this too): Pair a Device… in the Skopry menu shows a QR code
    and a 12-digit code for five minutes. On the device, tap Add a Mac… at the
    bottom of the connect screen and point it at the code, or choose Enter Code
    Instead and type the address and the code the window shows. With Tailscale,

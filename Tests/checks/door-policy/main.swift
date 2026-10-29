@@ -231,7 +231,7 @@ check("handshake: an older Skopry's plain bytes (-9836) at home count toward no 
       D.handshakeRefusal(.home, status: -9836) == .olderSkopry && D.handshakeRefusal(.home, status: -9858) == .refused("unpaired"))
 check("handshake: the remote door keeps -9836 as unpaired, toward the backoff (unchanged)", D.handshakeRefusal(.remote, status: -9836) == .refused("unpaired"))
 
-// The menu's "An iPhone or iPad Needs Skopry Updated" (the security review, 2026-09-27): a TLS 1.2
+// The menu's "A Device Needs Skopry Updated" (the security review, 2026-09-27): a TLS 1.2
 // client fails with -9836 too, but tries once; an older Skopry tries again and again (a tap, then its
 // reconnect every 2 to 10 s). The item waits for a source's third plain try within a minute.
 check("older Skopry: 3 tries in 60 s", D.olderSkopryTries == 3 && D.olderSkoprySpan == 60)

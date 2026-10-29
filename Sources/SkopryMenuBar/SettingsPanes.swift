@@ -308,16 +308,16 @@ private struct StreamingPane: View {
             } footer: {
                 Footnote("Lower latency when the Mac is busy, at a softer picture.")
             }
-            // The Mac's sound (docs/audio-plan.md §6), a beta: its switch and its footnote say so. A device's
+            // The Mac's sound (docs/audio-plan.md §6): its switch and its footnote. A device's
             // Settings panel turns it on and off too, for every device, and mutes it for that device alone
             // (Q8 as revised).
             Section {
-                Toggle("Send audio (beta)", isOn: $settings.config.sendAudio)
+                Toggle("Send audio", isOn: $settings.config.sendAudio)
                 if settings.config.sendAudio, let problem = model.coordinator?.status.snapshot.audio?.problem {
                     Warning("Skopry \(problem). The picture is unaffected.")
                 }
             } footer: {
-                Footnote("Beta. Devices play the sound of what you stream: all of the streamed window’s app, or every app for the Desktop. The Mac keeps playing it too. A connected iPhone or iPad can also turn this on or off from Skopry’s settings there, and mute it for itself alone. Nothing is recorded.")
+                Footnote("Devices play the sound of what you stream: all of the streamed window’s app, or every app for the Desktop. The Mac keeps playing it too. A connected device can also turn this on or off from Skopry’s settings there, and mute it for itself alone. Nothing is recorded.")
             }
             if let snapshot = model.coordinator?.status.snapshot, snapshot.softwareEncoder {
                 Section {
@@ -406,12 +406,12 @@ private struct PermissionsPane: View {
             Section {
                 PermissionRow(title: "Screen Recording", allowed: permissions.screenRecording,
                               // Not "on this network": a device connected over Direct Wireless shares none.
-                              explanation: "Lets Skopry capture the windows you pick on your iPhone or iPad, and their sound when Send Audio is on. Nothing is recorded or saved; frames and sound go straight to your devices.",
+                              explanation: "Lets Skopry capture the windows you pick on your phone or tablet, and their sound when Send Audio is on. Nothing is recorded or saved; frames and sound go straight to your devices.",
                               button: model.settings.askedScreenRecording ? "Open System Settings…" : "Allow…") {
                     permissions.requestScreenRecording()
                 }
                 PermissionRow(title: "Accessibility", allowed: permissions.accessibility,
-                              explanation: "Lets your iPhone or iPad click, scroll and type on this Mac, and lets Skopry move and size the window it streams.",
+                              explanation: "Lets your phone or tablet click, scroll and type on this Mac, and lets Skopry move and size the window it streams.",
                               button: model.settings.askedAccessibility ? "Open System Settings…" : "Allow…") {
                     permissions.requestAccessibility()
                 }
@@ -431,13 +431,13 @@ private struct PermissionsPane: View {
                         Button("Open Local Network…") { permissions.openPrivacyPane("Privacy_LocalNetwork") }
                     } label: {
                         Text("Local Network")
-                        Text("If your iPhone or iPad can’t find this Mac, allow Skopry in Privacy & Security › Local Network.")
+                        Text("If your phone or tablet can’t find this Mac, allow Skopry in Privacy & Security › Local Network.")
                     }
                 }
             }
             if permissions.allGranted {
                 Section {
-                    Label("You’re all set. Open Skopry on your iPhone or iPad.", systemImage: "checkmark.seal.fill")
+                    Label("You’re all set. Open Skopry on your phone or tablet.", systemImage: "checkmark.seal.fill")
                 }
             }
         }

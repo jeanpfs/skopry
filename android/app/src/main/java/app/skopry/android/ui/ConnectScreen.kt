@@ -205,7 +205,7 @@ private fun AddMacCard(client: SkopryClient, expandedAtStart: Boolean) {
         }
         if (!expanded) return@Column
         Text(
-            "On your Mac, choose Pair iPhone or iPad… in Skopry’s menu. Scan its code, or type the address and the 12-digit code it shows.",
+            "On your Mac, choose Pair a Device… in Skopry’s menu. Scan its code, or type the address and the 12-digit code it shows.",
             color = SkopryColors.secondaryText, fontSize = 14.sp, lineHeight = 19.sp,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

@@ -245,7 +245,7 @@ package struct RemoteStatus: Equatable {
     package var pairingRequest: PairingRequest?
     /// When the home door last refused a source's third plain try within a minute (an older Skopry,
     /// DoorPolicy.olderSkopryTry: a TLS 1.2 client fails the same way, but once), for the menu's
-    /// "An iPhone or iPad Needs Skopry Updated" (10 minutes from it).
+    /// "A Device Needs Skopry Updated" (10 minutes from it).
     package var olderDeviceAt: Date?
 
     package init(remoteAccess: Bool = false, internetAccess: Bool = false, listener: Listener = .off, addresses: [MacAddress] = [],

@@ -25,7 +25,7 @@ MUTANTS = [
     ("AQ18 the clipboard's change unnamed", H + "HostConfig.swift", '        if shareClipboard != new.shareClipboard { parts.append("share clipboard \\(onOff(shareClipboard)) → \\(onOff(new.shareClipboard))") }\n', ""),
     ("AQ19 the clipboard's switch never stored", H + "HostConfig.swift", "        self.shareClipboard = shareClipboard\n", "        self.shareClipboard = true\n"),
     # Send Audio, a device's to set too (docs/audio-plan.md, Q8 as Noah revised it on 2026-10-27).
-    ("AQ20 a device's Send Audio dropped, as the beta's hosts did", H + "DeviceSettings.swift",
+    ("AQ20 a device's Send Audio dropped, as a host that refuses it would", H + "DeviceSettings.swift",
      "var ok = HostSettingsChange(prioritizeSpeed: c.prioritizeSpeed, sendAudio: c.sendAudio)",
      "var ok = HostSettingsChange(prioritizeSpeed: c.prioritizeSpeed)"),
     ("AQ21 a device's Send Audio named as refused", H + "DeviceSettings.swift", "        var refused: [String] = []\n",
